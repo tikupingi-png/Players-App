@@ -378,6 +378,16 @@
 
 .strip-tile { min-width: 0; justify-content: center; padding: 6px 4px; font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .m-chip { font-size: 9.5px; }
+/* P4k: the ☰ button floats over the create screen's avatar card – hide it while creating */
+body:has(#create-screen:not(.hide)) #menu-btn, body.creating #menu-btn { display: none !important; }
+#create-careers { display: block; margin: -4px auto 10px; background: transparent; border: 1px solid var(--line, #2a3340); color: var(--muted, #9aa4b2); border-radius: 999px; padding: 5px 14px; font-size: 12px; }
+.mm-risk.r1{color:#ffd54f}.mm-risk b{font-weight:700}
+#mm-flash{position:fixed;left:50%;top:calc(10px + env(safe-area-inset-top,0px));transform:translate(-50%,-30px);opacity:0;z-index:600;background:#11161d;border:1px solid #2a3340;border-radius:999px;padding:6px 12px 6px 6px;display:flex;align-items:center;gap:8px;max-width:calc(100vw - 24px);box-shadow:0 6px 24px rgba(0,0,0,.5);transition:opacity .25s,transform .25s;pointer-events:none;font-size:12.5px}
+#mm-flash.show{opacity:1;transform:translate(-50%,0)}
+#mm-flash .mm-flash-t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text,#e8edf2)}
+.mm-tip{margin-top:6px;font-size:12px;color:var(--text,#e8edf2);background:rgba(255,255,255,.05);border-radius:8px;padding:6px 8px}
+.mm-head-line{font-weight:800;font-size:14px;margin:6px 0 2px;font-family:Georgia,serif}
+.mm-quote{font-style:italic;color:var(--accent2,#7fd4ff);font-size:12.5px;margin:2px 0 6px}
 </style>
 <body>
 <button id="menu-btn" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -393,6 +403,7 @@
 
 <div id="create-screen"><div id="create-scroll">
   <h1>Create Your Player</h1>
+  <button id="create-careers" type="button" onclick="document.getElementById('menu-btn').onclick()">☰ My careers</button>
   <p>Design your player, then pick a first name and where you're born. Your last name and backstory are decided by fate.</p>
   <div id="create-avatar"></div>
   <div class="lbl">First name</div>
@@ -1302,9 +1313,10 @@ function skillBonus(node) {
   return best;
 }
 function pctHtml(o) {
-  if (!hasMV()) return "";
   if (o.base >= 100) return `<span class="opt-pct" style="color:#00e676">SAFE</span>`;
   const c = Math.round(chance(o.base, o.node) * 100), col = c >= 60 ? "#00e676" : c >= 35 ? "#ff9100" : "#ff5252";
+  // without Meta Vision: a rough band (safe / normal / risky); Meta Vision shows the exact %
+  if (!hasMV()) return `<span class="opt-pct" style="color:${col}">${c >= 60 ? "SAFE · 60%+" : c >= 35 ? "NORMAL · 35–60%" : "RISKY · <35%"}</span>`;
   const sym = (o.node ? skillBonus(o.node).sym : "") + (S.template && S.template.node === o.node ? "👑" : "");
   return `<span class="opt-pct" style="color:${col}">${sym} ${c}%</span>`;
 }
@@ -1990,7 +2002,7 @@ async function playGame(g, sim) {
       pre += `<div class="md-h" style="margin-top:6px">Matchday ${g.md} fixtures</div>` + mds[g.md - 1].map(m => `<div class="hl" style="font-size:12px">${m.h === me || m.a === me ? "<b>" : ""}${esc(m.h)} vs ${esc(m.a)}${m.h === me || m.a === me ? "</b>" : ""}</div>`).join("");
       const pos = tablePos(); if (g.md > 1) pre += `<p style="margin-top:6px">${esc(me)} are <b>${ordinal(pos)}</b> in the table.</p>`; }
     if (g.preNote) pre = g.preNote + pre;
-    await showDecision(`📅 ${esc(me)} vs ${esc(opp)}`, "", [{ label: "⚽ Kick off", rec: true }, { label: "⏩ Sim match", effect: () => { QUICK_MATCH = true; } }], { html: pre, top: kitVs(g) });
+    await showDecision(`📅 ${esc(me)} vs ${esc(opp)}`, "", [{ label: "⚽ Kick off", rec: true }].concat(g.isKey ? [] : [{ label: "⏩ Sim match", effect: () => { QUICK_MATCH = true; } }]), { html: pre, top: kitVs(g) });
   }
   const res = { hg: g.fx[0], ag: g.fx[1], played: false, rating: null, goals: 0, assists: 0, log: [], st: {} };
   const picked = Math.random() <= selectChance();
@@ -3122,17 +3134,24 @@ function legacyScore(st) {
 }
 const legacyTier = sc => LEGACY_TIERS[tierIdx(sc)];
 YEAR_HOOKS.push(async () => { S.peakOvr = Math.max(S.peakOvr || 0, S.ovr); S.fame = Math.min(100, Math.round(legacyScore() / 30)); });
-// one row per stint, in order: consecutive seasons at the same club merge; a mid-season switch starts the new stint where the old one ended (no overlaps)
-function clubHistory() { const raw = []; S.seasons.slice().sort((a, b) => (a.age ?? 0) - (b.age ?? 0)).forEach(s => { const age = s.age ?? (s.year - S.birthYear), last = raw[raw.length - 1];
-  if (last && last.club === s.club) { last.to = age; } else raw.push({ club: s.club, from: age, to: age, apps: 0, goals: 0, assists: 0, loan: false });
-  const c = raw[raw.length - 1]; c.apps += s.apps || 0; c.goals += s.goals || 0; c.assists += s.assists || 0; if (s.loan) c.loan = true; });
-  // drop blips: stints inside a single season with 0 appearances (unless it's the only one); then merge the same club again within a 1-year gap
-  const kept = raw.filter(c => !(c.apps === 0 && c.from === c.to && raw.length > 1)), out = [];
-  const merge = (o, c) => { o.to = Math.max(o.to, c.to); o.apps += c.apps; o.goals += c.goals; o.assists += c.assists; o.loan = o.loan || c.loan; };
-  (kept.length ? kept : raw).forEach(c => { const last = out[out.length - 1], prev = out[out.length - 2];
+// one row per stint, strictly in time order with no overlaps (P4k rewrite):
+// 1) season rows in the order they were recorded (a mid-season move records a half row first), consecutive same-club rows merge
+// 2) hops are dropped: stints of 1–2 apps lasting under half a season, and 0-app stints shorter than a season (unless nothing else is left)
+// 3) the same club either side of a dropped hop / short loan (≤1 season) merges back into one stint; the loan is noted on it
+function clubHistory() { const rows = S.seasons.map((s, i) => ({ s, i, age: s.age ?? (s.year - S.birthYear) })).sort((a, b) => a.age - b.age || a.i - b.i);
+  const raw = []; rows.forEach(({ s, age }) => { const last = raw[raw.length - 1], len = s.half ? 0.5 : 1;
+    if (last && last.club === s.club) { last.to = Math.max(last.to, age); last.len += len; } else raw.push({ club: s.club, from: age, to: age, len, apps: 0, goals: 0, assists: 0, loan: false, loans: [] });
+    const c = raw[raw.length - 1]; c.apps += s.apps || 0; c.goals += s.goals || 0; c.assists += s.assists || 0; if (s.loan) c.loan = true; });
+  const hop = c => (c.apps <= 2 && c.apps > 0 && c.len <= 0.5) || (c.apps === 0 && c.len < 1);
+  let kept = raw.filter(c => !hop(c)); if (!kept.length) kept = raw.slice(0, 1);
+  const merge = (o, c) => { o.to = Math.max(o.to, c.to); o.len += c.len; o.apps += c.apps; o.goals += c.goals; o.assists += c.assists; o.loans = o.loans.concat(c.loans); };
+  const out = [];
+  kept.forEach(c => { const last = out[out.length - 1], prev = out[out.length - 2];
     if (last && last.club === c.club) merge(last, c);
-    else if (prev && prev.club === c.club && c.from - prev.to <= 1 && last.from === last.to) merge(prev, c); // back from a short spell: one stint, the spell stays listed
-    else out.push({ ...c }); });
+    else if (prev && prev.club === c.club && last.loan && last.len <= 1) { out.pop(); prev.loans.push(last.club); prev.apps += 0; merge(prev, c); } // back from a short loan: one stint, the loan noted
+    else out.push({ ...c, loans: c.loans.slice() }); });
+  // no overlaps: a stint never starts before the previous one ended
+  for (let k = 1; k < out.length; k++) { if (out[k].from < out[k - 1].to) out[k].from = out[k - 1].to; if (out[k].to < out[k].from) out[k].to = out[k].from; }
   return out; }
 const uniqueSeasons = () => new Set(S.seasons.map(s => s.age ?? s.year)).size;
 const mainClub = () => clubHistory().filter(c => !/Athletic$|United$|Academy$/.test(c.club) || true).sort((a, b) => b.apps - a.apps)[0];
@@ -3143,7 +3162,7 @@ function legacyHtml(final) {
   const sec = (h, b) => card(h, b);
   let html = `<div class="nice-card" style="text-align:center;border-color:#ffd600"><div style="width:90px;height:108px;margin:0 auto">${avatarSVG(S.avatar, true)}</div><h3>${esc(S.name)}</h3><p style="color:var(--muted);font-size:12px">${esc(backstoryName())} • ${esc(S.nationality)}</p><div style="font-size:30px;font-weight:900;color:#ffd600;margin-top:4px">${sc.toLocaleString()}</div><div class="badge" style="background:#ffd600;color:#000">${["", "🏘️", "💙", "🏛️", "🌍", "🌟", "👑", "🐐"][t]} ${LEGACY_TIERS[t]}</div>${badges.length ? `<p style="margin-top:6px;font-size:12px">${badges.map(esc).join(" • ")}</p>` : ""}</div>`;
   html += sec("📊 Career", `<p>Apps <b>${S.stats.apps}</b> (pro ${S.stats.proApps || 0}) • Goals <b>${S.stats.goals}</b> • Assists <b>${S.stats.assists}</b>${S.position === "GK" ? ` • CS <b>${S.stats.cleanSheets || 0}</b>` : ""}</p><p>Peak OVR <b>${Math.max(S.peakOvr || 0, S.ovr)}</b> • Seasons ${uniqueSeasons()}${S.intl ? ` • Caps <b>${S.intl.caps || 0}</b> (${S.intl.goals || 0} goals)` : ""}</p>`);
-  html += sec("🏟️ Clubs", clubHistory().map(c => `<div class="hl" style="font-size:12px">${kitSwatch(clubKit(c.club).home, 16)} <b>${esc(c.club)}</b>${c.loan ? " (loan)" : ""} • age ${c.from}–${c.to} • ${c.apps} apps, ${c.goals}G ${c.assists}A</div>`).join("") || "<p style='color:var(--muted)'>No clubs yet.</p>");
+  html += sec("🏟️ Clubs", clubHistory().map(c => `<div class="hl" style="font-size:12px">${kitSwatch(clubKit(c.club).home, 16)} <b>${esc(c.club)}</b>${c.loan ? " (loan)" : ""} • age ${c.from === c.to ? c.from : c.from + "–" + c.to}${c.loans && c.loans.length ? ` <span style="color:var(--muted)">(loan: ${esc([...new Set(c.loans)].join(", "))})</span>` : ""} • ${c.apps} apps, ${c.goals}G ${c.assists}A</div>`).join("") || "<p style='color:var(--muted)'>No clubs yet.</p>");
   html += sec("🏆 Trophies", Object.keys(cnt).length ? Object.entries(cnt).map(([n, k]) => `<div class="hl">🏆 ${esc(n)}${k > 1 ? ` ×${k}` : ""}</div>`).join("") : "<p style='color:var(--muted)'>None yet.</p>");
   html += sec("🎖️ Awards", (S.awards || []).length ? S.awards.map(a => `<div class="hl" style="font-size:12px">${esc(a)}</div>`).join("") : "<p style='color:var(--muted)'>None yet.</p>");
   const kids = S.people.filter(p => p.child), pt = S.people.find(p => p.cat === "partner");
@@ -4166,10 +4185,10 @@ const BIZ_TYPES = [
   { k: "cafe", ic: "☕", name: "Hometown café", tier: 1, price: 60e3, fame: 0, fm: 0.35, rv: 0.40, up: 0.375 },
   { k: "barber", ic: "💈", name: "Barbershop", tier: 1, price: 110e3, fame: 0, fm: 0.45, rv: 0.40, up: 0.37 },
   { k: "boots", ic: "👟", name: "Boot shop", tier: 1, price: 190e3, fame: 5, fm: 0.8, rv: 0.40, up: 0.365 },
-  { k: "rest", ic: "🍝", name: "Restaurant chain", tier: 2, price: 1.8e6, fame: 15, fm: 0.7, rv: 0.41, up: 0.375 },
-  { k: "brand", ic: "🏷️", name: "Sports brand", tier: 3, price: 7e6, fame: 22, fm: 1.4, rv: 0.41, up: 0.385 },
-  { k: "night", ic: "🪩", name: "Nightclub", tier: 4, price: 18e6, fame: 35, fm: 1.0, rv: 0.43, up: 0.395 },
-  { k: "hotel", ic: "🏨", name: "Hotel", tier: 5, price: 55e6, fame: 42, fm: 0.7, rv: 0.37, up: 0.335 },
+  { k: "rest", ic: "🍝", name: "Restaurant chain", tier: 2, price: 1.8e6, fame: 15, fm: 0.7, rv: 0.40, up: 0.375 },
+  { k: "brand", ic: "🏷️", name: "Sports brand", tier: 3, price: 7e6, fame: 22, fm: 1.4, rv: 0.40, up: 0.385 },
+  { k: "night", ic: "🪩", name: "Nightclub", tier: 4, price: 18e6, fame: 35, fm: 1.0, rv: 0.42, up: 0.395 },
+  { k: "hotel", ic: "🏨", name: "Hotel", tier: 5, price: 55e6, fame: 42, fm: 0.7, rv: 0.36, up: 0.335 },
   { k: "fc", ic: "🏟️", name: "Your own football club", tier: 6, price: 150e6, fame: 40, fm: 1.1, rv: 0.30, up: 0.28 }
 ];
 const BIZ_TIER = ["", "Starter", "Growing", "Brand", "Nightlife", "Hospitality", "Football"];
@@ -4224,7 +4243,7 @@ function bizBoost() { const y = curYear(); let tr = 0;
   try { tr = careerTrophies().filter(t => S.age - t.age <= 2 && !t.youth && !/Youth|U\d/.test(t.name)).length; } catch (e) {}
   const mv = (S.myMoves || []).filter(m => y - m.y <= 1 && m.kind !== "loan").reduce((a, m) => Math.max(a, m.fee || 0), 0);
   const tb = Math.min(0.2, tr * 0.04), xb = mv >= 80e6 ? 0.15 : mv >= 30e6 ? 0.08 : 0; return { tr, tb, xb, mv, total: 1 + tb + xb }; }
-const fameMult = T => 1 + ((S.fame || 0) / 100) * T.fm * 0.25;
+const fameMult = T => 1 + (Math.min(60, S.fame || 0) / 100) * T.fm * 0.25; // fame boosts income up to fame 60 (star power beyond that opens doors, not tills)
 // ---------- managers ----------
 function personMgr(p) { p.bizSkill = p.bizSkill || 25 + (hashStr(p.id + p.name) % 60); return { kind: p.cat === "family" ? "family" : p.cat === "partner" ? "partner" : "friend", pid: p.id, name: p.name, skill: p.bizSkill, loyalty: clamp(Math.round(p.closeness * 0.8 + 20)), salary: 0 }; }
 function selfMgr() { const n = S.biz ? S.biz.list.filter(b => b.mgr && b.mgr.kind === "self").length : 0; const sk = (S.retired || !S.pro ? S.smarts * 0.85 + 10 : S.smarts * 0.55 + 5) - Math.max(0, n - 1) * 6; return { kind: "self", name: "You", skill: clamp(Math.round(sk), 10, 95), loyalty: 100, salary: 0 }; }
@@ -4288,14 +4307,18 @@ async function bizYear() {
   B.yearDelta = Math.round(fin(S.money) - before); recordNW(); richList();
 }
 function recordNW() { const B = S.biz; B.nw = (B.nw || []).filter(x => x.a !== S.age).concat([{ a: S.age, v: Math.round(nwTotal()) }]).slice(-60); }
-async function solvency() { const B = S.biz; if (S.money >= 0) { B.debtYears = 0; return; } const debt = -S.money, loanBal = B.loans.reduce((a, l) => a + l.bal, 0), assets = nwTotal() + debt + loanBal;
+// debt years only clear after a real recovery (year-end cash covers every non-mortgage loan, or two positive year-ends in a row). Cash that is briefly positive after a forced sale just pauses the count.
+const netCashAfterLoans = () => fin(S.money) - (S.biz.loans || []).filter(l => l.kind !== "mortgage").reduce((a, l) => a + fin(l.bal), 0);
+const recovered = B => (B.okYears = (B.okYears || 0) + 1) >= 2 || netCashAfterLoans() >= 0; // two positive year-ends in a row, or cash covers the loans
+async function solvency() { const B = S.biz; if (S.money >= 0) { if (!B.debtYears || recovered(B)) { B.debtYears = 0; B.okYears = 0; } return; } B.okYears = 0; const debt = -S.money, loanBal = B.loans.reduce((a, l) => a + l.bal, 0), assets = nwTotal() + debt + loanBal;
   const interest = Math.round(debt * 0.1); S.money -= interest; B.debtYears = (B.debtYears || 0) + 1; bizLog(`🏦 You're ${money(debt)} overdrawn (year ${B.debtYears}). Interest: ${money(-interest)}.${loanBal ? ` Loans outstanding: ${money(loanBal)}.` : ""}`, "🏦 In debt");
+  if (B.debtYears >= 4) { await bankruptcy(); return; } // a fourth year in the red (without a real recovery in between): formal bankruptcy
   if (B.debtYears >= 2 && B.lux.length) { const sold = []; while (S.money < 0 && B.lux.length) { B.lux.sort((a, b) => b.value - a.value); const l = B.lux.shift(), v = Math.round(l.value * 0.6); S.money += v; sold.push(`${luxT(l.k).n} (${money(v)})`); }
     bizLog(`🚨 Two years in the red: the bank forces you to sell your luxury: ${sold.join(", ")}.`, "🚨 Forced sale"); syncLuxFame(); }
   // still in the red after three years but asset-rich: the bank makes you sell the cheapest business/property that clears the debt (85% of value) instead of bankrupting you
   if (S.money < 0 && B.debtYears >= 3 && assets - loanBal > 3 * -S.money) { const pool = [...B.list.filter(x => x.k !== "fc"), ...B.props].sort((x, y) => x.value - y.value); const x = pool.find(q => q.value * 0.85 >= -S.money) || pool[pool.length - 1];
     if (x) { const v = Math.round(fin(x.value) * 0.85); if (B.list.includes(x)) B.list.splice(B.list.indexOf(x), 1); else B.props.splice(B.props.indexOf(x), 1); settleLoans(x.id); S.money += v; bizLog(`🚨 ${B.debtYears} years overdrawn: the bank forced the sale of ${x.name} for ${money(v)}.`, "🚨 Forced sale"); } }
-  if (S.money < 0 && (-S.money > Math.max(100e3, (assets - loanBal) * 0.3) || assets - loanBal <= 0 || B.debtYears >= 4)) await bankruptcy(); if (S.money >= 0) B.debtYears = 0; }
+  if (S.money < 0 && (-S.money > Math.max(100e3, (assets - loanBal) * 0.3) || assets - loanBal <= 0 || B.debtYears >= 4)) await bankruptcy(); }
 async function bankruptcy() { const B = S.biz, sold = []; const sell = (arr, f, label) => { while (S.money < 0 && arr.length) { const x = arr.shift(); const v = Math.round(fin(x.value) * f); S.money += v; settleLoans(x.id); sold.push(`${label(x)} (${money(v)})`); } };
   sell(B.lux, 0.5, l => luxT(l.k).n);
   Object.keys(B.sh).forEach(s => { if (S.money < 0 && B.sh[s].n > 0) { const v = Math.round(B.sh[s].n * px(s) * 0.95); S.money += v; sold.push(`${s} shares (${money(v)})`); B.sh[s] = { n: 0, cost: 0 }; } });
@@ -4411,21 +4434,29 @@ function propMode(id, mode) { if (busyNow()) return; const p = S.biz.props.find(
   p.mode = mode; renderMoney("prop"); }
 function sellProp(id) { if (busyNow()) return; const p = S.biz.props.find(x => x.id === id); if (!p) return; const got = Math.round(p.value * 0.97); if (!confirmSafe(`Sell your ${p.name} for ${money(got)}?`)) return;
   S.biz.props = S.biz.props.filter(x => x !== p); S.money += got; settleLoans(p.id); bizLog(`🏷️ Sold your ${p.name} for ${money(got)} (${got - p.paid >= 0 ? "profit" : "loss"} ${money(got - p.paid)}).`, "🏷️ Property sold"); renderMoney("prop"); }
+// luxury can't be bought with borrowed money: free cash = cash − non-mortgage loans − borrowed-but-unspent equity release
+const borrowedUnspent = () => { const B = S.biz; return Math.max(0, Math.min(fin(B.borrowed), (B.loans || []).filter(l => l.cashOut).reduce((a, l) => a + fin(l.bal), 0))); };
+const freeCash = () => Math.round(fin(S.money) - (S.biz.loans || []).filter(l => l.kind !== "mortgage").reduce((a, l) => a + fin(l.bal), 0) - borrowedUnspent());
 function buyLux(k) { if (busyNow()) return; const T = luxT(k); if (S.age < 18) { toast("🔒 Age 18+"); return; } if (S.money < 0 || (S.biz.debtYears || 0) > 0) { toast("🔒 Clear your debt before buying luxury"); return; } if (S.money < T.price) { toast(`Needs ${money(T.price)}`); return; }
+  if (freeCash() < T.price) { toast(`🔒 The bank won't fund luxury: only ${money(Math.max(0, freeCash()))} of your cash is your own (loans outstanding)`); return; }
   S.money -= T.price; S.biz.lux.push({ id: nid(), k, value: T.price, paid: T.price, since: S.age }); S.happiness = clamp(S.happiness + T.hap); syncLuxFame();
   bizLog(`${T.ic} You bought a ${T.n} for ${money(T.price)}. Upkeep: ${money(T.price * T.up)}/yr.`, `${T.ic} ${T.n}`); if (T.price >= 9e6) S.news.unshift(`${S.name} splashes ${money(T.price)} on a ${T.n.toLowerCase()}.`); renderMoney("lux"); }
 function sellLux(id) { if (busyNow()) return; const l = S.biz.lux.find(x => x.id === id); if (!l) return; const T = luxT(l.k), got = Math.round(l.value * 0.75); if (!confirmSafe(`Sell your ${T.n} for ${money(got)}?`)) return;
   S.biz.lux = S.biz.lux.filter(x => x !== l); S.money += got; syncLuxFame(); bizLog(`🏷️ Sold your ${T.n} for ${money(got)} (paid ${money(l.paid)}).`, "🏷️ Sold"); renderMoney("lux"); }
+// spending on businesses/property uses up borrowed cash first
+["buyBiz", "upgradeBiz", "buyProp"].forEach(fn => { const f = window[fn]; window[fn] = function (...a) { const m0 = S.money, r = f.apply(this, a); if (S.biz && S.money < m0 && S.biz.borrowed) S.biz.borrowed = Math.max(0, S.biz.borrowed - (m0 - S.money)); return r; }; });
 // ---------- bank loans & mortgages ----------
-const LOAN_KINDS = { mortgage: { n: "Mortgage", ic: "🏠", ltv: 0.75, rate: 0.045, years: 20 }, business: { n: "Business loan", ic: "🏪", ltv: 0.5, rate: 0.07, years: 8 }, club: { n: "Club purchase loan", ic: "🏟️", ltv: 0.6, rate: 0.06, years: 12 } };
+const LOAN_KINDS = { mortgage: { n: "Mortgage", ic: "🏠", ltv: 0.75, rate: 0.045, years: 20 }, business: { n: "Business loan", ic: "🏪", ltv: 0.55, rate: 0.07, years: 8 }, club: { n: "Club purchase loan", ic: "🏟️", ltv: 0.6, rate: 0.06, years: 12 } };
 const loanBal = () => (S.biz && S.biz.loans || []).reduce((a, l) => a + fin(l.bal), 0);
 function yearlyIncome() { const B = S.biz; let inc = S.pro && !S.retired && typeof wage === "function" ? wage() : 0;
   if (B) { inc += B.list.reduce((a, b) => a + Math.max(0, fin(b.last)), 0) + B.props.reduce((a, p) => a + Math.max(0, fin(p.last)), 0); } return Math.round(inc); }
-function creditLimit() { const debt = loanBal(), gross = Math.max(0, nwTotal() + debt); return Math.max(0, Math.round(0.45 * gross + 2.5 * yearlyIncome() - debt)); }
+function creditLimit() { const debt = loanBal(), gross = Math.max(0, nwTotal() + debt); return Math.max(0, Math.round(0.5 * gross + 3 * yearlyIncome() - debt)); }
 function loanTerms(kind, price) { const K = LOAN_KINDS[kind]; let rate = K.rate, via = "the bank";
   if (kind === "club" && S.pro && !S.retired) { const sp = sponsorOf(S.club); if (sp) { rate -= 0.01; via = `${sp.n} (your shirt sponsor)`; } }
-  if ((S.fame || 0) >= 60) rate -= 0.005; const blocked = S.money < 0 || (S.biz && S.biz.debtYears > 0) || S.age < 18;
-  return { kind, rate: +rate.toFixed(4), years: K.years, via, max: blocked ? 0 : Math.max(0, Math.min(Math.round(price * K.ltv), creditLimit())) }; }
+  if ((S.fame || 0) >= 60) rate -= 0.005; const ltv = loanLtv(kind); const blocked = S.money < 0 || (S.biz && S.biz.debtYears > 0) || S.age < 18;
+  return { kind, rate: +rate.toFixed(4), years: K.years, via, ltv, max: blocked ? 0 : Math.max(0, Math.min(Math.round(price * ltv), creditLimit())) }; }
+// famous players get bigger club loans: 60% → 65% at fame 45 → 70% at fame 55 (down payment 40% → 30%)
+function loanLtv(kind) { const K = LOAN_KINDS[kind], f = S.fame || 0; return kind === "club" ? (f >= 55 ? 0.7 : f >= 45 ? 0.65 : K.ltv) : K.ltv; }
 const annuity = (amt, r, n) => Math.round(amt * r / (1 - Math.pow(1 + r, -n)));
 function loanOffer(kind, price, amt) { const t = loanTerms(kind, price); if (amt == null) amt = Math.ceil((price - Math.max(0, S.money)) / 1000) * 1000; if (amt <= 0 || amt > t.max) return null; return { ...t, amt, pay: annuity(amt, t.rate, t.years) }; }
 function takeLoan(lo, ref, label) { const B = bizState(); B.loans.push({ id: nid(), kind: lo.kind, ref, label, amt: lo.amt, bal: lo.amt, rate: lo.rate, years: lo.years, pay: lo.pay, since: S.age, via: lo.via }); S.money += lo.amt;
@@ -4440,10 +4471,10 @@ function repayLoan(id) { if (busyNow()) return; const l = S.biz.loans.find(x => 
 // equity release: borrow against something you already own
 function borrowOn(ref) { if (busyNow()) return; const B = S.biz, p = B.props.find(x => x.id === ref), b = B.list.find(x => x.id === ref), it = p || b; if (!it || B.loans.some(l => l.ref === ref)) return;
   const kind = p ? "mortgage" : b.k === "fc" ? "club" : "business", t = loanTerms(kind, it.value), amt = Math.floor(Math.min(t.max, it.value * (p ? 0.6 : 0.4)) / 1000) * 1000; if (amt < 10e3) { toast("🔒 The bank says no"); return; }
-  const lo = loanOffer(kind, it.value, amt); if (!lo || !confirmSafe(`Borrow ${money(amt)} against ${it.name} (${(lo.rate * 100).toFixed(1)}%, ${lo.years} years, ${money(lo.pay)}/yr)?`)) return; takeLoan(lo, ref, it.name); renderMoney("loans"); }
+  const lo = loanOffer(kind, it.value, amt); if (!lo || !confirmSafe(`Borrow ${money(amt)} against ${it.name} (${(lo.rate * 100).toFixed(1)}%, ${lo.years} years, ${money(lo.pay)}/yr)?`)) return; takeLoan(lo, ref, it.name); B.loans[B.loans.length - 1].cashOut = true; B.borrowed = fin(B.borrowed) + amt; renderMoney("loans"); }
 function moneyLoans() { const B = S.biz, L = B.loans, lim = creditLimit(), inc = yearlyIncome(), pay = L.reduce((a, l) => a + l.pay, 0);
   let h = card("🏦 Bank", `<div class="m-row"><span>Outstanding</span><b style="color:${L.length ? "#ff5252" : "var(--text)"}">${money(loanBal())}</b></div><div class="m-row"><span>Repayments</span><b>${money(pay)}/yr</b></div><div class="m-row"><span>Yearly income (est.)</span><b>${money(inc)}</b></div><div class="m-row"><span>You can still borrow</span><b>${money(S.money < 0 || B.debtYears > 0 ? 0 : lim)}</b></div>
-    <p style="font-size:12px;color:var(--muted);margin-top:6px">Credit depends on your net worth and income. Mortgages cover up to 75% of a property, business loans 50%, a club purchase 60%. Repayments come out every year. Miss them and you go overdrawn: two years in the red forces a luxury sale, and it can end in bankruptcy.</p>${S.money < 0 || B.debtYears > 0 ? `<p style="color:#ff5252;font-size:12px">🔒 No new credit while you're overdrawn.</p>` : ""}`);
+    <p style="font-size:12px;color:var(--muted);margin-top:6px">Credit depends on your net worth and income. Mortgages cover up to 75% of a property, business loans 55%, a club purchase 60–70% (more if you are famous). Repayments come out every year. Miss them and you go overdrawn: two years in the red forces a luxury sale, and it can end in bankruptcy.</p>${S.money < 0 || B.debtYears > 0 ? `<p style="color:#ff5252;font-size:12px">🔒 No new credit while you're overdrawn.</p>` : ""}`);
   h += L.length ? L.map(l => card(`${LOAN_KINDS[l.kind].ic} ${LOAN_KINDS[l.kind].n}`, `<div class="m-row"><span>For</span><b>${esc(l.label || "–")}</b></div><div class="m-row"><span>Balance</span><b>${money(l.bal)} of ${money(l.amt)}</b></div><div class="m-bar"><div style="width:${Math.round((1 - l.bal / Math.max(1, l.amt)) * 100)}%;background:var(--accent)"></div></div><div class="m-row"><span>Rate • left</span><b>${(l.rate * 100).toFixed(1)}% • ${l.years} yrs</b></div><div class="m-row"><span>Repayment</span><b>${money(l.pay)}/yr</b></div><div class="m-row"><span>Lender</span><b>${esc(l.via || "the bank")}</b></div><div class="m-btns"><button class="m-btn" ${S.money < l.bal ? "disabled" : ""} onclick="repayLoan('${l.id}')">Pay off ${money(l.bal)}</button></div>`)).join("")
     : card("🏦 Your loans", `<p style="color:var(--muted);font-size:13px">No loans. When you can't pay cash for a business, property or your own club, the buy button offers a loan automatically.</p>`);
   const own = B.props.map(p => [p, "mortgage", p.value * 0.6]).concat(B.list.map(b => [b, b.k === "fc" ? "club" : "business", b.value * 0.4])).filter(([x]) => !L.some(l => l.ref === x.id));
@@ -4472,7 +4503,10 @@ function richList() { if (S.age < 17 || (!S.pro && nwTotal() < 1e6)) return; con
 // ---------- hooks: yearly, fame bonus, retirement life, inheritance ----------
 YEAR_HOOKS.push(async () => { if (S.biz || S.age >= 17) { if (!S.biz && S.age >= 17 && S.pro) richListLite(); await bizYear(); } });
 // fame is recomputed from legacy every year (the p4_legacy hook runs first), so luxury fame is re-added once, plus the event bonus
-YEAR_HOOKS.push(async () => { S.luxFameOn = 0; syncLuxFame(); const f = Math.min(5, S.fameBonus || 0); if (f) S.fame = Math.min(100, (S.fame || 0) + f); });
+// star power: a top player playing now is famous beyond his legacy score (OVR 88 ≈ +3, 90 ≈ +7, 95 ≈ +11); it fades ~15%/yr after retiring
+const starFame = () => S.pro && !S.retired && S.club ? Math.round(Math.max(0, S.ovr - 84) * 0.85 + (S.ovr >= 90 ? 2 : 0)) : Math.round((S.starFameLast || 0) * Math.pow(0.85, Math.max(0, S.age - (S.retiredAge || S.age))));
+YEAR_HOOKS.push(async () => { S.luxFameOn = 0; syncLuxFame(); const f = Math.min(5, S.fameBonus || 0); if (f) S.fame = Math.min(100, (S.fame || 0) + f);
+  const sf = starFame(); if (S.pro && !S.retired && S.club) S.starFameLast = sf; if (sf) S.fame = Math.min(100, (S.fame || 0) + sf); });
 function richListLite() { try { richList(); } catch (e) {} }
 // Life after football: AGE +1 keeps working after retirement (no club, season, transfers or contracts)
 async function retiredYear() {
@@ -4504,16 +4538,19 @@ continueLegacy = function (i) { const pb0 = S.biz ? JSON.parse(JSON.stringify(S.
   // the legacy screen hands the heir 20% of the cash; replace that with the whole estate
   S.money = Math.max(0, fin(S.money) - Math.round(cash * 0.2));
   const pb = pb0 || {}; const B0 = { list: pb.list || [], props: pb.props || [], lux: pb.lux || [], sh: pb.sh || {}, loans: pb.loans || [] };
-  let cashIn = cash; const tax = cashIn > INHERIT_FREE ? Math.round((cashIn - INHERIT_FREE) * INHERIT_TAX) : 0; cashIn -= tax;
+  // 10% tax on the whole estate above €1m, paid from the cash; if the cash can't cover it, trustees sell the cheapest assets (at value) until it can
+  let cashIn = cash; const tax = estate > INHERIT_FREE ? Math.round((estate - INHERIT_FREE) * INHERIT_TAX) : 0; cashIn -= tax; const taxSold = [];
+  if (pb0 && tax > 0 && cashIn < 0) { const pool = [...(pb.list || []).map(x => ["list", x]), ...(pb.props || []).map(x => ["props", x])].sort((x, y) => fin(x[1].value) - fin(y[1].value));
+    for (const [arr, x] of pool) { if (cashIn >= 0) break; const v = Math.round(fin(x.value)); pb[arr] = pb[arr].filter(q => q !== x); cashIn += v; (pb.loans || []).filter(l => l.ref === x.id).forEach(l => { cashIn -= fin(l.bal); }); pb.loans = (pb.loans || []).filter(l => l.ref !== x.id); taxSold.push(`${x.name} (${money(v)})`); } }
   if (!pb0 && cashIn <= 0) return;
   if (!pb0) { S.biz = null; bizState(); } else S.biz = pb;
   const B1 = bizState(); if (cashIn >= 0) { if (S.age < 18) B1.trust = fin(B1.trust) + cashIn; else S.money += cashIn; }
   else { const amt = -cashIn, lo = { kind: "business", rate: 0.05, years: 10, via: "the estate's creditors", amt }; lo.pay = annuity(amt, lo.rate, lo.years); B1.loans.push({ id: nid(), kind: "business", ref: null, label: "estate debts", amt, bal: amt, rate: lo.rate, years: lo.years, pay: lo.pay, since: S.age, via: lo.via }); cashIn = 0; }
-  B1.inherit = { from, estate: Math.round(estate), cash: Math.round(cash), tax, at: S.age };
+  B1.inherit = { from, estate: Math.round(estate), cash: Math.round(cash), tax, at: S.age, taxSold };
   if (!pb0) { bizLog(`🏛️ You inherit ${money(cashIn)} from ${from}${tax ? ` after ${money(tax)} inheritance tax` : ""}, held in trust until you turn 18.`, "🏛️ Inheritance"); recordNW(); updateHeader(); return; }
   const pbX = S.biz; pbX.list.forEach(b => { if (!b.mgr || b.mgr.kind !== "pro") b.mgr = { kind: "pro", name: `${natFirst("m")} ${S.surname === "" ? "" : pick((COUNTRIES[S.nationality] || COUNTRIES.England).surnames)}`.trim(), skill: R(55, 75), loyalty: R(65, 85), rate: 0.022 }; b.mgr.salary = proSalary(b.mgr, b); });
   pbX.props.forEach(p => { if (p.mode === "home") p.mode = "rent"; }); pbX.lastYear = null; pbX.pend = null; pbX.tip = null; pbX.rich = null; pbX.mkt = null; pbX.pros = null; pbX.nw = []; pbX.log = []; pbX.debtYears = 0;
-  const B = bizState(); bizLog(`🏛️ You inherit ${from}'s empire: ${B.list.length} businesses, ${B.props.length} properties, ${B.lux.length} luxury items and ${money(cashIn)} in cash${tax ? ` (after ${money(tax)} inheritance tax)` : ""}${B.loans.length ? `, plus ${money(loanBal())} of loans` : ""}. Trustees run it until you turn 18.`, "🏛️ Inheritance"); recordNW(); updateHeader(); };
+  const B = bizState(); bizLog(`🏛️ You inherit ${from}'s empire: ${B.list.length} businesses, ${B.props.length} properties, ${B.lux.length} luxury items and ${money(cashIn)} in cash${tax ? ` (after ${money(tax)} inheritance tax)` : ""}${B.loans.length ? `, plus ${money(loanBal())} of loans` : ""}. Trustees run it until you turn 18.`, "🏛️ Inheritance"); if (taxSold.length) bizLog(`🧾 Trustees sold ${taxSold.join(", ")} to pay the ${money(tax)} inheritance tax.`, "🧾 Inheritance tax"); recordNW(); updateHeader(); };
 const _legacyHtmlBiz = legacyHtml;
 legacyHtml = function (final) { let h = _legacyHtmlBiz(final); if (!S.biz) return h; const n = netWorth();
   return h + card("💰 Empire", `<p>Net worth <b>${money(n.total)}</b></p><p style="font-size:12px;color:var(--muted)">${S.biz.list.length} businesses • ${S.biz.props.length} properties • ${S.biz.lux.length} luxury items${S.biz.rich ? ` • Rich list #${S.biz.rich.rank}` : ""}</p>${S.biz.list.map(b => `<div class="hl" style="font-size:12px">${bizT(b.k).ic} ${esc(b.name)} • L${b.lvl} • ${money(b.value)}</div>`).join("")}`); };
@@ -4721,10 +4758,23 @@ function mmAutoPick(opts) { const val = o => ({ goal: 1.35, assist: 1.05, save: 
 function momentChip(l) { const T = MM_TIERS[l.tier] || MM_TIERS.neutral;
   return `<div class="mm-row"><span class="mm-chip" style="background:${T.col};color:${T.fg}">${T.lbl}</span><span class="mm-min">${l.minute}'</span><span class="mm-txt">${l.icon ? l.icon + " " : ""}${esc(l.text)}${l.ult ? " 🌟" : ""}</span></div>`; }
 const mmMini = log => log.length ? `<div class="mm-minis">${log.map(l => { const T = MM_TIERS[l.tier]; return `<span class="mm-mini" style="background:${T.col};color:${T.fg}">${l.minute}' ${T.lbl}</span>`; }).join("")}</div>` : "";
+// every option shows its style (safe / normal / risky) and a rough success band; Meta Vision shows the exact %
+function mmTag(o) { const c = Math.round(mmOptChance(o) * 100), K = [["🛡️ safe", "r0"], ["⚖️ normal", "r1"], ["🔥 risky", "r2"]][o.k] || ["⚖️ normal", "r1"];
+  const band = typeof hasMV === "function" && hasMV() ? `${c}%` : c >= 60 ? "60%+" : c >= 35 ? "35–60%" : "<35%", sym = typeof hasMV === "function" && hasMV() && o.n ? skillBonus(o.n).sym || "" : "";
+  return `<span class="mm-risk ${K[1]}">${K[0]} · <b>${sym}${band}</b></span>`; }
+// one-line crowd / teammate reaction, flashed with the outcome chip after each live decision
+const MM_REACT = { great: ["The crowd is on its feet!", "Teammates mob you.", "\"What a player!\" – the commentator", "The skipper roars your name."], good: ["Applause from the stands.", "Nice one – the manager nods.", "A teammate gives you a thumbs-up.", "The fans like that."],
+  neutral: ["A murmur from the crowd.", "Nothing doing – play on.", "The coach shrugs: next one.", "Polite claps."], poor: ["Groans around the ground.", "The manager shakes his head.", "A teammate throws his arms up.", "Whistles from the away end."],
+  mistake: ["The stadium goes silent.", "The manager kicks a water bottle.", "\"Wake up!\" – your captain", "The away fans are singing your name. Not nicely."] };
+function mmReact(out, m) { if (out.goal) return pick(["GOAL! The place erupts!", "GOAL! You sprint to the corner flag.", "GOAL! Teammates pile on top of you."]); if (out.assist) return pick(["Assist! The scorer points straight at you.", "Assist – the crowd chants your name."]);
+  if (out.conceded) return pick(["They score from it. Heads drop.", "Goal for them – the keeper glares at you."]); return pick(MM_REACT[out.tier] || MM_REACT.neutral); }
+function mmFlash(out) { if (typeof document === "undefined" || !document.body) return; let el = document.getElementById("mm-flash"); if (!el) { el = document.createElement("div"); el.id = "mm-flash"; document.body.appendChild(el); }
+  const T = MM_TIERS[out.tier]; el.innerHTML = `<span class="mm-chip" style="background:${T.col};color:${T.fg}">${T.lbl}</span><span class="mm-flash-t">${esc(out.react || "")}</span>`;
+  el.classList.remove("show"); void el.offsetWidth; el.classList.add("show"); clearTimeout(mmFlash._t); mmFlash._t = setTimeout(() => el.classList.remove("show"), 2400); }
 function mmApplyOutcome(acc, out, res, st) { const T = MM_TIERS[out.tier]; acc.rating += T.r * (out.rmul || 1) + (out.bonus || 0); acc.form += T.f; acc.mood += T.m;
   if (out.goal) res.goals++; if (out.assist) res.assists++; if (out.conceded) acc.conceded++; acc.swing += out.swing || 0;
   if (st) { const k = out.stat; if (k) st[k] = (st[k] || 0) + 1; }
-  res.log.push({ id: out.id, minute: out.minute, ok: out.tier === "great" || out.tier === "good", tier: out.tier, text: out.text, icon: out.icon, ult: out.ult, type: out.type }); }
+  res.log.push({ id: out.id, minute: out.minute, ok: out.tier === "great" || out.tier === "good", tier: out.tier, text: out.text, icon: out.icon, ult: out.ult, type: out.type, react: out.react }); }
 // resolve one option
 function mmResolve(m, o, minute, ultState) { const c = mmOptChance(o); let u = Math.random(), tier = mmTier(c, o.k, u), ult = false;
   if ((tier === "poor" || tier === "mistake" || tier === "neutral") && hasULT() && !ultState.used && o.n && ultimate().tags.includes(o.n)) { ultState.used = true; ult = true; u = Math.random(); tier = mmTier(c, o.k, u); }
@@ -4752,10 +4802,11 @@ MOMENTS_HOOK = async function (ctx) { const { g, sim, me, opp, res, st } = ctx;
     if (!out) { let opts = m.o.slice(); if (typeof hasX === "function" && hasX("metavision2")) opts = opts.concat([{ l: "👁️ Read the game", b: 76, k: 0, n: null, w: m.t === "chance" ? "assist" : "keep", y: "You saw it two seconds early.", x: "You read it – a teammate didn't.", read: true }]);
       let chosen;
       if (sim) chosen = mmAutoPick(opts);
-      else { const risk = o => o.k === 2 ? `<span class="mm-risk r2">🔥 risky</span>` : o.k === 0 ? `<span class="mm-risk r0">🛡️ safe</span>` : "";
+      else { opts = shuffle(opts.filter(o => !o.read), Math.random).concat(opts.filter(o => o.read)); // risky option isn't always first
+        const risk = o => mmTag(o);
         const html = `<div class="mm-head"><span class="mm-clock">${P.min}'</span><b>${esc(me)}</b> vs <b>${esc(opp)}</b>${key ? ` <span class="mm-key">🔑 KEY MATCH</span>` : ""}</div>${mmMini(res.log.filter(l => l.tier))}<p class="mm-text">${esc(m.text)}</p>`;
-        await showDecision(`${MM_TYPE_ICON[m.t]} ${m.title} • ${P.min}'`, "", opts.map(o => ({ label: o.l, right: (typeof pctHtml === "function" ? pctHtml({ base: o.b, node: o.n }) : "") + risk(o), effect: () => { chosen = o; } })), { html, top: g && typeof kitVs === "function" ? kitVs(g) : "" }); }
-      out = mmResolve(m, chosen, P.min, ultState); plan.done[k] = out;
+        await showDecision(`${MM_TYPE_ICON[m.t]} ${m.title} • ${P.min}'`, "", opts.map(o => ({ label: o.l, right: risk(o), effect: () => { chosen = o; } })), { html, top: g && typeof kitVs === "function" ? kitVs(g) : "" }); }
+      out = mmResolve(m, chosen, P.min, ultState); out.react = mmReact(out, m); plan.done[k] = out; if (!sim) mmFlash(out);
       if (g && !sim && typeof saveGame === "function") saveGame(); }
     mmApplyOutcome(acc, out, res, st); }
   // the moments' combined effect: soft-capped so one bad moment can't sink a match (each moment is at most -0.42, total floor -1.3)
@@ -4774,22 +4825,25 @@ selectChance = function () { return MM_FORCE ? 1.01 : _selectChanceMM(); };
 
 // ===================== YOUTH PHASE: one key match a season =====================
 const youthPhase = () => !!S.club && (!S.pro || S.age < 17);
-const KEY_TYPES = { final: { icon: "🏆", name: "Youth Cup Final" }, scout: { icon: "🔭", name: "Scout game" }, trial: { icon: "🧪", name: "Trial game" }, showcase: { icon: "🌟", name: "Showcase game" } };
+const KEY_TYPES = { final: { icon: "🏆", name: "Youth Cup Final" }, scout: { icon: "🔭", name: "Scout game" }, trial: { icon: "🧪", name: "Trial game" }, showcase: { icon: "🌟", name: "Showcase game" }, derby: { icon: "⚔️", name: "Local derby" } };
 function keyPlanFor(s) { const lg = s.games.filter(g => g.comp === "league"), fin = s.games.find(g => g.comp === "cup" && g.round === "Final");
   if (S.age >= 13 && !S.interest && typeof refreshInterest === "function") refreshInterest();
   const top = typeof interestList === "function" ? interestList().slice(0, 3).map(x => x[0]) : [], mi = top.length ? (S.interest[top[0]] || 0) : 0, acad = typeof curAcademy === "function" && !!curAcademy();
-  let type = "final"; const ahead = S.ovr - (typeof expectedOvr === "function" ? expectedOvr(S.age) : S.ovr), r = Math.random();
+  const ahead = S.ovr - (typeof expectedOvr === "function" ? expectedOvr(S.age) : S.ovr);
   const me = s.club, yt = typeof youthTeams === "function" ? youthTeams().map(t => t.str).sort((a, b) => b - a) : [], strong = !yt.length || teamStr(me) >= yt[Math.floor(yt.length / 2)];
-  if (S.age >= 14 && !acad && (mi >= 18 || ahead >= 2 || r < 0.35) && r < 0.6) type = "trial";
-  else if (S.age >= 12 && r < 0.75) type = "scout";
-  else if (!fin || (!strong && r < 0.85) || r > 0.9) type = "showcase";
-  if (S.pro) type = r < 0.6 ? "scout" : "showcase"; // already signed (under 17): no trials, no youth cup
+  // a varied mix by age: little ones play finals and derbies, 10–13 add scout games, 14+ get trials at bigger clubs
+  const W = S.pro ? { scout: 0.4, derby: 0.35, showcase: 0.25 } : S.age < 10 ? { final: 0.4, derby: 0.3, showcase: 0.3 } : S.age < 14 ? { final: 0.3, derby: 0.2, scout: 0.32, showcase: 0.18 } : { trial: acad ? 0.3 : 0.4, scout: 0.22, final: 0.22, derby: 0.13, showcase: 0.05 };
+  if (W.trial && (mi >= 18 || ahead >= 2)) W.trial *= 1.5;
+  if (W.final && (!fin || !strong)) { const m = !fin ? 1 : 0.4, alt = W.scout != null && S.age >= 10 ? "scout" : "showcase"; W[alt] = (W[alt] || 0) + W.final * m * 0.6; W.derby = (W.derby || 0) + W.final * m * 0.4; W.final *= 1 - m; }
+  let type = "derby", t = Math.random() * Object.values(W).reduce((a, b) => a + b, 0); for (const [k, v] of Object.entries(W)) { t -= v; if (t <= 0) { type = k; break; } }
   // clubs watching: real interest first, else big clubs from your country's league
   let clubs = top; if ((type === "trial" || type === "scout") && clubs.length < (type === "trial" ? 1 : 2) && typeof allClubs === "function") { const C = allClubs(), home = C.filter(t => (LEAGUES[t.league] || {}).country === S.nationality), pool = (home.length >= 3 ? home : C).slice().sort((x, y) => y.str - x.str).slice(0, 8);
     clubs = clubs.concat(shuffle(pool.map(t => t.name).filter(n => !clubs.includes(n)), Math.random)).slice(0, type === "trial" ? 1 : 3); }
   const K = { type, clubs: type === "trial" ? clubs.slice(0, 1) : type === "scout" ? clubs : top, age: S.age, done: false };
   const at = g => { if (g) { K.gi = g.i; g.isKey = true; } };
-  if (type === "final") at(fin); else at(lg[Math.min(lg.length - 1, Math.floor(lg.length * (type === "trial" ? 0.6 : 0.5)))] || s.games[0]);
+  if (type === "derby" && lg.length) { const half = lg.slice(Math.floor(lg.length * 0.3), Math.floor(lg.length * 0.8)), opp = g => g.h === me ? g.a : g.h, ms = teamStr(me);
+    const dg = (half.length ? half : lg).slice().sort((x, y) => Math.abs(teamStr(opp(x)) - ms) - Math.abs(teamStr(opp(y)) - ms))[0]; K.rival = opp(dg); at(dg); }
+  else if (type === "final") at(fin); else at(lg[Math.min(lg.length - 1, Math.floor(lg.length * (type === "trial" ? 0.6 : 0.5)))] || s.games[0]);
   return K; }
 const _buildSeasonMM = buildSeason;
 buildSeason = function () { const s = _buildSeasonMM(); if (youthPhase()) s.key = keyPlanFor(s); return s; };
@@ -4799,13 +4853,20 @@ function keyGame() { const K = keyOf(); return K && !K.done ? S.season.games.fin
 function keyFallback() { const K = keyOf(); if (!K || K.done) return; const g = keyGame(); if (g && !g.cancelled && !g.res) return;
   const nx = S.season.games.find(x => !x.res && !x.cancelled && x.comp === "league") || S.season.games.find(x => !x.res && !x.cancelled && x.comp !== "intl");
   if (g) g.isKey = false; if (!nx) { K.done = true; K.missed = true; return; }
-  K.type = S.age >= 13 && K.clubs.length ? "scout" : "showcase"; K.gi = nx.i; K.fell = true; nx.isKey = true; }
+  K.type = S.age >= 13 && K.clubs.length ? "scout" : nx.comp === "league" ? "derby" : "showcase"; if (K.type === "derby") K.rival = nx.h === S.season.club ? nx.a : nx.h; K.gi = nx.i; K.fell = true; nx.isKey = true; }
 function keyPreNote(g) { const K = keyOf(), T = KEY_TYPES[K.type], cl = K.clubs.join(", ");
   const line = K.type === "final" ? `Everything comes down to this: the <b>${esc(cupName())} Final</b>. Win it and people will remember your name.`
     : K.type === "trial" ? `<b>${esc(cl)}</b> invited you for a trial week. Their academy staff are in the stands for this one.`
     : K.type === "scout" ? `Scouts from <b>${esc(cl)}</b> are here – for you.${K.fell ? " The cup run is over, so this is the game that counts." : ""}`
+    : K.type === "derby" ? `<b>Derby day</b> against <b>${esc(K.rival || "your local rivals")}</b>. The whole town is talking about it.${K.fell ? " The cup run is over – this is the one that counts now." : ""}`
     : `The coach builds the game around you. Parents, local scouts, the lot.${K.fell ? " The cup run is over – this is your stage now." : ""}`;
-  return `<div class="mm-keybox"><b>🔑 KEY MATCH • ${T.icon} ${T.name}</b><br><span>${line}</span><br><span style="color:var(--muted);font-size:11px">The rest of this season plays itself – this is the one that counts.</span></div>`; }
+  K.tip = K.tip || coachTip(K.type);
+  return `<div class="mm-keybox"><b>🔑 KEY MATCH • ${T.icon} ${T.name}</b><br><span>${line}</span><br><div class="mm-tip">🧢 <b>Coach:</b> “${esc(K.tip)}”</div><span style="color:var(--muted);font-size:11px">The rest of this season plays itself – this is the one that counts.</span></div>`; }
+const COACH_TIPS = { GK: ["Talk to your defenders all game. Command your box.", "Stay on your feet in one-on-ones – make him decide.", "Quick, simple distribution. Don't gift them anything."],
+  DEF: ["Win your first duel and he'll hide all game.", "Don't dive in. Show him the touchline.", "Keep it simple on the ball – the scouts notice calm defenders."],
+  MID: ["Scan before you receive. Always know your next pass.", "Take the safe pass early, then try the killer ball.", "Get on the ball. Demand it, every time."],
+  ATT: ["One chance is all you need – stay sharp for the full ninety.", "Shoot early, the keeper's nervous too.", "Make the run even when the ball doesn't come."] };
+function coachTip(type) { const g = mmGroup(S.position), t = pick(COACH_TIPS[g] || COACH_TIPS.MID); const extra = { trial: " Show them you belong.", final: " Enjoy it – finals are why we play.", derby: " Keep your head – derbies get heated.", scout: " Play your game, not theirs.", showcase: "" }[type] || ""; return t + extra; }
 function keyResolve(g, sim) { const K = keyOf(); if (!K || K.done) return null; K.done = true; const r = g.res, rating = r && r.played ? r.rating : 5.5, won = r && r.out === "W";
   const lvl = rating >= 8 ? 3 : rating >= 7.2 ? 2 : rating >= 6.3 ? 1 : 0; K.rating = rating; K.lvl = lvl; K.won = !!won;
   // progression: the key match counts much more than a normal game
@@ -4826,9 +4887,14 @@ function keyResolve(g, sim) { const K = keyOf(); if (!K || K.done) return null; 
     : K.type === "scout" ? ["The scouts leave at half-time.", "The scouts scribble a few notes.", "Notebooks out. Your name is underlined.", "The scouts stay behind to talk to your coach. Your name is buzzing."][lvl]
     : ["Nerves got you. Lesson learned.", "A steady showing.", "You shone. The coach says you're ready for more.", "The best game of your young life. People are talking."][lvl];
   const prog = lvl === 3 ? " +1 OVR, +0.5 skill points." : lvl === 2 ? " +0.25 skill points." : lvl === 0 ? " Form dips." : "";
-  K.story = story; K.sc = sc;
+  const town = S.hometown || S.city || "Local", nm = (S.name || "the kid").split(" ").slice(-1)[0], club = K.clubs[0] || "a top club";
+  const head = K.type === "derby" ? [`Derby misery as ${nm} fades`, `Honours even in the derby`, `${nm} the hero in derby win`, `${nm} runs the derby show!`][lvl] + (won && lvl < 2 ? " – but the town is celebrating" : "")
+    : K.type === "final" ? (won ? [`Cup glory, but ${nm} off the pace`, `Cup winners! ${nm} plays his part`, `${nm} inspires cup triumph`, `CUP KING ${nm.toUpperCase()}!`][lvl] : [`Final heartbreak for ${nm}`, `Brave but beaten in the final`, `${nm} shines in final defeat`, `${nm} magic not enough in the final`][lvl])
+    : [`Tough day for young ${nm}`, `${nm} keeps it steady`, `Big things expected of ${nm}`, `Is ${nm} the next big thing?`][lvl];
+  const quote = K.type === "trial" || K.type === "scout" ? ["\"Not ready yet. Come back in a year.\"", "\"Decent. We'll keep watching.\"", "\"Good feet, good head. We're interested.\"", "\"Get the parents on the phone. Today.\""][lvl] + ` – ${club} scout` : "";
+  K.story = story; K.sc = sc; K.head = `📰 ${town} Gazette: “${head}”`; K.quote = quote;
   addEvent(`🔑 ${T.icon} ${T.name}`, `${story}${prog}${sc ? " (" + sc + ")" : ""}`);
-  return { story, prog, sc, lvl, T }; }
+  return { story, prog, sc, lvl, T, head: K.head, quote }; }
 // play hook: key flags, forced selection on resume / key, verdict popup
 const _playGameMM = playGame;
 playGame = async function (g, sim) {
@@ -4838,7 +4904,7 @@ playGame = async function (g, sim) {
   if (isKey) { g.preNote = keyPreNote(g); if (keyOf().clubs.length && (keyOf().type === "scout" || keyOf().type === "trial")) g.keyScouts = keyOf().clubs.slice(); }
   try { await _playGameMM(g, sim); } finally { MM_FORCE = false; QUICK_MATCH = false; delete g.preNote; }
   if (S.season && S.season.key && S.season.key.type === "final" && !S.season.key.done && g.comp === "cup") keyFallback();
-  if (isKey && g.res) { const v = keyResolve(g, sim); if (v && !sim) await showDecision(`🔑 ${v.T.icon} ${v.T.name} verdict`, "", [{ label: v.lvl >= 2 ? "Let's go!" : "Keep going" }], { html: `<div style="text-align:center"><span class="mm-chip big" style="background:${MM_TIERS[["mistake", "neutral", "good", "great"][v.lvl]].col};color:${MM_TIERS[["mistake", "neutral", "good", "great"][v.lvl]].fg}">${["ROUGH DAY", "SOLID", "IMPRESSIVE", "STAR TURN"][v.lvl]}</span><div style="font-size:28px;font-weight:900;margin:6px 0">${g.res.rating}</div></div><p>${esc(v.story)}</p>${v.prog ? `<p style="color:var(--accent2);font-size:12px;margin-top:6px">📈${esc(v.prog)}</p>` : ""}${v.sc ? `<p style="color:var(--accent2);font-size:12px">🔭 ${esc(v.sc)}</p>` : ""}` }); }
+  if (isKey && g.res) { const v = keyResolve(g, sim); if (v && !sim) await showDecision(`🔑 ${v.T.icon} ${v.T.name} verdict`, "", [{ label: v.lvl >= 2 ? "Let's go!" : "Keep going" }], { html: `<div style="text-align:center"><span class="mm-chip big" style="background:${MM_TIERS[["mistake", "neutral", "good", "great"][v.lvl]].col};color:${MM_TIERS[["mistake", "neutral", "good", "great"][v.lvl]].fg}">${["ROUGH DAY", "SOLID", "IMPRESSIVE", "STAR TURN"][v.lvl]}</span><div style="font-size:28px;font-weight:900;margin:6px 0">${g.res.rating}</div></div><p class="mm-head-line">${esc(v.head)}</p>${v.quote ? `<p class="mm-quote">🔭 ${esc(v.quote)}</p>` : ""}<p>${esc(v.story)}</p>${v.prog ? `<p style="color:var(--accent2);font-size:12px;margin-top:6px">📈${esc(v.prog)}</p>` : ""}${v.sc ? `<p style="color:var(--accent2);font-size:12px">🔭 ${esc(v.sc)}</p>` : ""}` }); }
 };
 // key match: the watching clubs are the scouts (no extra notice popup)
 const _scoutNoticeMM = scoutNotice;
