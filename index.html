@@ -311,6 +311,19 @@
 .act-row { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 12px; background: var(--surface); margin: 6px 0; cursor: pointer; }
 .act-row.locked { opacity: .45; }
 .act-row .ic { font-size: 22px; }
+/* ---- phone layout fixes (360x740 / 390x844) ---- */
+#create-screen { padding-top: 0; }
+#create-screen h1 { position: sticky; top: 0; z-index: 5; background: var(--bg); margin: 0 -22px 6px; padding: 18px 16px 12px 70px; font-size: 24px; line-height: 1.2; min-height: 68px; display: flex; align-items: center; border-bottom: 1px solid var(--border); }
+#start-btn { position: sticky; bottom: 10px; z-index: 5; box-shadow: 0 -6px 18px var(--bg), 0 6px 18px #000a; flex: none; }
+#toast { bottom: auto; top: 104px; }
+.club-block { min-width: 0; flex: 1 1 auto; }
+.club-text { min-width: 0; }
+.club-text .name, .club-text .league { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 38vw; }
+.player-block { flex: none; max-width: 52vw; }
+.player-block .page, .player-block .pmoney { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tab { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+#age-wrap { position: relative; }
+#sim-btn { position: absolute; left: calc(50% + 48px); top: 30px; background: var(--surface); color: var(--text); border: 1px solid var(--accent); border-radius: 14px; padding: 5px 9px; font-size: 11px; font-weight: 800; line-height: 1.1; cursor: pointer; box-shadow: 0 4px 12px #0008; }
 </style>
 <body>
 <button id="menu-btn" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -342,14 +355,14 @@
   <div class="club-block">
     <div class="crest" id="crest">–</div>
     <div class="club-text">
-      <div class="name" id="club-name">Club: none yet</div>
+      <div class="name" id="club-name">No club yet</div>
       <div class="league" id="league-name">Too young</div>
     </div>
   </div>
   <div class="player-block">
     <div class="pline"><div class="pname" id="pname">Alex</div><div class="head-av" id="head-av"></div></div>
     <div class="page" id="page">Age 0</div>
-    <div class="pmoney" id="pmoney">$0</div>
+    <div class="pmoney" id="pmoney">€0</div>
   </div>
 </header>
 
@@ -357,7 +370,7 @@
 <div id="tl-wrap"><div id="timeline"></div><button id="tl-new" onclick="tlToBottom(true)">New ↓</button></div>
 
 <footer>
-  <div id="age-wrap"><button id="age-btn">AGE<br>+1</button></div>
+  <div id="age-wrap"><button id="age-btn">AGE<br>+1</button><button id="sim-btn" style="display:none" onclick="simRestOfSeason()">⏩ Sim<br>season</button></div>
   <div id="tabs">
     <button class="tab active" data-s="home"><span class="icon">🏠</span>Home</button>
     <button class="tab" data-s="agent"><span class="icon">🤝</span>Agent</button>
@@ -365,7 +378,7 @@
     <button class="tab" data-s="calendar"><span class="icon">📅</span>Calendar</button>
     <button class="tab" data-s="training"><span class="icon">🏋️</span>Training</button>
     <button class="tab" data-s="news"><span class="icon">📰</span>News</button>
-    <button class="tab" data-s="rel"><span class="icon">👥</span>Relationships</button>
+    <button class="tab" data-s="rel"><span class="icon">👥</span>People</button>
     <button class="tab" data-s="more"><span class="icon">⋯</span>More</button>
   </div>
   <div id="stats"></div>
@@ -876,9 +889,11 @@ const AV_OPTS = {
 };
 const AV_LABELS = { skin: "Skin tone", hair: "Hair style", hairColor: "Hair colour", face: "Face shape", eyes: "Eye colour", kit: "Kit colour", boots: "Boots" };
 const pick = a => a[Math.floor(Math.random() * a.length)];
+// base (non-God-Mode) options, frozen before p4_life.js appends God Mode skins/hair/colours; all NPC + random generation uses these
+const AV_BASE = JSON.parse(JSON.stringify(AV_OPTS));
 function randomAvatar() {
-  return { skin: pick(AV_OPTS.skin), hair: pick(AV_OPTS.hair), hairColor: pick(Object.keys(AV_OPTS.hairColor).slice(0, 5)),
-    face: pick(AV_OPTS.face), eyes: pick(Object.keys(AV_OPTS.eyes)), kit: pick(Object.keys(AV_OPTS.kit)), boots: pick(Object.keys(AV_OPTS.boots)) };
+  return { skin: pick(AV_BASE.skin), hair: pick(AV_BASE.hair), hairColor: pick(Object.keys(AV_BASE.hairColor).slice(0, 5)),
+    face: pick(AV_BASE.face), eyes: pick(Object.keys(AV_BASE.eyes)), kit: pick(Object.keys(AV_BASE.kit)), boots: pick(Object.keys(AV_BASE.boots)) };
 }
 function shade(hex, f) { const n = parseInt(hex.slice(1), 16); const c = [n >> 16, (n >> 8) & 255, n & 255].map(v => Math.max(0, Math.min(255, Math.round(v * f)))); return "#" + c.map(v => v.toString(16).padStart(2, "0")).join(""); }
 // full=true: head + body + boots (career card / editor). full=false: head and shoulders (circles).
@@ -981,12 +996,15 @@ function prevPos(name, year) { const k = leagueKeyOf(name); if (!k || year - 1 <
 function tableBonus(name, year) { const p = prevPos(name, year); return p ? posBonus(p.pos, p.n) : 0; }
 function tierBadge(name, year) { const p = prevPos(name, year); if (!p) return ""; const { pos, n } = p; return pos === 1 ? "🏆 Champion" : pos <= 4 ? "⭐ Top 4" : pos > n - 3 ? "⬇️ Bottom 3" : pos > n - 6 ? "⚠️ Relegation battle" : "➖ Mid-table"; }
 const teamForm = (team, year) => team.str + tableBonus(team.name, year) + (rng(team.name + year)() * 8 - 4); // seasonal form wobble
-const _seasonCache = {};
+const _seasonCache = {}, LEAGUE_MAX_MD = 34;
 function leagueSeason(key, year) {
   const ck = key + year; if (_seasonCache[ck]) return _seasonCache[ck];
   const L = LEAGUES[key], r = rng("L" + ck), n = L.teams.length;
   const form = L.teams.map(t => teamForm(t, year));
-  const rounds = roundRobin(n, r);
+  let rounds = roundRobin(n, r);
+  // big leagues (more than 20 teams, e.g. MLS / Argentina with 30) play an unbalanced schedule capped at LEAGUE_MAX_MD matchdays:
+  // everyone once, plus a few return fixtures, instead of a 58-game double round robin
+  if (n > 20) rounds = rounds.slice(0, n - 1).concat(rounds.slice(n - 1, n - 1 + Math.max(0, LEAGUE_MAX_MD - (n - 1))));
   const tab = L.teams.map(t => ({ team: t.name, p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, pts: 0 }));
   const matchdays = rounds.map((rd, mi) => rd.map(([h, a]) => {
     const [hg, ag] = simScore(form[h], form[a], r);
@@ -1268,7 +1286,8 @@ function startGame() {
   S.id = "c" + Date.now().toString(36) + Math.floor(Math.random() * 1e6).toString(36);
   const key = pick(Object.keys(BACKSTORIES)), B = BACKSTORIES[key];
   S.backstory = key; S.route = B.route;
-  const fam = { dad: `${pick(PARENT_M)} ${S.surname}`, mom: `${pick(PARENT_F)} ${S.surname}`, uncle: `${pick(PARENT_M)} ${S.surname}`, sib: `${pick(FIRST_NAMES)} ${S.surname}`, city: S.city };
+  const usedF = new Set([S.firstName]); const uF = g => { let n = natFirst(g, nat); for (let t = 0; t < 12 && usedF.has(n); t++) n = natFirst(g, nat); usedF.add(n); return n; }; // no two relatives share a first name
+  const fam = { dad: `${uF("m")} ${S.surname}`, mom: `${uF("f")} ${S.surname}`, uncle: `${uF("m")} ${S.surname}`, sib: `${uF("m")} ${S.surname}`, city: S.city };
   S.family = fam; S.backstoryText = B.text(fam);
   const m = B.mods;
   S.potential = clamp(68 + R(0, 22) + (m.potential || 0), 60, 97);
@@ -1280,8 +1299,9 @@ function startGame() {
   if (key === "single") P(fam.mom, "Mother", "family", R(24, 36), 92, "Raising you alone");
   else { P(fam.mom, key === "adopted" ? "Adoptive mother" : "Mother", "family", R(26, 38), 80); P(fam.dad, key === "adopted" ? "Adoptive father" : "Father", "family", R(27, 42), 75, key === "dynasty" ? "Former professional footballer" : key === "coach" ? "Youth coach" : ""); }
   if (key === "sibling") P(fam.sib, "Older brother", "family", R(4, 8), 78, "At a youth academy");
-  else if (Math.random() < 0.4) P(`${pick(FIRST_NAMES)} ${S.surname}`, Math.random() < .5 ? "Older brother" : "Older sister", "family", R(2, 7), 70);
+  else if (Math.random() < 0.4) { const sis = Math.random() < .5; P(`${uF(sis ? "f" : "m")} ${S.surname}`, sis ? "Older sister" : "Older brother", "family", R(2, 7), 70); S.people[S.people.length - 1].gender = sis ? "f" : "m"; }
   if (key === "nephew") P(fam.uncle, "Uncle", "family", R(38, 50), 70, "Former professional footballer");
+  S.people.forEach(p => { if (!p.gender) p.gender = /mother|sister/i.test(p.role) ? "f" : "m"; });
   document.getElementById("create-screen").classList.add("hide");
   S.started = true;
   addEvent("👶 Born", `You were born in ${S.city === S.nationality ? S.city : S.city + ", " + S.nationality}. Your name is ${S.name}.`);
@@ -1324,6 +1344,7 @@ function babyLine(a) {
 function wage() { if (S.contract && S.contract.wage && S.pro) return S.contract.wage * 52; return Math.round((S.ovr * S.ovr * 12) / 10) * 10; }
 // Everything that must happen at a given age; idempotent and resumable after reload
 async function runPending() {
+  if (S.retired) return;
   if (S.idol) refundStalePS();
   if (S.age === 2 && !S.milestones.word) { S.milestones.word = 2; await showDecision("🗣️ Your First Word", "Everyone leans in. You point at the ball under the sofa and say...", [
     { label: "\"Ball!\"", effect: () => { S.happiness = clamp(S.happiness + 4); addEvent("🗣️ First Word", "Your first word was \"ball\". The family will never let you forget it."); } },
@@ -1385,7 +1406,7 @@ async function streetScene() {
   addEvent("❤️ You Fell in Love with Football", `On ${place}, with a taped-up ball and no shoes, the older kids said you play like ${legend.name}. From that day, football is all you think about.`);
   addFriend("Street friend"); S.pendingFriend = "discovery";
 }
-function addFriend(note) { const C = COUNTRIES[S.nationality] || COUNTRIES.England; S.people.push({ id: "p" + S.people.length + Date.now() % 1000, name: `${pick(FIRST_NAMES)} ${pick(C.surnames)}`, role: "Friend", cat: "friends", age: S.age + R(0, 2), closeness: R(55, 75), note }); }
+function addFriend(note) { const C = COUNTRIES[S.nationality] || COUNTRIES.England; S.people.push({ id: "p" + S.people.length + Date.now() % 1000, name: `${natFirst("m")} ${pick(C.surnames)}`, role: "Friend", cat: "friends", age: S.age + R(0, 2), closeness: R(55, 75), note }); }
 async function choosePosition() {
   const rec = S.streetLegend ? S.streetLegend.pos : S.firstMoment ? S.firstMoment.pos : null;
   let posKey = null;
@@ -1421,7 +1442,7 @@ function setIdol(i, recommended) {
 }
 // ===== CLUB PLACEMENT (age 7) =====
 const TONIO = { name: "Tonio Ferreira", age: 58, personality: "Warm, funny, old-school. Calls everyone \"champ\". Only strict about effort.", style: "Lets attackers play freely, wants joy, picks the team on effort in training, not size. Motto: \"Talent is free, effort costs.\"", bio: "Former semi-pro winger whose knee gave out at 24. Runs sessions with cones from his car boot." };
-function randomManager() { const C = COUNTRIES[S.nationality] || COUNTRIES.England; return { name: `${pick(PARENT_M)} ${pick(C.surnames)}`, age: R(35, 62), personality: pick(["Calm and analytical", "Loud and demanding", "Patient teacher", "Ex-pro with high standards"]), style: pick(["Possession and patience", "High pressing, lots of running", "Discipline first, then freedom", "Develops technique over results"]), bio: pick(["Former academy player", "PE teacher turned coach", "Ex-pro defender", "Licensed youth coach"]) }; }
+function randomManager() { const C = COUNTRIES[S.nationality] || COUNTRIES.England; return { name: `${natFirst("m")} ${pick(C.surnames)}`, age: R(35, 62), personality: pick(["Calm and analytical", "Loud and demanding", "Patient teacher", "Ex-pro with high standards"]), style: pick(["Possession and patience", "High pressing, lots of running", "Discipline first, then freedom", "Develops technique over results"]), bio: pick(["Former academy player", "PE teacher turned coach", "Ex-pro defender", "Licensed youth coach"]) }; }
 function homeLeague() { return Object.values(LEAGUES).find(L => L.country === S.nationality) || null; }
 async function chooseClub() {
   const B = BACKSTORIES[S.backstory] || { academy: 0 }, HL = homeLeague();
@@ -1484,7 +1505,7 @@ async function proContractCheck() {
   else if (S.age >= 20) { team = all.sort((a, b) => a.str - b.str)[0]; note = "contract at the league's smallest club"; }
   if (!team) { if (S.age <= 19) addEvent("📋 No Contract Yet", `No professional offer this year. You need ${Math.max(55, atOvr(.6))} OVR by 16, or 48+ for a late offer up to 19.`); return; }
   const canDecline = S.age < 19;
-  await showDecision("✍️ Professional Contract Offer!", `${team.name} (${LEAGUES[team.league].name}) offer you a ${note}. Wage: $${wage().toLocaleString()}/yr.`,
+  await showDecision("✍️ Professional Contract Offer!", `${team.name} (${LEAGUES[team.league].name}) offer you a ${note}. Wage: €${wage().toLocaleString()}/yr.`,
     [{ label: `Sign for ${team.name}`, effect: () => signPro(team) }].concat(canDecline ? [{ label: "Stay in youth football one more year", effect: () => addEvent("📋 Offer Declined", `You turned down ${team.name}.`) }] : []));
 }
 function teamObjL(a) { const L = LEAGUES[a.league]; const t = L && L.teams.find(x => x.name === a.name); return t ? { ...t, league: a.league } : null; }
@@ -1558,7 +1579,7 @@ function renderRel() {
       `<p style="color:var(--muted);font-size:13px">${k === "club" ? "Teammates and coaches arrive when you join a club." : k === "partner" ? "" : "Nobody yet."}</p>`) +
       (k === "partner" && !L.length ? `<button class="act-btn" ${S.lastLoveAge === S.age ? "disabled" : ""} onclick="findLove()">💘 Look for love ${S.lastLoveAge === S.age ? "(done this year)" : ""}</button>` : ""); }).join("");
 }
-function findLove() { if (S.lastLoveAge === S.age) return; S.lastLoveAge = S.age; if (Math.random() < 0.55) { const C = COUNTRIES[S.nationality]; S.people.push({ id: "pt" + Date.now() % 100000, name: `${pick(PARENT_F)} ${pick(C.surnames)}`, role: "Partner", cat: "partner", age: S.age + R(-2, 2), closeness: 65, note: "" }); addEvent("💘 New Relationship", "You met someone special."); } else toast("No luck this year."); renderRel(); updateHeader(); }
+function findLove() { if (S.lastLoveAge === S.age) return; S.lastLoveAge = S.age; if (Math.random() < 0.55) { const C = COUNTRIES[S.nationality]; S.people.push({ id: "pt" + Date.now() % 100000, gender: "f", name: `${natFirst("f")} ${pick(C.surnames)}`, role: "Partner", cat: "partner", age: S.age + R(-2, 2), closeness: 65, note: "" }); addEvent("💘 New Relationship", "You met someone special."); } else toast("No luck this year."); renderRel(); updateHeader(); }
 function openPerson(pid) {
   const p = S.people.find(x => x.id === pid); if (!p) return renderRel();
   const c = setOv(p.name); backHandler = renderRel;
@@ -1574,7 +1595,7 @@ function relAct(pid, act) {
   const fade = 1 / (1 + (S.relCount[k] - 1) * 0.3), luck = Math.random();
   let d = Math.round(a[3] * fade * (0.5 + luck)), msg = `${a[1]} with ${p.name.split(" ")[0]}.`;
   if (act === "breakup") { S.people = S.people.filter(x => x.id !== pid); addEvent("💔 Break-up", `You and ${p.name} broke up.`); renderRel(); updateHeader(); return; }
-  if (act === "money") { if (luck > 0.4) { const amt = R(5, 50) * (S.backstory === "wealthy" ? 20 : 1); S.money += amt; msg += ` They gave you $${amt}.`; d = 1; } else { msg += " They said no."; d = -2; } }
+  if (act === "money") { if (luck > 0.4) { const amt = R(5, 50) * (S.backstory === "wealthy" ? 20 : 1); S.money += amt; msg += ` They gave you €${amt}.`; d = 1; } else { msg += " They said no."; d = -2; } }
   if (act === "gift") S.money = Math.max(0, S.money - 50);
   if (["tips", "train", "extra", "garden", "street"].includes(act) && luck > 0.5) { S.ovr = clamp(S.ovr + 1, 1, S.potential); msg += " You learned something (+1 OVR)."; }
   if (relType(p) === "coach" && S.clubInfo) { S.clubInfo.trust = clamp(S.clubInfo.trust + (act === "minutes" ? (luck > .6 ? 3 : -4) : Math.ceil(d / 2))); msg += ` Coach trust: ${S.clubInfo.trust}.`; }
@@ -1719,9 +1740,9 @@ function dbPlayers(club) {
 const SQUAD_SHAPE = ["GK","GK","GK","CB","CB","CB","CB","LB","LB","RB","RB","CDM","CDM","CM","CM","CM","CM","CAM","CAM","LW","LW","RW","RW","ST","ST"];
 const NUM_PREF = { GK: [1, 13, 31], CB: [4, 5, 6, 15, 3], LB: [3, 12, 22], RB: [2, 21, 24], CDM: [6, 16, 18], CM: [8, 14, 20, 23], CAM: [10, 19, 30], LW: [11, 17, 27], RW: [7, 26, 28], ST: [9, 19, 29], CF: [9, 10, 18] };
 function leagueOf(club) { for (const L of Object.values(LEAGUES)) if (L.teams.some(t => t.name === club)) return L; return null; }
-function genName(country, r) { const C = COUNTRIES[country] || COUNTRIES.England; return `${FIRST_NAMES[Math.floor(r() * FIRST_NAMES.length)]} ${C.surnames[Math.floor(r() * C.surnames.length)]}`; }
+function genName(country, r) { const C = COUNTRIES[country] || COUNTRIES.England; return `${typeof natFirst === "function" ? natFirst("m", country, r) : FIRST_NAMES[Math.floor(r() * FIRST_NAMES.length)]} ${C.surnames[Math.floor(r() * C.surnames.length)]}`; }
 function avFor(seed) { const r = rng("av" + seed), pk = a => a[Math.floor(r() * a.length)];
-  return { skin: pk(AV_OPTS.skin), hair: pk(AV_OPTS.hair), hairColor: pk(Object.keys(AV_OPTS.hairColor)), face: pk(AV_OPTS.face), eyes: pk(Object.keys(AV_OPTS.eyes)), kit: "Green", boots: pk(Object.keys(AV_OPTS.boots)) }; }
+  return { skin: pk(AV_BASE.skin), hair: pk(AV_BASE.hair), hairColor: pk(Object.keys(AV_BASE.hairColor).slice(0, 4)), face: pk(AV_BASE.face), eyes: pk(Object.keys(AV_BASE.eyes)), kit: "Green", boots: pk(Object.keys(AV_BASE.boots)) }; }
 function assignNumbers(list) { const used = new Set(list.filter(p => p.num).map(p => p.num));
   list.forEach(p => { if (p.num) return; const n = (NUM_PREF[p.pos] || []).find(x => !used.has(x)) || [...Array(99).keys()].map(i => i + 1).find(x => !used.has(x) && x > 11); p.num = n; used.add(n); }); return list; }
 const _sqCache = {};
@@ -1782,6 +1803,9 @@ function makeSquad(team) {
     const n = 16 + Math.floor(Math.random() * 3), r = rng(S.id + S.club + S.age), shape = ["GK","GK","CB","CB","CB","LB","RB","CDM","CM","CM","CAM","LW","RW","ST","ST","CF","CM","CB"];
     list = []; for (let i = 0; i < n; i++) { const name = genName(S.nationality, r); list.push({ id: "y" + hashStr(name + i + S.club), name, pos: shape[i], age: S.age + Math.floor(r() * 3) - 1, nat: S.nationality, ovr: Math.max(5, Math.round(S.ovr + (r() - 0.55) * 16)), real: false }); }
   }
+  // sanity: no duplicate names, realistic ages for senior squads
+  { const seen = new Set(); list = list.filter(p => !seen.has(p.name) && seen.add(p.name)); }
+  if (team || S.pro) list.forEach(p => { p.age = clamp(p.age || 24, 16, 41); });
   // drop one player of your position so you fit in, then add you
   const k = list.findIndex(p => p.pos === me.pos && !p.real); if (k >= 0 && list.length >= 18) list.splice(k, 1);
   list.push(me); assignNumbers(list.filter(p => !p.me));
@@ -1803,16 +1827,23 @@ function ageSquad() {
   const leaving = L.filter(p => !p.me && (S.pro ? (p.age > 33 || Math.random() < 0.12) : Math.random() < 0.15)).slice(0, 5);
   leaving.forEach(p => { L.splice(L.indexOf(p), 1); out.push(p.name); });
   const r = rng(S.id + "sq" + S.age);
-  leaving.forEach(p => { const name = genName(S.pro ? (leagueOf(S.club) || {}).country || S.nationality : S.nationality, r);
+  leaving.forEach(p => { let name = genName(S.pro ? (leagueOf(S.club) || {}).country || S.nationality : S.nationality, r);
+    for (let t = 0; t < 6 && L.some(q => q.name === name); t++) name = genName(S.pro ? (leagueOf(S.club) || {}).country || S.nationality : S.nationality, r);
     L.push({ id: "n" + hashStr(name + S.age), name, pos: p.pos, age: S.pro ? 19 + Math.floor(r() * 10) : S.age + Math.floor(r() * 3) - 1, nat: S.nationality, ovr: Math.max(5, p.ovr + Math.floor(r() * 7) - 3), real: false, num: p.num }); });
   const me = L.find(p => p.me); if (me) { me.age = S.age; me.ovr = S.ovr; me.name = S.name; }
-  if (out.length) addEvent("🔄 Squad changes", `${out.length} player${out.length > 1 ? "s" : ""} left ${S.club}: ${out.join(", ")}. New faces arrived.`);
+  if (S.pro) L.forEach(p => { if (!p.me) p.age = clamp(p.age, 16, 41); });
+  // teammates in Relationships follow the squad: leavers drop out, ages stay in sync, keep two teammates listed
+  const ids = new Set(L.map(p => p.id)); S.people = S.people.filter(p => !(p.cat === "club" && p.role === "Teammate" && p.sqid && !ids.has(p.sqid)));
+  S.people.forEach(p => { if (p.role === "Teammate" && p.sqid) { const q = L.find(x => x.id === p.sqid); if (q) p.age = q.age; } });
+  for (let t = 0; t < 3 && S.people.filter(p => p.role === "Teammate").length < 2; t++) { const c = L.filter(p => !p.me && !S.people.some(x => x.sqid === p.id)); if (!c.length) break; addTeammatePerson(c[Math.floor(Math.random() * c.length)]); }
+  const outU = [...new Set(out)];
+  if (outU.length) addEvent("🔄 Squad changes", `${outU.length} player${outU.length > 1 ? "s" : ""} left ${S.club}: ${outU.join(", ")}. New faces arrived.`);
 }
 
 // ===================== MATCHDAY-BY-MATCHDAY SEASON =====================
 const myClub = () => S.pro ? S.proClub.name : S.club;
 const seasonActive = () => !!(S.season && S.season.age === S.age && !S.season.done);
-const needsSeason = () => !!(S.club && S.clubJoinAge < S.age && !(S.season && S.season.age === S.age));
+const needsSeason = () => !!(!S.retired && S.club && S.clubJoinAge < S.age && !(S.season && S.season.age === S.age));
 function teamStr(name) { const t = teamObj(name); if (t) return t.str + tableBonus(name, S.season ? S.season.year : yearOf(S.age)); if (!S.pro) { const y = youthTeams().find(x => x.name === name); if (y) return y.str; } return 62; }
 function cupName() { if (!S.pro) return `${S.city} Youth Cup`; const L = LEAGUES[S.proClub.league]; return ({ ENG: "FA Cup", ESP: "Copa del Rey", ITA: "Coppa Italia", GER: "DFB-Pokal", FRA: "Coupe de France", POR: "Taça de Portugal", NED: "KNVB Cup", BEL: "Belgian Cup", BRA: "Copa do Brasil", ARG: "Copa Argentina", USA: "US Open Cup" })[L.key] || `${L.country} Cup`; }
 function buildSeason() {
@@ -1882,6 +1913,11 @@ function oppPenalty(opp) {
 // Expanded Meta Vision adds a '👁️ Read the game' option to every match decision
 const READ_OPT = { label: "👁️ Read the game", base: 78, node: null, win: "read", lose: "You read it – but a teammate didn't", stat: "pass" };
 function decOpts(d) { return typeof hasX === "function" && hasX("metavision2") ? d.opts.concat([READ_OPT]) : d.opts; }
+// match mood: small fractional effects banked and applied in whole points, roughly neutral for average form (6.8 rating, mixed results)
+function moodFromMatch(res, won) { // relative to your own usual level (running average rating), so average form nets ~0
+  let d = won ? 0.2 : res.out === "L" ? -0.2 : 0;
+  if (res.played && res.rating) { const avg = S.moodAvg || res.rating; d += (res.rating - avg) * 0.3; S.moodAvg = +(avg * 0.9 + res.rating * 0.1).toFixed(3); }
+  S.moodBank = (S.moodBank || 0) + d; const whole = Math.trunc(S.moodBank); if (whole) { S.happiness = clamp(S.happiness + whole); S.moodBank -= whole; } }
 async function playGame(g, sim) {
   const sea = S.season, me = sea.club;
   if (g.comp === "cup" && !g.h) drawCupOpponent(g);
@@ -1966,7 +2002,7 @@ async function playGame(g, sim) {
     if (S.pro) S.stats.proApps = (S.stats.proApps || 0) + 1;
     if (S.stats.proApps >= 100) milestone("apps100", "100 professional appearances.");
     if (S.stats.proApps >= 250) milestone("apps250", "250 professional appearances.");
-    S.form = clamp(S.form + Math.round((res.rating - 6.6) * 2)); S.happiness = clamp(S.happiness + (res.rating >= 7 ? 1 : 0) + (won ? 1 : res.out === "L" ? -1 : 0));
+    S.form = clamp(S.form + Math.round((res.rating - 6.6) * 2)); moodFromMatch(res, won);
     if (S.clubInfo) S.clubInfo.trust = clamp(S.clubInfo.trust + (res.rating >= 7.5 ? 1 : res.rating < 5.8 ? -1 : 0));
   }
   // cup / europe elimination
@@ -1994,17 +2030,18 @@ async function matchSummary(g) {
     ${statRow.length ? `<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-top:8px">${statRow.map(([k, v]) => `<div style="background:var(--surface);border-radius:8px;padding:4px;text-align:center"><b>${v ?? 0}</b><div style="font-size:9px;color:var(--muted)">${k}</div></div>`).join("")}</div>` : ""}
     ${res.assists && S.pro ? `<p style="font-size:12px;color:var(--accent2);margin-top:6px">+${(res.assists * 0.2).toFixed(1)} skill point from assists (pro only; max 0.8 per season until 21, 1.6 from 22)</p>` : ""}
     ${others}<p style="margin-top:8px;font-style:italic;color:var(--muted)">${verdict}</p>${typeof scoutLine === "function" && scoutLine(g) ? `<p style="margin-top:6px;font-size:12px;color:var(--accent2)">🔭 ${esc(scoutLine(g))}</p>` : ""}`;
-  await showDecision("📋 Match Summary", "", [{ label: "OK" }], { html, top: kitVs(g) });
+  await showDecision("📋 Match Summary", "", [{ label: "OK" }].concat(g.comp !== "intl" && nextGame() && nextGame() !== g ? [{ label: "⏩ Sim rest of season", effect: () => { SIM_AFTER = true; } }] : []), { html, top: kitVs(g) });
 }
+let SIM_AFTER = false;
 async function nextMatchday() {
-  if (BUSY || !seasonActive()) return;
+  if (BUSY || !seasonActive()) return; SIM_AFTER = false;
   setBusy(true);
   try {
     const g = nextGame();
     if (g) await awardsBefore(g, false);
     if (g) await playGame(g, false);
     if (!nextGame()) { await awardsBefore(null, false); await finishSeason(false); }
-  } finally { setBusy(false); updateHeader(); renderStats(); }
+  } finally { setBusy(false); updateHeader(); renderStats(); if (SIM_AFTER) { SIM_AFTER = false; setTimeout(simRestOfSeason, 0); } }
 }
 async function simRestOfSeason() {
   if (BUSY || !seasonActive()) return;
@@ -2089,9 +2126,11 @@ function meetPlace() {
 }
 async function meetFriend(forced) {
   const C = COUNTRIES[S.nationality] || COUNTRIES.England;
-  const later = (S.friendLater || []).find(f => !f.back && S.age - f.age >= 1 && Math.random() < 0.5);
-  const f = later ? (later.back = true, later.p) : (() => { const [where, how] = meetPlace(), [pers, pdesc] = pick(PERSONALITIES);
-    const fem = Math.random() < 0.45; return { name: `${fem ? pick(PARENT_F) : pick(FIRST_NAMES)} ${pick(C.surnames)}`, gender: fem ? "f" : "m", age: Math.max(1, S.age + R(-1, 1)), pers, pdesc, where, how }; })();
+  S.friendLater = (S.friendLater || []).filter(f => !f.back && S.age - f.age <= 6); // old "maybe later" contacts drift away
+  const later = S.friendLater.find(f => S.age - f.age >= 1 && Math.random() < 0.5);
+  // a returning contact has aged by the same number of years as you (keeps the original age gap)
+  const f = later ? (later.back = true, { ...later.p, age: later.p.age + (S.age - later.age), where: "again, years later", how: "recognises you straight away and says hi" }) : (() => { const [where, how] = meetPlace(), [pers, pdesc] = pick(PERSONALITIES);
+    const fem = Math.random() < 0.45; return { name: `${natFirst(fem ? "f" : "m")} ${pick(C.surnames)}`, gender: fem ? "f" : "m", age: Math.max(1, S.age + R(-1, 1)), pers, pdesc, where, how }; })();
   S.lastFriendAge = S.age;
   await showDecision("👋 New face", "", [
     { label: "🤝 Be friends", effect: () => { S.people.push({ id: "f" + Date.now() % 1000000 + R(0, 99), name: f.name, role: "Friend", cat: "friends", age: f.age, closeness: R(55, 72), note: `${f.pers} • met at ${f.where}`, pers: f.pers, gender: f.gender || "m", met: S.age, lastSeen: S.age }); addEvent("🤝 New friend", `You and ${f.name} (${f.pers}) became friends. You met at ${f.where}.`); } },
@@ -2142,8 +2181,8 @@ function updateHeader() {
   document.getElementById("pname").innerHTML = esc(S.name) + (S.captain ? `<span class="cap-badge">C</span>` : "");
   document.getElementById("head-av").innerHTML = avatarSVG(S.avatar, false);
   document.getElementById("page").textContent = `Age ${S.age}${S.position ? " • " + S.position : ""} • ${S.city}`;
-  document.getElementById("pmoney").textContent = `$${(S.money || 0).toLocaleString()}`;
-  document.getElementById("club-name").textContent = S.club || "Club: none yet";
+  document.getElementById("pmoney").textContent = `€${(S.money || 0).toLocaleString()}`;
+  document.getElementById("club-name").textContent = S.club || "No club yet";
   document.getElementById("league-name").textContent = S.club ? (S.pro ? LEAGUES[S.proClub.league].name : `Youth • ${ageGroup()}`) : S.age >= 4 ? "Street football" : "Too young to play";
   const crest = document.getElementById("crest");
   if (S.club) { const K = myKit(); crest.innerHTML = kitSwatch(K, 30); } else crest.textContent = "–";
@@ -2151,11 +2190,12 @@ function updateHeader() {
   document.querySelectorAll(".tab").forEach(t => t.classList.toggle("locked", !!L[t.dataset.s]));
   const ab = document.getElementById("age-btn");
   if (ab) { const sa = seasonActive(), g = sa ? nextGame() : null; ab.innerHTML = sa ? `NEXT<br>MATCH` : "AGE<br>+1"; ab.title = g ? `${g.comp === "league" ? "MD " + g.md : g.round}` : ""; }
+  const sb = document.getElementById("sim-btn"); if (sb) sb.style.display = seasonActive() && S.started ? "" : "none";
   renderStrip();
   saveGame();
 }
 function tabLocks() { const noClub = !S.club ? "Join a club first – your youth career starts at 7" : null;
-  return { career: S.age < 6 ? "Join a club first – your youth career starts at 7" : null, calendar: noClub, training: !S.pro ? "Training unlocks with your first professional contract" : null, news: S.age < 6 ? "World news opens at age 6" : null }; }
+  return { career: S.age < 6 ? "The Career tab opens at age 6" : null, calendar: noClub, training: !S.pro ? "Training unlocks with your first professional contract" : null, news: S.age < 6 ? "World news opens at age 6" : null }; }
 function renderStrip() {
   const el = document.getElementById("strip"); if (!el) return;
   if (!S.started) { el.innerHTML = ""; return; }
@@ -2234,7 +2274,7 @@ function renderCareer() {
   c.innerHTML = av + card(`🏟️ ${esc(S.club)} <span class="badge">${S.pro ? LEAGUES[S.proClub.league].name : ageGroup()}</span>`, `<p>${kitSwatch(clubKit(S.club).home, 22)} Home ${kitSwatch(clubKit(S.club).away, 22)} Away</p><p style="margin-top:4px">Position: <b>${S.position}</b> • ${S.pro ? "Professional" : "Youth"}${S.captain ? " • 🅲 Captain" : ""}</p>` + btns) +
     (m ? card("👔 Club Info", `<p><b>${esc(m.name)}</b>, ${m.age}<br><span style="color:var(--muted);font-size:13px">${esc(m.personality)}<br>${esc(m.style || "")}<br>${esc(m.bio || "")}</span></p><div class="lbl" style="margin-top:8px">Coach trust ${ci.trust}</div><div class="bar"><div style="width:${ci.trust}%"></div></div><button class="act-btn" style="margin-top:8px" onclick="renderSquad()">👥 Squad</button>`) : "") +
     card("📊 Career Stats", `<p>Apps <b>${S.stats.apps}</b> • Goals <b style="color:var(--accent)">${S.stats.goals}</b> • Assists <b style="color:var(--accent2)">${S.stats.assists}</b>${S.position === "GK" ? ` • Clean sheets <b>${S.stats.cleanSheets || 0}</b>` : ""}</p>${(S.awards || []).length ? `<p style="font-size:12px;margin-top:4px">${S.awards.map(esc).join(" • ")}</p>` : ""}`) +
-    card("📜 Season history", hist) + idol + card("📄 Contract", `<p>${S.pro ? `Professional • $${wage().toLocaleString()}/yr` : "Youth / Amateur"}</p>`);
+    card("📜 Season history", hist) + idol + card("📄 Contract", `<p>${S.pro ? `Professional • €${wage().toLocaleString()}/yr` : "Youth / Amateur"}</p>`);
 }
 // ---- Calendar tab ----
 let CAL_FILTER = "all";
@@ -2368,7 +2408,7 @@ async function transferCheck() {
   const all = Object.values(LEAGUES).filter(L => !["ARG"].includes(L.key) || S.nationality === "Argentina").flatMap(L => L.teams.map(t => ({ ...t, league: L.key }))).filter(t => t.name !== S.proClub.name && t.str > cur && t.str <= S.ovr + 6);
   if (!all.length) return;
   const team = all.sort((a, b) => b.str - a.str).slice(0, 8)[Math.floor(Math.random() * Math.min(8, all.length))];
-  await showDecision("📨 Transfer Offer!", `${team.name} (${LEAGUES[team.league].name}, strength ${team.str}) want to sign you. Wage: $${Math.round(wage() * 1.3).toLocaleString()}/yr. Stars there: ${clubSquad(team.name).filter(p => p.real).slice(0, 3).map(p => p.name).join(", ") || "—"}.`, [
+  await showDecision("📨 Transfer Offer!", `${team.name} (${LEAGUES[team.league].name}, strength ${team.str}) want to sign you. Wage: €${Math.round(wage() * 1.3).toLocaleString()}/yr. Stars there: ${clubSquad(team.name).filter(p => p.real).slice(0, 3).map(p => p.name).join(", ") || "—"}.`, [
     { label: `Sign for ${team.name}`, effect: () => { addEvent("✈️ Transfer", `You left ${S.club} for ${team.name}.`); signPro(team); } },
     { label: `Stay at ${S.club}`, effect: () => { if (S.clubInfo) S.clubInfo.trust = clamp(S.clubInfo.trust + 5); addEvent("🤝 Loyalty", `You turned down ${team.name}.`); } }]);
 }
@@ -2636,6 +2676,33 @@ function applyRegionalBackstory() {
 }
 const _startGameP4 = startGame;
 startGame = function () { _startGameP4(); applyRegionalBackstory(); if (typeof afterBirth === "function") afterBirth(); updateHeader(); renderTimeline(); };
+// ---- regional first names for family, friends, partners, NPCs (bug fix: one global pool gave a Brazilian and a Japanese player the same father "Hassan") ----
+const REGION_NAMES = {
+  UK: { m: ["James", "Oliver", "Harry", "Jack", "George", "Thomas", "Daniel", "Liam", "Callum", "Ryan", "Connor", "Jamie", "Mark", "Paul", "Steven", "Gary"], f: ["Emma", "Sophie", "Olivia", "Charlotte", "Lucy", "Grace", "Chloe", "Hannah", "Sarah", "Rachel", "Megan", "Claire"] },
+  ES: { m: ["Javier", "Sergio", "Pablo", "Alejandro", "Álvaro", "Raúl", "Iker", "David", "Carlos", "Fernando", "Jorge", "Rubén", "Adrián", "Mario"], f: ["Lucía", "María", "Carmen", "Laura", "Paula", "Marta", "Elena", "Sara", "Ana", "Cristina", "Nerea", "Irene"] },
+  LATAM: { m: ["Santiago", "Matías", "Juan", "Diego", "Nicolás", "Facundo", "Sebastián", "Andrés", "Felipe", "Joaquín", "Rodrigo", "Gonzalo", "Luis", "Martín"], f: ["Valentina", "Camila", "Sofía", "Lucía", "Florencia", "Daniela", "Mariana", "Gabriela", "Agustina", "Paula", "Carolina", "Ximena"] },
+  BRPT: { m: ["João", "Pedro", "Gabriel", "Lucas", "Rafael", "Thiago", "Bruno", "Diogo", "Tiago", "Rodrigo", "Gonçalo", "Vinícius", "Matheus", "Felipe"], f: ["Ana", "Beatriz", "Mariana", "Juliana", "Camila", "Inês", "Rita", "Larissa", "Fernanda", "Carolina", "Leonor", "Bruna"] },
+  FR: { m: ["Lucas", "Hugo", "Théo", "Antoine", "Kylian", "Moussa", "Ibrahima", "Mamadou", "Julien", "Nicolas", "Olivier", "Sébastien", "Cheikh", "Yannick"], f: ["Camille", "Léa", "Manon", "Chloé", "Inès", "Aminata", "Fatou", "Awa", "Julie", "Marie", "Sarah", "Clémence"] },
+  IT: { m: ["Marco", "Luca", "Alessandro", "Francesco", "Matteo", "Lorenzo", "Andrea", "Davide", "Federico", "Giovanni", "Simone", "Riccardo"], f: ["Giulia", "Chiara", "Francesca", "Sara", "Martina", "Alessia", "Elena", "Valentina", "Federica", "Giorgia", "Silvia", "Anna"] },
+  DE: { m: ["Lukas", "Jonas", "Leon", "Felix", "Maximilian", "Niklas", "Florian", "Tobias", "Jan", "Stefan", "Thomas", "Michael", "Fabian", "Kai"], f: ["Anna", "Lena", "Laura", "Julia", "Sophie", "Lea", "Hannah", "Katharina", "Sarah", "Lisa", "Johanna", "Marie"] },
+  NL: { m: ["Daan", "Sem", "Lars", "Bram", "Thijs", "Ruben", "Jesse", "Kevin", "Wout", "Stijn", "Joris", "Dennis", "Jeroen", "Frenkie"], f: ["Emma", "Sanne", "Lotte", "Fleur", "Anouk", "Eva", "Femke", "Lieke", "Noor", "Julia", "Iris", "Sophie"] },
+  US: { m: ["Tyler", "Christian", "Weston", "Josh", "Brandon", "Michael", "Matt", "Ryan", "Jordan", "Kyle", "Alex", "Chris", "Landon", "DeAndre"], f: ["Ashley", "Jessica", "Emily", "Madison", "Taylor", "Megan", "Alyssa", "Brittany", "Hailey", "Kayla", "Morgan", "Jasmine"] },
+  WAF: { m: ["Kwame", "Kofi", "Emeka", "Chidi", "Tunde", "Samuel", "Victor", "Kelechi", "Yaw", "Sipho", "Thabo", "Moses", "Obinna", "Ademola"], f: ["Ama", "Adwoa", "Chioma", "Ngozi", "Funmi", "Grace", "Blessing", "Esi", "Nomvula", "Thandiwe", "Abena", "Zainab"] },
+  MENA: { m: ["Mohamed", "Ahmed", "Youssef", "Hassan", "Omar", "Karim", "Amine", "Mehdi", "Khalid", "Ali", "Hamza", "Riyad", "Sofiane", "Ibrahim"], f: ["Fatima", "Aisha", "Mariam", "Leila", "Nour", "Yasmine", "Salma", "Amina", "Khadija", "Sara", "Rania", "Imane"] },
+  JP: { m: ["Haruto", "Takumi", "Ren", "Kaoru", "Daichi", "Ritsu", "Wataru", "Kenji", "Hiroshi", "Takehiro", "Shoya", "Yuto"], f: ["Yuki", "Sakura", "Haruka", "Aoi", "Mei", "Yui", "Hina", "Rin", "Nanami", "Ayaka", "Misaki", "Emi"] },
+  KR: { m: ["Min-jae", "Heung-min", "Ji-sung", "Seung-ho", "Jae-sung", "Hyun-woo", "Dong-hyun", "Kang-in", "Woo-young", "Sung-yong"], f: ["Ji-woo", "Seo-yeon", "Min-ji", "Ha-eun", "Soo-ah", "Ye-jin", "Ji-min", "Yu-na", "Da-eun", "Eun-ji"] },
+  CN: { m: ["Wei", "Lei", "Hao", "Jun", "Tao", "Yang", "Bin", "Ming", "Chen", "Jie"], f: ["Mei", "Li", "Xiu", "Fang", "Jing", "Yan", "Ling", "Hui", "Ying", "Xin"] },
+  default: { m: ["Leo", "Noah", "Lucas", "Daniel", "Adam", "David", "Marko", "Ivan", "Luka", "Filip", "Alex", "Nikola"], f: ["Anna", "Maria", "Sofia", "Elena", "Eva", "Nina", "Sara", "Laura", "Mila", "Ana", "Lena", "Katarina"] }
+};
+const ALL_FEMALE = new Set(Object.values(REGION_NAMES).flatMap(x => x.f).concat(typeof PARENT_F !== "undefined" ? PARENT_F : []));
+function namePool(nation) { nation = nation || (typeof S !== "undefined" && S.nationality) || "England"; const reg = regionOf(nation);
+  if (reg === "EASIA") return REGION_NAMES[nation === "Japan" ? "JP" : /Korea/.test(nation) ? "KR" : "CN"];
+  if (REGION_NAMES[reg] && reg !== "default") return REGION_NAMES[reg];
+  // unmapped nations: male names from that nation's real squad, female names from the default pool
+  const rec = typeof nationRec === "function" ? nationRec(nation) : null, m = rec ? [...new Set(rec.players.map(p => p[0].split(" ")[0]).filter(s => s.length > 2 && !/\./.test(s)))] : [];
+  return { m: m.length >= 6 ? m : REGION_NAMES.default.m, f: REGION_NAMES.default.f };
+}
+function natFirst(g, nation, r) { const P = namePool(nation)[g === "f" ? "f" : "m"]; return P[Math.floor((r ? r() : Math.random()) * P.length)]; }
 // ===================== PASS 4c: LOOKS ROLL, GOD MODE, ROMANCE, CHILDREN =====================
 // ---- Looks (already existed: 60 ±8 + backstory mods; now 5% chance of 100 at birth) ----
 function rollLooks(base, mod) { if (Math.random() < 0.05) return 100; return clamp(base + R(-8, 8) + (mod || 0), 1, 99); }
@@ -2744,7 +2811,7 @@ async function proposalPopup(p) {
 function milestoneLife(k, t) { S.life = S.life || {}; if (!S.life[k]) S.life[k] = { age: S.age, text: t }; }
 function babyArrived() {
   const pr = S.pregnant; if (!pr || S.age <= pr.age) return null; S.pregnant = null;
-  const son = Math.random() < 0.5, C = COUNTRIES[S.nationality] || COUNTRIES.England, first = son ? pick(FIRST_NAMES) : pick(PARENT_F);
+  const son = Math.random() < 0.5, C = COUNTRIES[S.nationality] || COUNTRIES.England, first = natFirst(son ? "m" : "f");
   const kid = { id: "k" + Date.now() % 1e7 + R(0, 99), name: `${first} ${S.surname}`, role: son ? "Son" : "Daughter", cat: "family", age: 0, closeness: 90, note: "Your child", child: true, born: S.age };
   S.people.push(kid); S.happiness = clamp(S.happiness + 12);
   addEvent(son ? "👶 It's a boy!" : "👶 It's a girl!", `${kid.name} was born. You're a parent!`); milestoneLife("child" + kid.id, `${kid.name} born`);
@@ -2775,7 +2842,7 @@ relAct = async function (pid, act) {
 findLove = function () {
   if (S.lastLoveAge === S.age) return; S.lastLoveAge = S.age;
   const ch = 0.35 + S.looks / 300 + (S.pro ? 0.1 : 0) + (S.fame || 0) / 500;
-  if (Math.random() < ch) { const C = COUNTRIES[S.nationality] || COUNTRIES.England; S.people.push({ id: "pt" + Date.now() % 100000, name: `${pick(PARENT_F)} ${pick(C.surnames)}`, role: "Partner", cat: "partner", age: Math.max(18, S.age + R(-2, 2)), closeness: 60 + Math.round(S.looks / 10), note: "", stage: "dating", since: S.age }); addEvent("💘 New Relationship", "You met someone special."); }
+  if (Math.random() < ch) { const C = COUNTRIES[S.nationality] || COUNTRIES.England; S.people.push({ id: "pt" + Date.now() % 100000, name: `${natFirst("f")} ${pick(C.surnames)}`, gender: "f", role: "Partner", cat: "partner", age: Math.max(18, S.age + R(-2, 2)), closeness: 60 + Math.round(S.looks / 10), note: "", stage: "dating", since: S.age }); addEvent("💘 New Relationship", "You met someone special."); }
   else toast("No luck this year.");
   renderRel(); updateHeader();
 };
@@ -2788,7 +2855,7 @@ function lifeYear() {
 // ---- teen-safe dating + "Ask her out" ----
 REL_ACTIONS.partner.unshift(["cinema", "🎬 Go to the cinema", 14, 6], ["text", "📱 Text all night", 14, 4]);
 REL_ACTIONS.partner.forEach(a => { if (a[0] === "date" || a[0] === "talk" || a[0] === "gift" || a[0] === "breakup") a[2] = 14; });
-const isFemale = p => p.gender ? p.gender === "f" : PARENT_F.includes(p.name.split(" ")[0]);
+const isFemale = p => p.gender ? p.gender === "f" : /mother|sister|daughter|niece|aunt/i.test(p.role || "") || ALL_FEMALE.has(p.name.split(" ")[0]);
 const ADULT_ONLY = ["love", "baby", "movein", "propose", "family"];
 const _partnerActOkP4 = partnerActOk;
 partnerActOk = function (p, act) { if (ADULT_ONLY.includes(act) && (S.age < 18 || p.age < 18)) return false; return _partnerActOkP4(p, act); };
@@ -2828,11 +2895,14 @@ openPerson = function (pid) {
 const YEAR_HOOKS = [];
 const _runPendingP4 = runPending;
 runPending = async function () {
-  if (S.started && S.yearHook !== S.age) { const first = S.yearHook == null; S.yearHook = S.age; if (!first || S.age > 0) for (const h of YEAR_HOOKS) await h(); }
+  if (S.started && S.yearHook !== S.age) { const first = S.yearHook == null; S.yearHook = S.age; if (!first || S.age > 0) for (const h of YEAR_HOOKS) { if (S.retired) break; await h(); } }
+  if (S.retired) return; // retirement ends the career year: no transfers, contracts or new season
   await _runPendingP4();
   if (typeof afterPending === "function") await afterPending();
 };
 YEAR_HOOKS.push(async () => { const kid = lifeYear(); if (kid) await showDecision(kid.role === "Son" ? "👶 It's a boy!" : "👶 It's a girl!", `${kid.name} is born. You hold your child for the first time and the whole world goes quiet.`, [{ label: "❤️ Welcome to the world" }]); });
+// yearly mood drift back toward a settled baseline, so a normal career hovers in a sane band (extremes still possible after big events)
+YEAR_HOOKS.push(async () => { if (S.age < 4) return; const pull = Math.round((65 - S.happiness) * 0.2); if (pull) S.happiness = clamp(S.happiness + pull); });
 // ===================== PASS 4d: LEGENDS, FATHERS, LEGACY, RETIREMENT, DYNASTY =====================
 let _natByName = null;
 function nationRec(name) { if (typeof NATIONS_DB === "undefined") return null; if (NATIONS_DB[name]) return NATIONS_DB[name];
@@ -3034,7 +3104,7 @@ function heirs() {
   const kids = S.people.filter(p => p.child).sort((a, b) => (a.role === "Son" ? 0 : 1) - (b.role === "Son" ? 0 : 1) || b.age - a.age);
   if (kids.length) return kids.map(k => ({ first: k.name.split(" ")[0], daughter: k.role === "Daughter", label: `${k.role === "Son" ? "👦" : "👧"} ${k.name} (${k.role.toLowerCase()})`, id: k.id }));
   const sib = S.people.find(p => /brother|sister/i.test(p.role));
-  const n1 = pick(FIRST_NAMES), n2 = pick(PARENT_F);
+  const n1 = natFirst("m"), n2 = natFirst("f");
   return [{ first: n1, daughter: false, nephew: true, label: `👦 ${n1} (nephew${sib ? ", " + sib.name.split(" ")[0] + "'s son" : ""})` }, { first: n2, daughter: true, nephew: true, label: `👧 ${n2} (niece${sib ? ", " + sib.name.split(" ")[0] + "'s daughter" : ""})` }];
 }
 function continueHtml() { return card("🌳 Continue the family legacy", `<p style="color:var(--muted);font-size:13px">Start a new career at birth as your child (son first). Same surname, nationality and city. Backstory: footballer family.</p>${heirs().map((h, i) => `<button class="act-btn" onclick="continueLegacy(${i})">${esc(h.label)}</button>`).join("")}<button class="act-btn" onclick="newCareer()">➕ Start a completely new career</button>`, "border-color:#ffd600"); }
@@ -3049,7 +3119,7 @@ function continueLegacy(i) {
   S.avatar = Object.assign(randomAvatar(), { skin: prev.avatar.skin }); S.daughter = h.daughter;
   S.backstory = "dynasty"; S.route = "tv"; S.dynasty = (prev.dynasty || []).concat([{ name: sum.name, score: sum.score, gen: sum.gen, club: sum.club }]);
   S.father = h.nephew ? { ...sum, name: sum.name, uncle: true } : sum; S.legendSon = null;
-  const B = BACKSTORIES.dynasty, fam = { dad: h.nephew ? `${pick(PARENT_M)} ${S.surname}` : sum.name, mom: partnerP ? partnerP.name : `${pick(PARENT_F)} ${S.surname}`, uncle: sum.name, sib: "", city: S.city };
+  const B = BACKSTORIES.dynasty, fam = { dad: h.nephew ? `${natFirst("m")} ${S.surname}` : sum.name, mom: partnerP ? partnerP.name : `${natFirst("f")} ${S.surname}`, uncle: sum.name, sib: "", city: S.city };
   S.family = fam; const m = B.mods, t = sum.tier;
   S.potential = clamp(68 + R(0, 22) + (m.potential || 0) + TIER_POT[t], 60, 98); S.ovr = Math.min(S.potential, 2 + (m.ovr || 0) + TIER_OVR[t]);
   for (const k of ["health", "smarts", "happiness"]) S[k] = clamp(S[k] + R(-8, 8) + (m[k] || 0)); S.looks = rollLooks(60, m.looks); S.bornStunning = S.looks === 100;
@@ -3658,6 +3728,7 @@ const CONT_CUP = { UEFA: "European Championship", CONMEBOL: "Copa América", CAF
 const CONT_SIZE = { UEFA: 24, CONMEBOL: 16, CAF: 24, AFC: 24, CONCACAF: 16, OFC: 8 };
 const WC32_SLOTS = { UEFA: 13, CAF: 5, AFC: 4, CONMEBOL: 5, CONCACAF: 4, OFC: 1, PLAYOFF: 0 };
 const WIN = { sep: [21, 24, 27], oct: [56, 59, 62], nov: [91, 94, 97], mar: [217, 220, 223] };
+const INTL_PER_WIN = 2; // 2 per window (competitive pairs untouched; only the padding friendly goes) keeps busy seasons ≤ ~60 matches
 const WIN_KEYS = ["sep", "oct", "nov", "mar"], WIN_NAME = { sep: "September", oct: "October", nov: "November", mar: "March", jun: "June" };
 const SEL_POS = ["GK", "CB", "LB", "RB", "CDM", "CM", "CAM", "LW", "RW", "ST"];
 const selPos = p => (p === "CF" ? "ST" : p);
@@ -3697,9 +3768,18 @@ function selectSquad(nation, Y, win) { const rec = nationRec(nation); if (!rec) 
   for (const pos of SEL_POS) { let have = squad.filter(p => p.slot === pos).length; for (const nb of NEIGH[pos]) { if (have >= 2) break; pool.filter(p => p.sp === nb && !taken.has(p)).slice(0, 2 - have).forEach(p => { taken.add(p); squad.push({ ...p, slot: pos }); have++; }); } }
   const fl = pool.find(p => !taken.has(p) && p.sp !== "GK"); if (fl) { taken.add(fl); squad.push({ ...fl, slot: "spare" }); }
   let mine = null; if (isMe) { const sp = selPos(S.position), ranked = pool.filter(p => p.sp === sp), rank = ranked.findIndex(p => p.me) + 1, e = squad.find(p => p.me);
-    mine = { rank, pos: sp, picked: !!e, spare: !!e && e.slot === "spare", cover: e && e.slot !== sp && e.slot !== "spare" ? e.slot : null, starter: !!e && e.slot === sp && rank <= (STARTS[sp] || 1), text: `${ordinal(rank)} of 2 ${POS_PL[sp]} + 1 spare`, form: mf }; }
+    mine = { rank, pos: sp, picked: !!e, spare: !!e && e.slot === "spare", cover: e && e.slot !== sp && e.slot !== "spare" ? e.slot : null, starter: !!e && e.slot === sp && rank <= (STARTS[sp] || 1), text: standingText(rank, sp, e), form: mf }; }
   return { squad, mine };
 }
+// plain-English squad standing for every rank (no more "3rd of 2 GKs")
+function standingText(rank, sp, e) { const one = POS_PL[sp].slice(0, -1), r = `${ordinal(rank)} ${one}`;
+  if (!e) return `not in the squad – ${r} in the pecking order (2 ${POS_PL[sp]} + 1 spare are picked)`;
+  if (e.slot === "spare") return `in as the floating spare – ${r} in the pecking order`;
+  if (e.slot !== sp) return `in the squad as cover at ${e.slot} – ${r} in the pecking order`;
+  return `${rank === 1 ? "first" : "second"}-choice ${one} (${rank} of 2 picked)`; }
+// senior snub notes only once you're realistically in contention; otherwise nothing (youth notes cover younger players)
+function inContention(sel) { const m = sel && sel.mine, I = intlState(); if (!m) return false; if (I.caps > 0) return true; if (S.age < 17 || !S.pro) return false;
+  const cut = sel.squad.filter(p => p.slot === m.pos && !p.me).map(p => p.ovr).sort((a, b) => a - b)[0] || 99; return m.rank <= 4 || S.ovr >= cut - 4; }
 function youthTeamFor(age) { return age <= 16 ? "U17" : age <= 18 ? "U19" : age <= 20 ? "U21" : null; }
 function youthCallup() { const rec = myNation(), yt = youthTeamFor(S.age); if (!rec || !yt || S.age < 15 || !S.club) return null; const bar = (rec.str - 45) * 0.35 + 45 + (S.age - 15) * 4;
   return S.ovr >= bar ? { team: yt, starter: S.ovr >= bar + 5 } : null; }
@@ -3772,7 +3852,7 @@ function windowFixtures(Y, w) { const me = myNation(); if (!me) return []; const
     mds.forEach(md => { const m = nl.groups[lg][gi].matches.find(x => x.md === md && (x.h === me.name || x.a === me.name)); if (m) out.push({ kind: "NL", label: `Nations League ${lg} • Group ${lg}${gi + 1} (MD${md + 1})`, h: m.h, a: m.a, key: m.key }); }); }
   if (w === "mar" && Y % 2 === 0 && me.conf === "UEFA") { const qf = nlEdition(Y).qf.find(x => x.w === me.name || x.r === me.name);
     if (qf) qf.legs.forEach((l, i) => out.push({ kind: "NLQF", label: `Nations League Quarter-final (${i ? "2nd" : "1st"} leg)`, h: l.h, a: l.a, key: l.key, stage: "leg" })); }
-  let i = 0; while (out.length < 3) out.push(friendlyFx(Y, w, i++, me)); return out; }
+  let i = 0; while (out.length < INTL_PER_WIN) out.push(friendlyFx(Y, w, i++, me)); return out; }
 const _buildSeasonIntl = buildSeason;
 buildSeason = function () { const s = _buildSeasonIntl(); const rec = myNation(); if (!rec || S.age < 15) return s;
   WIN_KEYS.forEach(w => windowFixtures(s.year, w).forEach((f, i) => s.games.push({ comp: "intl", intl: true, win: w, label: `🌍 ${f.label}`, ilabel: f.label, kind: f.kind, key: f.key, friendly: f.kind === "F", stage: f.stage || null, h: f.h, a: f.a, day: WIN[w][i], fx: null })));
@@ -3781,13 +3861,13 @@ function refreshWindow(Y, w) { const fx = windowFixtures(Y, w), gs = S.season.ga
   gs.forEach((g, i) => { const f = fx[i]; if (!f || g.res) return; Object.assign(g, { label: `🌍 ${f.label}`, ilabel: f.label, kind: f.kind, key: f.key, friendly: f.kind === "F", stage: f.stage || null, h: f.h, a: f.a }); }); }
 // ---------------- call-up / snub popups ----------------
 function rankHtml(sel) { const m = sel.mine, mates = sel.squad.filter(p => p.slot === m.pos && !p.me).map(p => `${esc(p.name)} (${p.ovr})`).join(", "), sp = sel.squad.find(p => p.slot === "spare");
-  return `<p>📊 You're <b>${m.text}</b>${m.spare ? " – you took the floating spot" : m.cover ? ` – picked to cover ${m.cover}` : ""}.</p><p style="font-size:12px;color:var(--muted);margin-top:4px">${POS_PL[m.pos]} picked: ${mates || "—"}${sp && !sp.me ? ` • Spare: ${esc(sp.name)} (${sp.sp}, ${sp.ovr})` : ""}</p><p style="font-size:11px;color:var(--muted)">Your form: avg ${m.form.avg} • ${m.form.mins}% of matches played</p>`; }
+  return `<p>📊 Your standing: <b>${m.text}</b>.</p><p style="font-size:12px;color:var(--muted);margin-top:4px">${POS_PL[m.pos]} picked: ${mates || "—"}${sp && !sp.me ? ` • Spare: ${esc(sp.name)} (${sp.sp}, ${sp.ovr})` : ""}</p><p style="font-size:11px;color:var(--muted)">Your form: avg ${m.form.avg} • ${m.form.mins}% of matches played</p>`; }
 async function callupPopups(sel, when, sim) { const I = intlState(), m = sel && sel.mine; if (!m) return null; const nat = myNation().name;
   if (m.picked) { if (!I.calledOnce) { I.calledOnce = true; S.news.unshift(`🌍 First call-up: ${S.name} named in the ${nat} squad.`); }
     if (!sim) await showDecision(`📞 ${nat} call-up • ${when}`, "", [{ label: "Report for duty" }], { html: rankHtml(sel) + `<p style="margin-top:6px">${m.starter ? "The coach sees you as a <b>starter</b>." : "You start on the <b>bench</b>."}</p>` });
     I.wasIn = true; return { team: "senior", starter: m.starter, sel }; }
   if (I.wasIn) S.news.unshift(`❌ ${S.name} dropped from the ${nat} squad (${m.text}).`);
-  if (!sim && (I.caps > 0 || m.rank <= 4 || S.ovr >= 75)) await showDecision(`❌ Left out • ${when}`, "", [{ label: I.caps > 0 ? "Fight my way back" : "Keep pushing" }], { html: `<p>${esc(nat)} name their squad – without you.</p>` + rankHtml(sel) });
+  if (!sim && inContention(sel)) await showDecision(`❌ Left out • ${when}`, "", [{ label: I.caps > 0 ? "Fight my way back" : "Keep pushing" }], { html: `<p>${esc(nat)} name their squad – without you.</p>` + rankHtml(sel) });
   I.wasIn = false; return null; }
 // ---------------- playing windows ----------------
 const _playGameIntl = playGame;
@@ -3796,7 +3876,8 @@ playGame = async function (g, sim) {
   const I = intlState(), Y = S.season.year, wk = Y + ":" + g.win;
   if (I.lastWin !== wk) { I.lastWin = wk; refreshWindow(Y, g.win); let cu = null;
     if (S.age >= 17 && !I.retired) cu = await callupPopups(selectSquad(myNation().name, Y, g.win), WIN_NAME[g.win], sim);
-    if (!cu) { const y = youthCallup(); if (y) { cu = y; if (!sim) await showDecision(`📞 ${S.nationality} ${y.team} call-up`, `You're in the ${y.team} squad for the ${WIN_NAME[g.win]} window${y.starter ? " as a starter" : ""}.`, [{ label: "Report for duty" }]); } }
+    if (!cu) { const y = youthCallup(); if (y) { cu = y; if (!sim) await showDecision(`📞 ${S.nationality} ${y.team} call-up`, `You're in the ${y.team} squad for the ${WIN_NAME[g.win]} window${y.starter ? " as a starter" : ""}.`, [{ label: "Report for duty" }]); }
+      else { const yt = youthTeamFor(S.age); if (yt && I.youth[yt] && I.youthNote !== Y + yt) { I.youthNote = Y + yt; addEvent(`🌱 ${yt} squad`, `You weren't picked for the ${S.nationality} ${yt} squad in ${WIN_NAME[g.win]}. Keep playing well to get back in.`); } } }
     I.cu = cu; }
   if (!I.cu) { g.cancelled = true; const n = nextGame(); return n ? playGame(n, sim) : undefined; }
   g.callup = I.cu; await playIntl(g, sim);
@@ -3885,7 +3966,7 @@ YEAR_HOOKS.push(async () => {
   const t = tournamentDef(T, rec.conf);
   if (t) { const st = tournamentStruct(t, T);
     if (!st.field.includes(me)) { S.news.unshift(`🌍 ${me} failed to qualify for the ${T} ${t.name}. ${st.champ} win it.`); addEvent(`🌍 ${t.name}`, `${me} didn't qualify. ${st.champ} lifted the trophy.`); }
-    else if (!cu) { if (S.pro || I.caps) { S.news.unshift(`🌍 ${S.name} left out of ${me}'s ${t.name} squad. ${st.champ} win the tournament.`); addEvent(`🌍 ${t.name}`, `You weren't selected for ${me}'s squad${sel && sel.mine ? ` (${sel.mine.text})` : ""}. ${st.champ} won.`); } }
+    else if (!cu) { if (inContention(sel)) { S.news.unshift(`🌍 ${S.name} left out of ${me}'s ${t.name} squad. ${st.champ} win the tournament.`); addEvent(`🌍 ${t.name}`, `You weren't selected for ${me}'s squad${sel && sel.mine ? ` (${sel.mine.text})` : ""}. ${st.champ} won.`); } }
     else if (!(I.tournaments.some(x => x.year === T))) await liveTournament(t, T, cu);
   } else if (S.age <= 21) await youthTournament();
   if (I.caps >= 1 && S.age >= 33 && !I.retired && !I.askedRetire) { I.askedRetire = true; await showDecision("🌍 International retirement?", `You're ${S.age} with ${I.caps} caps and ${I.goals} goals for ${me}. Step away from international football to focus on your club?`, [
