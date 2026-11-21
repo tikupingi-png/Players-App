@@ -326,8 +326,8 @@
 #sim-btn { position: absolute; left: calc(50% + 48px); top: 30px; background: var(--surface); color: var(--text); border: 1px solid var(--accent); border-radius: 14px; padding: 5px 9px; font-size: 11px; font-weight: 800; line-height: 1.1; cursor: pointer; box-shadow: 0 4px 12px #0008; }
 /* create screen: content scrolls, Start Life sits in its own footer and never covers fields */
 #create-screen { overflow: hidden; padding-bottom: 0; }
-#create-screen { padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
-#create-scroll { flex: 1; min-height: 0; overflow-y: auto; margin: 0 -22px; padding: 0 22px calc(96px + env(safe-area-inset-bottom, 0px)); scroll-padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; }
+#create-screen { padding-bottom: calc(54px + env(safe-area-inset-bottom, 0px)); } /* P4l: the scroll area ends right at the top of Start Life (button is 50px + safe area), so nothing half-shows under it */
+#create-scroll { flex: 1; min-height: 0; overflow-y: auto; margin: 0 -22px; padding: 0 22px calc(110px + env(safe-area-inset-bottom, 0px)); scroll-padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; }
 #create-scroll > * { flex: none; }
 #create-scroll h1 { position: static; }
 #start-btn { position: fixed; left: 0; right: 0; bottom: 0; z-index: 310; margin: 0; width: 100%; border-radius: 0; padding: 16px; padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)); box-shadow: 0 -6px 14px #0008; }
@@ -4193,6 +4193,7 @@ const BIZ_TYPES = [
 ];
 const BIZ_TIER = ["", "Starter", "Growing", "Brand", "Nightlife", "Hospitality", "Football"];
 const LVL_MULT = [1, 1.45, 2.0, 2.7, 3.6], UPG_COST = [0.5, 0.8, 1.2, 1.8];
+const FC_SOFT = 15e6, EMP_SOFT = 12e6, EMP_RATE = 0.55;
 const FC_DIV = ["", "top flight", "2nd division", "3rd division", "4th division"], FC_REV = [0, 1.8, 1.25, 0.9, 0.65];
 const STOCKS = [
   { s: "NOVA", n: "Nova Motors", ic: "🚗", p0: 42, vol: 0.2, dr: 0.05, wc: 0 }, { s: "KICK", n: "Kickforge Sportswear", ic: "👟", p0: 28, vol: 0.22, dr: 0.05, wc: 0.12 },
@@ -4258,12 +4259,20 @@ const MGR_LBL = { self: "You", family: "Family", friend: "Friend", partner: "Par
 // ---------- yearly simulation ----------
 function bizRevenue(b, m) { const T = bizT(b.k), L = LVL_MULT[b.lvl - 1], skillM = 0.8 + (m.skill / 100) * 0.35; let r = T.price * T.rv * L * skillM * fameMult(T) * bizBoost().total * rnd(0.72, 1.3) * (b.malus || 1);
   if (b.k === "fc") r *= FC_REV[b.div || 4]; return r; }
-function simBusinesses() { const B = S.biz, out = { inc: 0, lines: [], emb: null };
+function simBusinesses() { const B = S.biz, out = { inc: 0, lines: [], emb: null }, pend = [];
   B.list.forEach(b => { const T = bizT(b.k), m = liveMgr(b), L = LVL_MULT[b.lvl - 1]; let rev = bizRevenue(b, m), up = T.price * T.up * L * (b.k === "fc" ? FC_REV[b.div || 4] * 0.9 + 0.1 : 1);
     if (m.kind === "pro") up += b.mgr.salary || proSalary(m, b); if (m.kind === "agent") up += rev * (m.fee / 100);
     let skim = 0; const ech = m.kind === "self" ? 0 : m.loyalty < 55 ? (55 - m.loyalty) / 220 : 0.01;
     if (rev > 0 && Math.random() < ech && !out.emb) { skim = rev * rnd(0.12, 0.35); out.emb = { b, m, amt: Math.round(skim) }; }
-    const profit = Math.round(rev - up - skim); b.malus = 1; b.last = profit; b.hist = (b.hist || []).concat([profit]).slice(-8); b.value = bizValue(b); out.inc += profit;
+    if (b.k === "fc") up *= [1, 1.18, 1.06, 1, 1][b.div || 4]; // top-flight wages and stadium costs rise faster than income
+    let profit = Math.round(rev - up - skim);
+    if (b.k === "fc" && profit > FC_SOFT) profit = Math.round(FC_SOFT + (profit - FC_SOFT) * 0.3);
+    // soft cap above: club profit over ~€15m/yr mostly goes back into the squad
+    pend.push([b, T, m, profit]); });
+  // empire overhead: once the whole empire clears ~€12m/yr, extra profit is taxed/managed away at a higher rate (stops late-life compounding)
+  const pos = pend.reduce((a, x) => a + Math.max(0, x[3]), 0), net = pend.reduce((a, x) => a + x[3], 0), f = net > EMP_SOFT && pos > 0 ? Math.max(0, 1 - (net - EMP_SOFT) * (1 - EMP_RATE) / pos) : 1;
+  pend.forEach(([b, T, m, profit]) => { if (profit > 0 && f < 1) profit = Math.round(profit * f);
+    b.malus = 1; b.last = profit; b.hist = (b.hist || []).concat([profit]).slice(-8); b.value = bizValue(b); out.inc += profit;
     if (m.pid) { const p = S.people.find(x => x.id === m.pid); if (p) p.closeness = clamp(p.closeness + (profit > 0 ? R(1, 3) : -R(2, 5))); }
     if (b.k === "fc") fcSeason(b);
     out.lines.push(`${T.ic} ${b.name}: ${money(profit)}`); });
@@ -4312,13 +4321,14 @@ const netCashAfterLoans = () => fin(S.money) - (S.biz.loans || []).filter(l => l
 const recovered = B => (B.okYears = (B.okYears || 0) + 1) >= 2 || netCashAfterLoans() >= 0; // two positive year-ends in a row, or cash covers the loans
 async function solvency() { const B = S.biz; if (S.money >= 0) { if (!B.debtYears || recovered(B)) { B.debtYears = 0; B.okYears = 0; } return; } B.okYears = 0; const debt = -S.money, loanBal = B.loans.reduce((a, l) => a + l.bal, 0), assets = nwTotal() + debt + loanBal;
   const interest = Math.round(debt * 0.1); S.money -= interest; B.debtYears = (B.debtYears || 0) + 1; bizLog(`🏦 You're ${money(debt)} overdrawn (year ${B.debtYears}). Interest: ${money(-interest)}.${loanBal ? ` Loans outstanding: ${money(loanBal)}.` : ""}`, "🏦 In debt");
-  if (B.debtYears >= 4) { await bankruptcy(); return; } // a fourth year in the red (without a real recovery in between): formal bankruptcy
+  const rich = assets - loanBal > Math.max(20e6, 10 * debt); // asset-rich owners (e.g. a club in a bad year) get forced sales, not bankruptcy
+  if (B.debtYears >= 4 && !rich) { await bankruptcy(); return; } // a fourth year in the red (without a real recovery in between): formal bankruptcy
   if (B.debtYears >= 2 && B.lux.length) { const sold = []; while (S.money < 0 && B.lux.length) { B.lux.sort((a, b) => b.value - a.value); const l = B.lux.shift(), v = Math.round(l.value * 0.6); S.money += v; sold.push(`${luxT(l.k).n} (${money(v)})`); }
     bizLog(`🚨 Two years in the red: the bank forces you to sell your luxury: ${sold.join(", ")}.`, "🚨 Forced sale"); syncLuxFame(); }
   // still in the red after three years but asset-rich: the bank makes you sell the cheapest business/property that clears the debt (85% of value) instead of bankrupting you
   if (S.money < 0 && B.debtYears >= 3 && assets - loanBal > 3 * -S.money) { const pool = [...B.list.filter(x => x.k !== "fc"), ...B.props].sort((x, y) => x.value - y.value); const x = pool.find(q => q.value * 0.85 >= -S.money) || pool[pool.length - 1];
     if (x) { const v = Math.round(fin(x.value) * 0.85); if (B.list.includes(x)) B.list.splice(B.list.indexOf(x), 1); else B.props.splice(B.props.indexOf(x), 1); settleLoans(x.id); S.money += v; bizLog(`🚨 ${B.debtYears} years overdrawn: the bank forced the sale of ${x.name} for ${money(v)}.`, "🚨 Forced sale"); } }
-  if (S.money < 0 && (-S.money > Math.max(100e3, (assets - loanBal) * 0.3) || assets - loanBal <= 0 || B.debtYears >= 4)) await bankruptcy(); }
+  if (S.money < 0 && (-S.money > Math.max(100e3, (assets - loanBal) * 0.3) || assets - loanBal <= 0 || (B.debtYears >= 4 && !rich))) await bankruptcy(); }
 async function bankruptcy() { const B = S.biz, sold = []; const sell = (arr, f, label) => { while (S.money < 0 && arr.length) { const x = arr.shift(); const v = Math.round(fin(x.value) * f); S.money += v; settleLoans(x.id); sold.push(`${label(x)} (${money(v)})`); } };
   sell(B.lux, 0.5, l => luxT(l.k).n);
   Object.keys(B.sh).forEach(s => { if (S.money < 0 && B.sh[s].n > 0) { const v = Math.round(B.sh[s].n * px(s) * 0.95); S.money += v; sold.push(`${s} shares (${money(v)})`); B.sh[s] = { n: 0, cost: 0 }; } });
@@ -4620,7 +4630,7 @@ function moneyProps() { const B = S.biz; let h = "";
 function moneyLux() { const B = S.biz; let h = "";
   const up = B.lux.reduce((a, l) => a + luxT(l.k).price * luxT(l.k).up, 0);
   h += card("💎 Collection", B.lux.length ? `<div class="m-grid">${B.lux.map(l => { const T = luxT(l.k); return `<div class="m-item"><div style="font-size:28px">${T.ic}</div><b>${T.n}</b><span class="sub">${money(l.value)}</span><button class="m-btn red" onclick="sellLux('${l.id}')">Sell ${money(l.value * 0.75)}</button></div>`; }).join("")}</div><p style="font-size:12px;color:var(--muted);margin-top:6px">Upkeep ${money(up)}/yr • fame +${luxFame()}</p>` : `<p style="color:var(--muted);font-size:13px">Nothing shiny yet. Luxury adds fame and happiness, but it costs upkeep every year and loses value.</p>`);
-  let cat = ""; LUX.forEach(T => { if (T.c !== cat) { cat = T.c; h += `<div class="sec-h">${cat}</div>`; } const ok = S.money >= T.price && !(S.biz.debtYears > 0);
+  let cat = ""; LUX.forEach(T => { if (T.c !== cat) { cat = T.c; h += `<div class="sec-h">${cat}</div>`; } const ok = S.money >= 0 && freeCash() >= T.price && !(S.biz.debtYears > 0); // only your own cash counts (no borrowed money)
     h += `<div class="m-shop ${ok ? "" : "locked"}" onclick="buyLux('${T.k}')"><span class="ic">${T.ic}</span><div style="flex:1;min-width:0"><b>${T.n}</b><br><span class="sub">${money(T.price)} • upkeep ${money(T.price * T.up)}/yr • fame +${T.fame} • happiness +${T.hap}</span></div><span class="go">${ok ? "Buy" : ""}</span></div>`; });
   return h; }
 // ===================== P4j: MATCH MOMENTS + YOUTH KEY MATCH =====================
@@ -4759,7 +4769,7 @@ function momentChip(l) { const T = MM_TIERS[l.tier] || MM_TIERS.neutral;
   return `<div class="mm-row"><span class="mm-chip" style="background:${T.col};color:${T.fg}">${T.lbl}</span><span class="mm-min">${l.minute}'</span><span class="mm-txt">${l.icon ? l.icon + " " : ""}${esc(l.text)}${l.ult ? " 🌟" : ""}</span></div>`; }
 const mmMini = log => log.length ? `<div class="mm-minis">${log.map(l => { const T = MM_TIERS[l.tier]; return `<span class="mm-mini" style="background:${T.col};color:${T.fg}">${l.minute}' ${T.lbl}</span>`; }).join("")}</div>` : "";
 // every option shows its style (safe / normal / risky) and a rough success band; Meta Vision shows the exact %
-function mmTag(o) { const c = Math.round(mmOptChance(o) * 100), K = [["🛡️ safe", "r0"], ["⚖️ normal", "r1"], ["🔥 risky", "r2"]][o.k] || ["⚖️ normal", "r1"];
+function mmTag(o) { const c = Math.round(mmOptChance(o) * 100), K = c >= 60 ? ["🛡️ safe", "r0"] : c >= 35 ? ["⚖️ normal", "r1"] : ["🔥 risky", "r2"]; // label always matches the band
   const band = typeof hasMV === "function" && hasMV() ? `${c}%` : c >= 60 ? "60%+" : c >= 35 ? "35–60%" : "<35%", sym = typeof hasMV === "function" && hasMV() && o.n ? skillBonus(o.n).sym || "" : "";
   return `<span class="mm-risk ${K[1]}">${K[0]} · <b>${sym}${band}</b></span>`; }
 // one-line crowd / teammate reaction, flashed with the outcome chip after each live decision
@@ -4770,7 +4780,14 @@ function mmReact(out, m) { if (out.goal) return pick(["GOAL! The place erupts!",
   if (out.conceded) return pick(["They score from it. Heads drop.", "Goal for them – the keeper glares at you."]); return pick(MM_REACT[out.tier] || MM_REACT.neutral); }
 function mmFlash(out) { if (typeof document === "undefined" || !document.body) return; let el = document.getElementById("mm-flash"); if (!el) { el = document.createElement("div"); el.id = "mm-flash"; document.body.appendChild(el); }
   const T = MM_TIERS[out.tier]; el.innerHTML = `<span class="mm-chip" style="background:${T.col};color:${T.fg}">${T.lbl}</span><span class="mm-flash-t">${esc(out.react || "")}</span>`;
-  el.classList.remove("show"); void el.offsetWidth; el.classList.add("show"); clearTimeout(mmFlash._t); mmFlash._t = setTimeout(() => el.classList.remove("show"), 2400); }
+  el.classList.remove("show"); void el.offsetWidth; el.classList.add("show"); el.dataset.n = +(el.dataset.n || 0) + 1; clearTimeout(mmFlash._t); mmFlash._t = setTimeout(mmFlashClear, 2400);
+  if (typeof window !== "undefined" && typeof window.__onMMFlash === "function") window.__onMMFlash(out); }
+function mmFlashClear() { clearTimeout(mmFlash._t); const el = typeof document !== "undefined" && document.getElementById("mm-flash"); if (el) el.classList.remove("show"); }
+// the flash never sits over the next decision or verdict: any new modal clears it; live play pauses briefly so it can be seen
+const _showDecisionMM = showDecision;
+showDecision = function (...a) { mmFlashClear(); return _showDecisionMM.apply(this, a); };
+const MM_FLASH_MS = typeof navigator !== "undefined" && /jsdom/i.test(navigator.userAgent || "") ? 0 : 1100;
+const mmPause = () => new Promise(r => setTimeout(r, MM_FLASH_MS));
 function mmApplyOutcome(acc, out, res, st) { const T = MM_TIERS[out.tier]; acc.rating += T.r * (out.rmul || 1) + (out.bonus || 0); acc.form += T.f; acc.mood += T.m;
   if (out.goal) res.goals++; if (out.assist) res.assists++; if (out.conceded) acc.conceded++; acc.swing += out.swing || 0;
   if (st) { const k = out.stat; if (k) st[k] = (st[k] || 0) + 1; }
@@ -4806,7 +4823,7 @@ MOMENTS_HOOK = async function (ctx) { const { g, sim, me, opp, res, st } = ctx;
         const risk = o => mmTag(o);
         const html = `<div class="mm-head"><span class="mm-clock">${P.min}'</span><b>${esc(me)}</b> vs <b>${esc(opp)}</b>${key ? ` <span class="mm-key">🔑 KEY MATCH</span>` : ""}</div>${mmMini(res.log.filter(l => l.tier))}<p class="mm-text">${esc(m.text)}</p>`;
         await showDecision(`${MM_TYPE_ICON[m.t]} ${m.title} • ${P.min}'`, "", opts.map(o => ({ label: o.l, right: risk(o), effect: () => { chosen = o; } })), { html, top: g && typeof kitVs === "function" ? kitVs(g) : "" }); }
-      out = mmResolve(m, chosen, P.min, ultState); out.react = mmReact(out, m); plan.done[k] = out; if (!sim) mmFlash(out);
+      out = mmResolve(m, chosen, P.min, ultState); out.react = mmReact(out, m); plan.done[k] = out; if (!sim) { mmFlash(out); await mmPause(); }
       if (g && !sim && typeof saveGame === "function") saveGame(); }
     mmApplyOutcome(acc, out, res, st); }
   // the moments' combined effect: soft-capped so one bad moment can't sink a match (each moment is at most -0.42, total floor -1.3)
@@ -4926,6 +4943,38 @@ nextMatchday = async function () {
 // header button + calendar hint
 const _updateHeaderMM = updateHeader;
 updateHeader = function () { _updateHeaderMM(); const ab = document.getElementById("age-btn"); if (ab && seasonActive() && keyOf() && youthPhase()) ab.innerHTML = `PLAY<br>SEASON`; };
+// ===================== P4l: one move per transfer window =====================
+// At most ONE permanent move (transfer / free / option-to-buy / pre-agreed move) and ONE loan per window (summer, January),
+// and at most two permanent moves per season. After a move, further offers in that window are auto-declined ("come back next window").
+// Loan returns and recalls are not moves. State lives in S.tw (saved with the career; old saves create it on first use).
+// joinedDay marks a season rebuilt after a mid-season move (still the January side of the year)
+const twNow = () => { const mid = typeof seasonActive === "function" && seasonActive() && S.season && (S.season.joinedDay != null || S.season.games.some(g => g.res)); const a = S.season && S.season.age != null && mid ? S.season.age : S.age; return { key: (mid ? "J" : "S") + a, age: a }; };
+function twState() { const n = twNow(); let T = S.tw; if (!T || T.key !== n.key) { const sPerm = T && T.sAge === n.age ? T.sPerm || 0 : 0; T = S.tw = { key: n.key, perm: 0, loan: 0, sAge: n.age, sPerm, declined: 0 }; } return T; }
+const twIsMove = o => o && o.kind !== "renewal";
+function twCan(kind) { const T = twState(); return kind === "loan" ? T.loan < 1 : T.perm < 1 && (T.sPerm || 0) < 2; }
+function twWhy(kind) { const T = twState(); return kind === "loan" ? "you've already joined a club on loan this window" : T.perm >= 1 ? "you've already moved this window" : "you've already moved twice this season"; }
+function twDecline(o, kind) { const T = twState(); T.declined = (T.declined || 0) + 1;
+  if (T.declined === 1) addEvent("⏳ Come back next window", `${o.club} wanted you, but ${twWhy(kind)}. Your agent tells them to come back next window.`);
+  S.tnews = (S.tnews || []).concat([{ y: typeof curYear === "function" ? curYear() : 0, w: "S", text: `⏳ ${o.club} are told to come back next window for ${S.name}.`, kind: "you" }]); }
+const twKind = o => (o.kind === "loan" ? "loan" : "perm");
+// offers: a live offer ("now") in a window you've already used is auto-declined; pre-contracts for a later window are still allowed
+const _presentOfferTW = presentOffer;
+presentOffer = async function (o, opts = {}) { if (twIsMove(o) && (!o.when || o.when === "now") && !twCan(twKind(o))) { twDecline(o, twKind(o)); return "rejected"; } return _presentOfferTW(o, opts); };
+// every executed move is counted; a move that would break the cap (e.g. a pre-agreed move landing in a used window) is called off
+const _executeMoveTW = executeMove;
+executeMove = async function (o, c) { if (!twIsMove(o)) return _executeMoveTW(o, c); const k = twKind(o);
+  if (!twCan(k)) { addEvent("⏳ Move called off", `The move to ${o.club} can't go through: ${twWhy(k)}. Come back next window.`); return; }
+  const T = twState(), before = S.club; await _executeMoveTW(o, c); if (S.club === before && o.club !== before) return; // count in the window the move happened in
+  if (k === "loan") T.loan++; else { T.perm++; T.sPerm = (T.sPerm || 0) + 1; } S.twLog = (S.twLog || []).concat([{ key: T.key, kind: k, to: o.club, age: S.age }]).slice(-80); };
+// moves that skip presentOffer: the rogue agent's deal, release clauses and buy-backs (don't even announce them if the window is used)
+const _rogueAgentTW = rogueAgent; rogueAgent = async function () { return twCan("perm") ? _rogueAgentTW() : false; };
+const _releaseCheckTW = releaseCheck; releaseCheck = async function () { return twCan("perm") ? _releaseCheckTW() : false; };
+const _buyBackCheckTW = buyBackCheck; buyBackCheck = async function () { return twCan("perm") ? _buyBackCheckTW() : false; };
+const _loanRoundTW = loanRound; loanRound = async function () { return twCan("loan") ? _loanRoundTW() : false; };
+const _offersRoundTW = offersRound; offersRound = async function (maxN, when) { if ((!when || when === "now") && !twCan("perm")) return false; return _offersRoundTW(maxN, when); };
+// root cause of the 8-moves seasons: a mid-season move rebuilt S.season and wiped its window flags, so the January window re-opened at the new club
+const _midSeasonSwitchTW = midSeasonSwitch;
+midSeasonSwitch = function (...a) { const f = S.season && S.season.flags ? { ...S.season.flags } : null; const r = _midSeasonSwitchTW.apply(this, a); if (f && S.season) S.season.flags = Object.assign(S.season.flags || {}, f); return r; };
 // ===== INIT =====
 let CREATE_AV = randomAvatar();
 function fillCities() { const n = document.getElementById("c-nat").value; document.getElementById("c-city").innerHTML = COUNTRIES[n].cities.map(c => `<option>${esc(c)}</option>`).join("") + `<option value="Random">🎲 Random</option>`; }
