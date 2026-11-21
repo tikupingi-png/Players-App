@@ -396,6 +396,9 @@ body:has(#create-screen:not(.hide)) #menu-btn, body.creating #menu-btn { display
 .xnode .act-btn { margin: 0; white-space: normal; overflow-wrap: anywhere; text-align: center; }
 .top-nodes > .node, .top-nodes > .mv-node { width: auto !important; min-width: 0; overflow-wrap: anywhere; padding: 6px; }
 .node > span, .node small { max-width: 100%; overflow-wrap: anywhere; }
+/* P4p: elite club interest card */
+.elite-card { border: 2px solid #ffd600; border-radius: 12px; padding: 8px 10px; background: linear-gradient(160deg, #2a2400 0%, rgba(42,36,0,0) 70%); box-shadow: 0 0 14px rgba(255,214,0,0.35); overflow-wrap: anywhere; }
+.elite-h { color: #ffd600; font-weight: 900; font-size: 12px; letter-spacing: 1px; margin-bottom: 6px; }
 </style>
 <body>
 <button id="menu-btn" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -5004,6 +5007,95 @@ const _offersRoundTW = offersRound; offersRound = async function (maxN, when) { 
 // root cause of the 8-moves seasons: a mid-season move rebuilt S.season and wiped its window flags, so the January window re-opened at the new club
 const _midSeasonSwitchTW = midSeasonSwitch;
 midSeasonSwitch = function (...a) { const f = S.season && S.season.flags ? { ...S.season.flags } : null; const r = _midSeasonSwitchTW.apply(this, a); if (f && S.season) S.season.flags = Object.assign(S.season.flags || {}, f); return r; };
+// ===================== P4p: ELITE (HUGE) CLUB OFFERS ABOVE OVR 84 =====================
+// A "huge club" is a rule, not a list: any club whose base strength (data1/dbint) is 84+.
+// From OVR 85 every summer window (and January, see eliteCount) brings approaches from huge clubs while you're not at one.
+const ELITE_STR = 84, ELITE_OVR = 85;
+const isHugeClub = t => !!t && (t.str || 0) >= ELITE_STR;
+const hugeClubs = () => allClubs().filter(isHugeClub);
+const moneyClubs = () => allClubs().filter(t => t.league === "USA" && t.str >= 66); // past 33: big-money (MLS-style) clubs only (no Saudi league in the data)
+function eliteState() { const E = S.elite = S.elite || {}; E.cool = E.cool || {}; E.pending = E.pending || []; E.log = E.log || []; E.widx = E.widx || 0; return E; }
+function eliteCount(win) { const o = S.ovr; let n = o >= 90 ? R(2, 3) : o >= 87 ? R(1, 2) : (win === "J" && Math.random() >= 0.6 ? 0 : 1);
+  if (n && S.agent && S.agent.type === "super") n++; // super agent: one more approach
+  if (n > 1 && S.age >= 31) n--; // from 31: one fewer (the one guaranteed approach stays)
+  if (S.age > 33) n = Math.min(n, 1); return n; }
+function eliteWeight(t) { const need = rng("need" + t.name + S.position + curYear())(), lg = S.proClub && t.league === S.proClub.league ? 0.6 : 0;
+  return 1 + need * 1.5 + lg + Math.max(0, ((S.form || 50) - 50) / 50) * Math.max(0, t.str - ELITE_STR) * 0.3; }
+function elitePick(n) { const E = eliteState(), old = S.age > 33;
+  const pool = (old ? moneyClubs() : hugeClubs()).filter(t => t.name !== S.club && !transferBan(t.name) && E.cool[t.name] !== E.widx);
+  E.pendOut = E.pending.filter(nm => !pool.some(t => t.name === nm)); // pending clubs unavailable this window (banned / now your club / cooling) stay queued
+  const out = [], pend = E.pending.map(nm => pool.find(t => t.name === nm)).filter(Boolean); pend.forEach(t => { if (out.length < n) out.push(t); });
+  let rest = pool.filter(t => !out.includes(t));
+  while (out.length < n && rest.length) { const ws = rest.map(eliteWeight), tot = ws.reduce((a, b) => a + b, 0); let x = Math.random() * tot, i = 0; while (i < rest.length - 1 && (x -= ws[i]) > 0) i++; out.push(rest[i]); rest.splice(i, 1); }
+  return out; }
+function eliteOffer(t) { const o = makeOffer(t, { when: "now" }); o.elite = true; o.kind = "transfer";
+  o.fee = Math.max(o.fee, Math.round(myValue() * 1.05 / 1e5) * 1e5);
+  if (!S.agent) { o.wage = Math.round(o.wage * 0.9 / 100) * 100; o.bonus = Math.round(o.bonus * 0.9 / 1000) * 1000; }
+  else if (S.agent.type === "super") { o.wage = Math.round(o.wage * 1.1 / 100) * 100; o.bonus = Math.round(o.bonus * 1.15 / 1000) * 1000; }
+  if (S.age > 33) { o.wage = Math.round(o.wage * 1.8 / 100) * 100; o.bonus = Math.round(o.bonus * 2 / 1000) * 1000; o.money = true; }
+  const c = S.contract; if (c && c.release && !S.loan && c.release <= budgetLeft(t.name) * 1.3) { o.fee = c.release; o.viaRelease = true; }
+  if (budgetLeft(t.name) < o.fee * 0.5) return null; // softer budget check than normal offers
+  o.rec = S.agent ? (o.role >= 1 || S.age >= 31) : true;
+  o.note = `${o.viaRelease ? `💥 ${t.name} will pay your ${eur(c.release)} release clause – ${S.club} can't block it. ` : ""}${o.money ? "💰 A big-money offer to finish your career abroad. " : ""}${S.agent ? `${S.agent.name}: "Likely role: ${ROLES[o.role]}."` : `Likely role: ${ROLES[o.role]}.`}`;
+  return o; }
+function biddingWar(offers) { const steps = [], rel = offers.some(o => o.viaRelease); // a met release clause caps the fee: the war is then fought on wages
+  const score = o => rel ? o.wage : o.fee; offers.sort((a, b) => score(b) - score(a));
+  for (let r = 0; r < 2 && offers.length >= 2; r++) { const lead = offers[0], ch = offers[1];
+    if (rel) { ch.wage = Math.round(Math.max(ch.wage, lead.wage) * 1.15 / 100) * 100; ch.bonus = Math.round(Math.max(ch.bonus || 0, lead.bonus || 0) * 1.1 / 1e4) * 1e4; steps.push(`${ch.club} raise wages to ${eur(ch.wage)}/wk`); }
+    else { const nf = Math.round(lead.fee * (1.1 + Math.random() * 0.1) / 1e5) * 1e5; if (nf > budgetLeft(ch.club) * 1.5) { steps.push(`${ch.club} can't go higher and pull out`); lead.bidWar = true; offers.splice(1, 1); continue; } ch.fee = nf; ch.wage = Math.round(ch.wage * 1.15 / 100) * 100; steps.push(`${ch.club} raise to ${eur(ch.fee)} (${eur(ch.wage)}/wk)`); }
+    ch.bidWar = lead.bidWar = true; offers.sort((a, b) => score(b) - score(a)); }
+  offers.forEach(o => { if (o.bidWar) o.note = `🔥 Bidding war! ${o.note}`; }); return steps; }
+async function elitePass(win) {
+  if (!S.pro || S.retired || S.age < 17 || S.ovr < ELITE_OVR) return false;
+  const E = eliteState(), key = win + S.age; if (E.lastKey === key) return false; E.lastKey = key; E.widx++;
+  const rec = { key, age: S.age, ovr: S.ovr, cur: S.club, n: 0, clubs: [], strs: [] }; E.log.push(rec); if (E.log.length > 120) E.log.splice(0, E.log.length - 120);
+  const old = S.age > 33, cur = teamObj(S.club);
+  if (S.loan) { rec.skip = "loan"; return false; } if (!old && isHugeClub(cur)) { rec.skip = "at huge club"; return false; } if (old && moneyClubs().some(t => t.name === S.club)) { rec.skip = "at money club"; return false; }
+  if (transferBan(S.club)) { rec.skip = "ban"; return false; }
+  if (E.pending.length) rec.pendIn = E.pending.slice();
+  const n = Math.max(eliteCount(win), E.pending.length ? 1 : 0); if (!n) { rec.skip = "no approach (January roll)"; return false; }
+  const picks = elitePick(n); if (!picks.length) { rec.skip = "no clubs"; return false; }
+  if (E.pendOut && E.pendOut.length) rec.pendOut = E.pendOut.slice(); rec.n = picks.length; rec.clubs = picks.map(t => t.name); rec.strs = picks.map(t => t.str);
+  E.pending = E.pending.filter(nm => !rec.clubs.includes(nm));
+  if (!twCan("perm")) { rec.blocked = true; picks.forEach(t => { if (!E.pending.includes(t.name)) E.pending.push(t.name); });
+    twDecline({ club: rec.clubs.join(" and "), kind: "transfer" }, "perm"); return false; } // twDecline logs the "come back next window" line
+  const ag = S.agreed && S.agreed.when === (win === "J" ? "jan" : "summer") ? S.agreed : null; // a pre-agreed move already uses this window
+  if (ag) { rec.blocked = "agreed"; picks.forEach(t => { if (!E.pending.includes(t.name)) E.pending.push(t.name); });
+    S.tnews = (S.tnews || []).concat([{ y: curYear(), w: win, text: `⭐ ${rec.clubs.join(" and ")} asked about ${S.name}, but his move to ${ag.o.club} is already agreed. They'll be back next window.`, kind: "elite" }]);
+    S.news.unshift(`Elite interest: ${rec.clubs.join(" and ")} came calling, but your move to ${ag.o.club} is already agreed. They'll try again next window.`); return false; }
+  let offers = picks.map(eliteOffer).filter(Boolean); if (!offers.length) { rec.skip = "budgets"; return false; }
+  let war = []; if (S.ovr >= 90 && offers.length >= 2) { war = biddingWar(offers); rec.bid = war.length; } else offers.sort((a, b) => b.fee - a.fee);
+  const names = offers.map(o => o.club).join(offers.length > 2 ? ", " : " and ");
+  S.tnews = (S.tnews || []).concat([{ y: curYear(), w: win, text: `⭐ ${names} ${offers.length > 1 ? "are" : "is"} chasing ${S.name}${war.length ? " – a bidding war has broken out!" : "."}`, kind: "elite" }]); S.news.unshift(`Elite interest: ${names} want ${S.name}.`);
+  if (S.agent) await showDecision(`📱 ${S.agent.name}: elite interest`, "", [{ label: "Show me the offers" }], { html: `<div class="elite-card"><div class="elite-h">⭐ ELITE CLUB INTEREST</div><p>"${offers.length > 1 ? `${offers.length} of the biggest clubs in the world` : `One of the biggest clubs in the world`} want you: <b>${esc(names)}</b>."</p>${war.length ? `<p style="margin-top:6px">🔥 Bidding war:<br>${war.map(esc).join("<br>")}</p>` : ""}</div>` });
+  // the current club may refuse to sell (unless a release clause is met): transfer request or stay loyal
+  const c = S.contract; if (!offers[0].viaRelease && c && c.until - S.age >= 2 && Math.random() < 0.3) { let go = true;
+    await showDecision(`🚫 ${S.club} refuse to sell`, `${S.club} have turned down ${offers[0].club}'s approach. You still have ${c.until - S.age} years on your deal.`, [
+      { label: "📣 Hand in a transfer request", effect: () => { go = true; S.transferRequest = true; if (S.clubInfo) S.clubInfo.trust = clamp(S.clubInfo.trust - 15); S.tnews = S.tnews.concat([{ y: curYear(), w: win, text: `📣 ${S.name} hands in a transfer request to force a move.`, kind: "you" }]); } },
+      { label: "🫡 Stay loyal", effect: () => { go = false; S.happiness = clamp(S.happiness + 6); if (S.clubInfo) S.clubInfo.trust = clamp(S.clubInfo.trust + 10); S.fanRep = (S.fanRep || 0) + 5; addEvent("🫡 Loyal", `You turned your back on ${names} to stay at ${S.club}. The fans love you for it.`); } }]);
+    rec.refused = true; if (!go) { rec.loyal = true; return false; } }
+  for (const o of offers) { if (!twCan("perm")) { if (!E.pending.includes(o.club)) E.pending.push(o.club); continue; }
+    const res = await presentOffer(o, { title: o.viaRelease ? "💥 Release clause met • Elite club" : "⭐ Elite club interest" });
+    if (res === "accepted") { rec.accepted = o.club; S.transferRequest = false; return true; }
+    E.cool[o.club] = E.widx + 1; } // a rejected club sits out the next window
+  return false; }
+// windows: summer runs the elite pass first (before normal offers), January too
+const _transferCheckEL = transferCheck;
+transferCheck = async function () { if (S.pro && S.lastWindow !== "S" + S.age) { if (!S.contract) S.contract = { club: S.club, wage: Math.round(wageBase(S.ovr, S.proClub.league) * 0.6 / 100) * 100, bonus: 0, years: 3, until: S.age + 3, release: 0, image: 0, loyalty: 0, role: roleFor(teamObj(S.club)), signed: S.age }; await elitePass("S"); } return _transferCheckEL(); };
+const _janWindowEL = janWindow;
+janWindow = async function () { await elitePass("J"); return _janWindowEL(); };
+// gold card, unveiling moment, legacy entry
+const _offerHtmlEL = offerHtml;
+offerHtml = function (o) { const h = _offerHtmlEL(o); return o.elite ? `<div class="elite-card"><div class="elite-h">⭐ ELITE CLUB INTEREST${o.bidWar ? " • 🔥 BIDDING WAR" : ""}</div>${h}</div>` : h; };
+const _executeMoveEL = executeMove;
+executeMove = async function (o, c) { const before = S.club; await _executeMoveEL(o, c);
+  if (o && o.elite && S.club === o.club && before !== o.club) { S.eliteLog = (S.eliteLog || []).concat([{ age: S.age, club: o.club, fee: o.fee || 0, war: !!o.bidWar, y: curYear() }]);
+    addEvent("⭐ Elite move", `You join ${o.club}${o.fee ? ` for ${eur(o.fee)}` : ""}. One of the biggest clubs in the world.`);
+    S.tnews = (S.tnews || []).concat([{ y: curYear(), w: "S", text: `🎉 ${o.club} unveil ${S.name} in front of a packed stadium.`, kind: "elite" }]);
+    await showDecision(`🎉 Unveiled at ${o.club}`, "", [{ label: "Wave to the crowd" }], { html: `<div class="elite-card"><div class="elite-h">⭐ ELITE MOVE</div><div style="display:flex;gap:8px;align-items:center">${kitSwatch(clubKit(o.club).home, 34)}<p>Flashbulbs, a packed stadium and your name on the back of the shirt. <b>${esc(S.name)}</b> is a <b>${esc(o.club)}</b> player${o.fee ? ` (${eur(o.fee)})` : ""}.</p></div></div>` }); } };
+const _legacyHtmlEL = legacyHtml;
+legacyHtml = function (final) { const h = _legacyHtmlEL(final); const L = S.eliteLog || []; if (!L.length) return h;
+  return h + card("⭐ Elite moves", L.map(x => `<div class="hl" style="font-size:12px">Age ${x.age}: ${esc(x.club)}${x.fee ? ` • ${eur(x.fee)}` : ""}${x.war ? " • 🔥 bidding war" : ""}</div>`).join(""), "border-color:#ffd600"); };
 // ===== INIT =====
 let CREATE_AV = randomAvatar();
 function fillCities() { const n = document.getElementById("c-nat").value; document.getElementById("c-city").innerHTML = COUNTRIES[n].cities.map(c => `<option>${esc(c)}</option>`).join("") + `<option value="Random">🎲 Random</option>`; }
