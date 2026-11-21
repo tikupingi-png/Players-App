@@ -5124,6 +5124,86 @@ executeMove = async function (o, c) { const before = S.club; await _executeMoveE
 const _legacyHtmlEL = legacyHtml;
 legacyHtml = function (final) { const h = _legacyHtmlEL(final); const L = S.eliteLog || []; if (!L.length) return h;
   return h + card("⭐ Elite moves", L.map(x => `<div class="hl" style="font-size:12px">Age ${x.age}: ${esc(x.club)}${x.fee ? ` • ${eur(x.fee)}` : ""}${x.war ? " • 🔥 bidding war" : ""}</div>`).join(""), "border-color:#ffd600"); };
+// ===== P4q gameplay batch: Starting XI, Ballon d'Or balance, pre-match card, easier skill points =====
+// ---- 1) Starting XI: top 11 of the squad by OVR starts every match (unless injured / suspended) ----
+let BT_G = null; // game being played (selectChance has no game argument)
+function squadRank() { const L = (S.squad && S.squad.list) || []; if (L.length < 11) return null; return 1 + L.filter(p => !p.me && !p.injured && p.ovr > S.ovr).length; }
+const btUnavailable = () => !!(S.injury || S.injured || S.suspended || S.suspension);
+function inTopXI() { const r = squadRank(); return r !== null && r <= 11 && !btUnavailable(); }
+const _selectChanceBT = selectChance;
+selectChance = function () { const c = _selectChanceBT(); if (S.club && !(BT_G && (BT_G.intl || BT_G.comp === "intl")) && inTopXI()) return 1.01; return c; };
+
+// ---- 2) Ballon d'Or: same base as the AI stars (OVR + position + club table + luck) plus a position-fair season score ----
+const BD_POS = { ST: 4, CF: 4, LW: 3, RW: 3, CAM: 2, CM: 1, CDM: 0, CB: -2, LB: -3, RB: -3, GK: -4 };
+const BD_K = { ga: 1, tro: 1, rat: 1 };
+function bdParts(row) { const P = S.position, att = ["ST", "CF", "LW", "RW"].includes(P), mid = ["CAM", "CM", "CDM"].includes(P), gk = P === "GK";
+  const ga = gk ? (row.cs || 0) * 0.35 : att ? row.goals * 0.3 + row.assists * 0.2 : mid ? row.goals * 0.45 + row.assists * 0.3 : row.goals * 0.8 + row.assists * 0.5 + (row.cs || 0) * 0.15;
+  const tro = (row.trophies || []).reduce((a, t) => a + (/Champions League/.test(t.name) ? 5 : t.icon === "🏆" ? 4 : 2), 0);
+  const Y = (row.year || 0) + 1, lk = leagueKeyOf(row.club), top = lk && LEAGUES[lk] ? LEAGUES[lk].teams[0].str / 40 : 0;
+  return { ga: Math.min(ga, 14), tro, rat: (row.avg - 6.3) * 8, base: S.ovr + (BD_POS[P] || 0) + tableBonus(row.club, Y) * 0.8 + top, luck: rng("bdme" + S.name + Y)() * 6,
+    extra: (row.awards || []).length * 0.8 + (S.intlBoost || 0) * 1.2 + (typeof legendExtra === "function" ? legendExtra() : 0) }; }
+myBdScore = function (row) { if (!row || !S.pro || row.apps < 12) return null; const p = bdParts(row);
+  return p.base + p.luck + p.ga * BD_K.ga + p.tro * BD_K.tro + p.rat * BD_K.rat + p.extra; };
+
+// ---- 4) Skill points: appearances, good games, goals/assists, MOTM, extra training / gym ----
+const SP_RATE = { app: 0.05, appYouth: 0.03, good: 0.05, motm: 0.15, goal: 0.04, cap: 2.5, train: 0.25 };
+function spAdd(v) { S.skillPoints = Math.round((S.skillPoints + v) * 100) / 100; }
+function matchPoints(g) { const r = g.res, sea = S.season; if (!r || !r.played || !sea || !sea.st || !S.club) return 0;
+  let v = S.pro ? SP_RATE.app : SP_RATE.appYouth; if (r.rating >= 7.5) v += SP_RATE.good; if (r.rating >= 8.5) v += SP_RATE.motm; if (S.pro) v += (r.goals || 0) * SP_RATE.goal;
+  const used = sea.st.perfPts || 0, add = Math.max(0, Math.min(v, SP_RATE.cap - used)); if (add > 0) { sea.st.perfPts = +(used + add).toFixed(2); spAdd(add); } return add; }
+const _doActivityBT = doActivity;
+doActivity = function (id) { const a = ACTIVITIES.find(x => x[0] === id), before = a ? actLeft(a) : 0; _doActivityBT(id);
+  if (a && (id === "extra" || id === "gym") && S.club && S.age >= 12 && actLeft(a) < before) { spAdd(SP_RATE.train); const e = S.events && S.events[0]; if (e) { e.text += ` +${SP_RATE.train} skill pts.`; renderTimeline(); } } };
+
+// ---- 3) Pre-match card ----
+function btForm(team, g) { // last five league results of a team before this matchday
+  const sea = S.season; if (!sea || g.comp !== "league" || !g.md) return [];
+  let mds; try { mds = sea.pro ? leagueSeason(sea.league, sea.year).matchdays : youthSeason(sea.year).matchdays; } catch (e) { return []; }
+  const out = []; for (let i = g.md - 2; i >= 0 && out.length < 5; i--) { const m = (mds[i] || []).find(x => x.h === team || x.a === team); if (!m || m.hg == null) continue;
+    const my = m.h === team ? m.hg : m.ag, op = m.h === team ? m.ag : m.hg; out.unshift(my > op ? "W" : my < op ? "L" : "D"); } return out; }
+function btMyForm() { const gs = ((S.season && S.season.games) || []).filter(x => x.res && x.comp !== "intl"); return gs.slice(-5).map(x => x.res.out); }
+function btRatings() { const r = ((S.season && S.season.games) || []).filter(x => x.res && x.res.played && x.comp !== "intl").slice(-5).map(x => x.res.rating), f = Math.round(S.form || 0);
+  const lab = f >= 70 ? "🔥 Hot" : f >= 45 ? "🙂 Steady" : f >= 25 ? "😐 Patchy" : "🥶 Cold"; return `${lab}${r.length ? ` • last ${r.length}: ${(r.reduce((a, b) => a + b, 0) / r.length).toFixed(1)} avg` : ""}`; }
+const formChips = f => f.length ? f.map(o => `<span class="pm-f pm-${o}">${o}</span>`).join("") : `<span class="pm-mut">–</span>`;
+function btBadge(name) { let k; try { k = clubKit(name).home; } catch (e) { k = null; } const c1 = k ? k.c1 : "#555", c2 = k ? k.c2 : "#999";
+  return `<span class="pm-badge" style="background:linear-gradient(135deg,${c1} 0 55%,${c2} 55% 100%)">${esc(String(name || "?").replace(/[^A-Za-zÀ-ÿ ]/g, "").split(" ").filter(Boolean).map(w => w[0]).join("").slice(0, 3).toUpperCase())}</span>`; }
+function btStakes(g, me, opp) { const st = [];
+  if (typeof DERBIES !== "undefined" && DERBIES.some(([x, y]) => (x === me && y === opp) || (x === opp && y === me))) st.push("🔥 Derby day");
+  const rd = String(g.round || ""); if (/^Final$/i.test(rd) || /\bFinal$/.test(rd) && !/(Semi|Quarter)/i.test(rd)) st.push("🏆 Final"); else if (/Semi/i.test(rd)) st.push("⚔️ Semi-final"); else if (/Quarter/i.test(rd)) st.push("Quarter-final");
+  else if ((g.comp === "cup" || (g.comp === "euro" && rd !== "League phase")) && rd) st.push("⚡ Knockout – no draws");
+  if (g.comp === "league") { const tot = (S.season.games || []).filter(x => x.comp === "league").length; if (g.md === tot) st.push("🏁 Final matchday"); }
+  return st; }
+function btTablePos(team, g) { if (g.comp !== "league" || !(g.md > 1)) return null; try { if (team === S.season.club && typeof tablePos === "function") return tablePos(); } catch (e) {} return null; }
+function preMatchCard(g) {
+  const sea = S.season, me = sea.club, opp = oppOf(g), home = g.h === me;
+  const ms = teamStr(me), os = teamStr(opp), diff = ms - os + (home ? 2 : -2);
+  const verdict = diff >= 6 ? "Clear favourites" : diff >= 2 ? "Slight favourites" : diff > -2 ? "Evenly matched" : diff > -6 ? "Slight underdogs" : "Big underdogs";
+  const pct = Math.round(Math.max(8, Math.min(92, 50 + diff * 3)));
+  const rank = squadRank(), top = inTopXI(), ch = Math.round(Math.min(1, selectChance()) * 100);
+  const role = S.pro && S.contract && typeof ROLES !== "undefined" && S.contract.role != null ? ROLES[S.contract.role] : null;
+  const status = btUnavailable() ? "🚑 Unavailable" : top ? `✅ Starting XI${rank ? ` • #${rank} in the squad` : ""}` : `🪑 Fighting for a place • ~${ch}% to start${rank ? ` • #${rank} in the squad` : ""}`;
+  const comp = g.comp === "league" ? `${g.label} • Matchday ${g.md}` : `${g.label}${g.round ? " • " + g.round : ""}${g.md && g.comp !== "league" ? " " + g.md : ""}`;
+  const pos = btTablePos(me, g), stakes = btStakes(g, me, opp);
+  let fx = "";
+  if (g.comp === "league") { try { const mds = sea.pro ? leagueSeason(sea.league, sea.year).matchdays : youthSeason(sea.year).matchdays;
+    fx = `<details class="pm-fx"><summary>Matchday ${g.md} fixtures</summary>${mds[g.md - 1].map(m => `<div class="hl" style="font-size:12px">${m.h === me || m.a === me ? "<b>" : ""}${esc(m.h)} vs ${esc(m.a)}${m.h === me || m.a === me ? "</b>" : ""}</div>`).join("")}</details>`; } catch (e) {} }
+  return `<div class="pm-card">
+  <div class="pm-comp">${esc(comp)} • ${home ? "🏟️ Home" : "✈️ Away"}</div>
+  ${stakes.length ? `<div class="pm-stakes">${stakes.map(s => `<span>${esc(s)}</span>`).join("")}</div>` : ""}
+  <div class="pm-teams"><div class="pm-team">${btBadge(me)}<b>${esc(me)}</b><span class="pm-mut">${pos ? ordinal(pos) + " in table • " : ""}str ${Math.round(ms)}</span><div>${formChips(btMyForm())}</div></div>
+   <div class="pm-vs">VS</div>
+   <div class="pm-team">${btBadge(opp)}<b>${esc(opp)}</b><span class="pm-mut">str ${Math.round(os)}</span><div>${formChips(btForm(opp, g))}</div></div></div>
+  <div class="pm-bar"><span style="width:${pct}%"></span></div><div class="pm-verdict">${verdict}</div>
+  <div class="pm-row"><span>Your status</span><b>${status}</b></div>
+  ${role ? `<div class="pm-row"><span>Your role</span><b>${esc(role)}</b></div>` : ""}
+  <div class="pm-row"><span>Your form</span><b>${btRatings()}</b></div>
+  </div>${fx}`; }
+const _playGameBT = playGame;
+playGame = async function (g, sim) { BT_G = g; let set = false;
+  try { if (!sim && !g.intl && g.comp !== "intl" && S.season && S.season.club && !g.preNote) { // built lazily: cup opponents are only drawn inside playGame
+      let own; Object.defineProperty(g, "preNote", { configurable: true, enumerable: false, get() { if (own !== undefined) return own; try { return (g.h || g.a) ? preMatchCard(g) : ""; } catch (e) { return ""; } }, set(v) { own = v; } }); set = true; }
+    await _playGameBT(g, sim); } finally { if (set) delete g.preNote; BT_G = null; }
+  if (g.comp !== "intl" && !g.intl) matchPoints(g); };
 // ===== INIT =====
 let CREATE_AV = randomAvatar();
 function fillCities() { const n = document.getElementById("c-nat").value; document.getElementById("c-city").innerHTML = COUNTRIES[n].cities.map(c => `<option>${esc(c)}</option>`).join("") + `<option value="Random">🎲 Random</option>`; }
