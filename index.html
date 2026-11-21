@@ -4333,24 +4333,29 @@ const recovered = B => (B.okYears = (B.okYears || 0) + 1) >= 2 || netCashAfterLo
 async function solvency() { const B = S.biz; if (S.money >= 0) { if (!B.debtYears || recovered(B)) { B.debtYears = 0; B.okYears = 0; B.cfStep = 0; } return; } B.okYears = 0; const debt = -S.money, loanBal = B.loans.reduce((a, l) => a + l.bal, 0), assets = nwTotal() + debt + loanBal;
   const interest = Math.round(debt * 0.1); S.money -= interest; B.debtYears = (B.debtYears || 0) + 1; bizLog(`🏦 You're ${money(debt)} overdrawn (year ${B.debtYears}). Interest: ${money(-interest)}.${loanBal ? ` Loans outstanding: ${money(loanBal)}.` : ""}`, "🏦 In debt");
   const rich = assets - loanBal > Math.max(20e6, 10 * debt); // asset-rich owners (e.g. a club in a bad year) get forced sales, not bankruptcy
-  if (B.debtYears >= 4 && B.list.length === 1 && B.list[0].k === "fc" && !B.props.length) { clubForce(B); if (S.money >= 0) return; } // club is all that's left: dividend → mortgage → sale before any bankruptcy
+  // P4o: an owner whose only big asset is the club skips the early tripwires and goes through the year 4–6 ladder (one step a year); formal bankruptcy only if the forced sale still leaves debt
+  const clubOnly = () => B.list.length > 0 && B.list.every(x => x.k === "fc") && !B.props.length;
+  if (clubOnly()) { if (B.debtYears >= 2 && B.lux.length) { const sold = []; while (S.money < 0 && B.lux.length) { B.lux.sort((a, b) => b.value - a.value); const l = B.lux.shift(), v = Math.round(l.value * 0.6); S.money += v; sold.push(`${luxT(l.k).n} (${money(v)})`); }
+      bizLog(`🚨 Two years in the red: the bank forces you to sell your luxury: ${sold.join(", ")}.`, "🚨 Forced sale"); syncLuxFame(); }
+    if (S.money < 0 && B.debtYears >= 4 && clubForce(B) && S.money < 0) await bankruptcy();
+    return; }
   if (B.debtYears >= 4 && !rich) { await bankruptcy(); return; } // a fourth year in the red (without a real recovery in between): formal bankruptcy
   if (B.debtYears >= 2 && B.lux.length) { const sold = []; while (S.money < 0 && B.lux.length) { B.lux.sort((a, b) => b.value - a.value); const l = B.lux.shift(), v = Math.round(l.value * 0.6); S.money += v; sold.push(`${luxT(l.k).n} (${money(v)})`); }
     bizLog(`🚨 Two years in the red: the bank forces you to sell your luxury: ${sold.join(", ")}.`, "🚨 Forced sale"); syncLuxFame(); }
   // still in the red after three years but asset-rich: the bank makes you sell the cheapest business/property that clears the debt (85% of value) instead of bankrupting you
   if (S.money < 0 && B.debtYears >= 3 && assets - loanBal > 3 * -S.money) { const pool = [...B.list.filter(x => x.k !== "fc"), ...B.props].sort((x, y) => x.value - y.value); const x = pool.find(q => q.value * 0.85 >= -S.money) || pool[pool.length - 1];
     if (x) { const v = Math.round(fin(x.value) * 0.85); if (B.list.includes(x)) B.list.splice(B.list.indexOf(x), 1); else B.props.splice(B.props.indexOf(x), 1); settleLoans(x.id); S.money += v; bizLog(`🚨 ${B.debtYears} years overdrawn: the bank forced the sale of ${x.name} for ${money(v)}.`, "🚨 Forced sale"); } }
-  if (S.money < 0 && B.debtYears >= 4 && B.list.every(x => x.k === "fc") && !B.props.length) clubForce(B); // the forced sales above left only the club
+  if (S.money < 0 && B.debtYears >= 4 && clubOnly()) { if (clubForce(B) && S.money < 0) await bankruptcy(); return; } // the forced sales above left only the club: first ladder step this year, no tripwire
   if (S.money < 0 && (-S.money > Math.max(100e3, (assets - loanBal) * 0.3) || assets - loanBal <= 0 || (B.debtYears >= 4 && !rich))) await bankruptcy(); }
 // P4m: an owner whose club is all that's left can't stay overdrawn forever. From year 4 in the red: forced dividend → forced mortgage → forced sale (each logged)
-function clubForce(B) { const fc = B.list.find(x => x.k === "fc"); if (!fc || S.money >= 0) return; const st = B.cfStep || 0; B.cfStep = st + 1; // escalates each forced year: 0 dividend, 1 mortgage, 2+ sale
-  const div = st === 0 ? Math.min(-S.money, Math.round(fin(fc.value) * 0.15)) : 0;
-  if (div > 0) { S.money += div; fc.inv = (fc.inv || 0) - div / 0.75; fc.value = bizValue(fc); B.forced = (B.forced || 0) + 1; bizLog(`🚨 ${B.debtYears} years overdrawn: the bank forced ${fc.name} to pay you a ${money(div)} dividend to cut your debt.`, "🚨 Forced dividend"); }
-  if (S.money < 0 && st <= 1) { const owed = B.loans.filter(l => l.ref === fc.id).reduce((a, l) => a + l.bal, 0), room = Math.round(fin(fc.value) * 0.6 - owed), amt = Math.min(room, Math.ceil(-S.money * 1.1 / 1000) * 1000);
+function clubForce(B) { const fc = B.list.find(x => x.k === "fc"); if (!fc || S.money >= 0) return false; const st = B.cfStep || 0; B.cfStep = st + 1; // exactly one step per forced year: 0 dividend, 1 mortgage, 2+ sale
+  if (st === 0) { const div = Math.min(-S.money, Math.round(fin(fc.value) * 0.15)); if (div > 0) { S.money += div; fc.inv = (fc.inv || 0) - div / 0.75; fc.value = bizValue(fc); B.forced = (B.forced || 0) + 1; bizLog(`🚨 ${B.debtYears} years overdrawn: the bank forced ${fc.name} to pay you a ${money(div)} dividend to cut your debt.`, "🚨 Forced dividend"); } return false; }
+  if (st === 1) { const owed = B.loans.filter(l => l.ref === fc.id).reduce((a, l) => a + l.bal, 0), room = Math.round(fin(fc.value) * 0.6 - owed), amt = Math.min(room, Math.ceil(-S.money * 1.1 / 1000) * 1000);
     if (amt > 0) { const lo = { kind: "club", rate: 0.08, years: 12, via: "the bank (forced)", amt }; lo.pay = annuity(amt, lo.rate, lo.years); B.loans.push({ id: nid(), kind: "club", ref: fc.id, label: `forced mortgage on ${fc.name}`, amt, bal: amt, rate: lo.rate, years: lo.years, pay: lo.pay, since: S.age, via: lo.via }); S.money += amt;
-      bizLog(`🚨 ${B.debtYears} years overdrawn: the bank put a forced ${money(amt)} mortgage on ${fc.name} at 8% (${money(lo.pay)}/yr).`, "🚨 Forced mortgage"); } }
-  if (S.money < 0) { const v = Math.round(fin(fc.value) * 0.85); B.list.splice(B.list.indexOf(fc), 1); settleLoans(fc.id); S.money += v;
-    bizLog(`🚨 ${B.debtYears} years overdrawn: the bank forced the sale of ${fc.name} for ${money(v)}.`, "🚨 Forced sale"); S.news.unshift(`${S.name} is forced to sell ${fc.name} to clear debts.`); B.cfStep = 0; } }
+      bizLog(`🚨 ${B.debtYears} years overdrawn: the bank put a forced ${money(amt)} mortgage on ${fc.name} at 8% (${money(lo.pay)}/yr).`, "🚨 Forced mortgage"); }
+    else bizLog(`🚨 ${B.debtYears} years overdrawn: ${fc.name} is already mortgaged to the limit. Next year the bank will force a sale.`, "🚨 Forced mortgage"); return false; }
+  const v = Math.round(fin(fc.value) * 0.85); B.list.splice(B.list.indexOf(fc), 1); settleLoans(fc.id); S.money += v;
+  bizLog(`🚨 ${B.debtYears} years overdrawn: the bank forced the sale of ${fc.name} for ${money(v)}.`, "🚨 Forced sale"); S.news.unshift(`${S.name} is forced to sell ${fc.name} to clear debts.`); B.cfStep = 0; return true; }
 async function bankruptcy() { const B = S.biz, sold = []; const sell = (arr, f, label) => { while (S.money < 0 && arr.length) { const x = arr.shift(); const v = Math.round(fin(x.value) * f); S.money += v; settleLoans(x.id); sold.push(`${label(x)} (${money(v)})`); } };
   sell(B.lux, 0.5, l => luxT(l.k).n);
   Object.keys(B.sh).forEach(s => { if (S.money < 0 && B.sh[s].n > 0) { const v = Math.round(B.sh[s].n * px(s) * 0.95); S.money += v; sold.push(`${s} shares (${money(v)})`); B.sh[s] = { n: 0, cost: 0 }; } });
