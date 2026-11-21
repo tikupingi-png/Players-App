@@ -325,12 +325,12 @@
 #age-wrap { position: relative; }
 #sim-btn { position: absolute; left: calc(50% + 48px); top: 30px; background: var(--surface); color: var(--text); border: 1px solid var(--accent); border-radius: 14px; padding: 5px 9px; font-size: 11px; font-weight: 800; line-height: 1.1; cursor: pointer; box-shadow: 0 4px 12px #0008; }
 /* create screen: content scrolls, Start Life sits in its own footer and never covers fields */
-#create-screen { overflow: hidden; padding-bottom: 0; }
-#create-screen { padding-bottom: calc(54px + env(safe-area-inset-bottom, 0px)); } /* P4l: the scroll area ends right at the top of Start Life (button is 50px + safe area), so nothing half-shows under it */
-#create-scroll { flex: 1; min-height: 0; overflow-y: auto; margin: 0 -22px; padding: 0 22px calc(110px + env(safe-area-inset-bottom, 0px)); scroll-padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; }
+/* P4m: real flex layout: header+fields scroll in #create-scroll (flex:1, overflow auto); Start Life is a normal footer row below it (not fixed, not overlaid) */
+#create-screen { display: flex; flex-direction: column; overflow: hidden; padding-bottom: 0; }
+#create-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; margin: 0 -22px; padding: 0 22px 16px; scroll-padding-bottom: 16px; display: flex; flex-direction: column; }
 #create-scroll > * { flex: none; }
 #create-scroll h1 { position: static; }
-#start-btn { position: fixed; left: 0; right: 0; bottom: 0; z-index: 310; margin: 0; width: 100%; border-radius: 0; padding: 16px; padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)); box-shadow: 0 -6px 14px #0008; }
+#start-btn { position: static; flex: 0 0 auto; z-index: auto; margin: 0 -22px; width: calc(100% + 44px); border-radius: 0; padding: 16px; padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)); box-shadow: none; border-top: 1px solid var(--border); }
 #create-screen.hide #start-btn { display: none; }
 /* 9 tabs */
 .tab { font-size: 8.5px; letter-spacing: -0.2px; }
@@ -4193,7 +4193,7 @@ const BIZ_TYPES = [
 ];
 const BIZ_TIER = ["", "Starter", "Growing", "Brand", "Nightlife", "Hospitality", "Football"];
 const LVL_MULT = [1, 1.45, 2.0, 2.7, 3.6], UPG_COST = [0.5, 0.8, 1.2, 1.8];
-const FC_SOFT = 15e6, EMP_SOFT = 12e6, EMP_RATE = 0.55;
+const FC_SOFT = 15e6, EMP_SOFT = 12e6, EMP_RATE = 0.55, EMP_HARD = 25e6, EMP_RATE2 = 0.25;
 const FC_DIV = ["", "top flight", "2nd division", "3rd division", "4th division"], FC_REV = [0, 1.8, 1.25, 0.9, 0.65];
 const STOCKS = [
   { s: "NOVA", n: "Nova Motors", ic: "🚗", p0: 42, vol: 0.2, dr: 0.05, wc: 0 }, { s: "KICK", n: "Kickforge Sportswear", ic: "👟", p0: 28, vol: 0.22, dr: 0.05, wc: 0.12 },
@@ -4267,11 +4267,14 @@ function simBusinesses() { const B = S.biz, out = { inc: 0, lines: [], emb: null
     if (b.k === "fc") up *= [1, 1.18, 1.06, 1, 1][b.div || 4]; // top-flight wages and stadium costs rise faster than income
     let profit = Math.round(rev - up - skim);
     if (b.k === "fc" && profit > FC_SOFT) profit = Math.round(FC_SOFT + (profit - FC_SOFT) * 0.3);
+    if (b.k === "fc" && profit < -5e6) profit = Math.round(-5e6 + (profit + 5e6) * 0.5); // P4m: in a bad year the club cuts costs (sells players), so losses past €5m are halved
     // soft cap above: club profit over ~€15m/yr mostly goes back into the squad
     pend.push([b, T, m, profit]); });
   // empire overhead: once the whole empire clears ~€12m/yr, extra profit is taxed/managed away at a higher rate (stops late-life compounding)
-  const pos = pend.reduce((a, x) => a + Math.max(0, x[3]), 0), net = pend.reduce((a, x) => a + x[3], 0), f = net > EMP_SOFT && pos > 0 ? Math.max(0, 1 - (net - EMP_SOFT) * (1 - EMP_RATE) / pos) : 1;
-  pend.forEach(([b, T, m, profit]) => { if (profit > 0 && f < 1) profit = Math.round(profit * f);
+  // P4m: progressive on the non-club empire: 45% of net profit between €12m and €25m, 75% above €25m (the club has its own soft cap)
+  const nc = pend.filter(x => x[0].k !== "fc"), pos = nc.reduce((a, x) => a + Math.max(0, x[3]), 0), net = nc.reduce((a, x) => a + x[3], 0);
+  const cut = Math.max(0, Math.min(net, EMP_HARD) - EMP_SOFT) * (1 - EMP_RATE) + Math.max(0, net - EMP_HARD) * (1 - EMP_RATE2), f = cut > 0 && pos > 0 ? Math.max(0, 1 - cut / pos) : 1;
+  pend.forEach(([b, T, m, profit]) => { if (profit > 0 && f < 1 && b.k !== "fc") profit = Math.round(profit * f);
     b.malus = 1; b.last = profit; b.hist = (b.hist || []).concat([profit]).slice(-8); b.value = bizValue(b); out.inc += profit;
     if (m.pid) { const p = S.people.find(x => x.id === m.pid); if (p) p.closeness = clamp(p.closeness + (profit > 0 ? R(1, 3) : -R(2, 5))); }
     if (b.k === "fc") fcSeason(b);
@@ -4319,22 +4322,33 @@ function recordNW() { const B = S.biz; B.nw = (B.nw || []).filter(x => x.a !== S
 // debt years only clear after a real recovery (year-end cash covers every non-mortgage loan, or two positive year-ends in a row). Cash that is briefly positive after a forced sale just pauses the count.
 const netCashAfterLoans = () => fin(S.money) - (S.biz.loans || []).filter(l => l.kind !== "mortgage").reduce((a, l) => a + fin(l.bal), 0);
 const recovered = B => (B.okYears = (B.okYears || 0) + 1) >= 2 || netCashAfterLoans() >= 0; // two positive year-ends in a row, or cash covers the loans
-async function solvency() { const B = S.biz; if (S.money >= 0) { if (!B.debtYears || recovered(B)) { B.debtYears = 0; B.okYears = 0; } return; } B.okYears = 0; const debt = -S.money, loanBal = B.loans.reduce((a, l) => a + l.bal, 0), assets = nwTotal() + debt + loanBal;
+async function solvency() { const B = S.biz; if (S.money >= 0) { if (!B.debtYears || recovered(B)) { B.debtYears = 0; B.okYears = 0; B.cfStep = 0; } return; } B.okYears = 0; const debt = -S.money, loanBal = B.loans.reduce((a, l) => a + l.bal, 0), assets = nwTotal() + debt + loanBal;
   const interest = Math.round(debt * 0.1); S.money -= interest; B.debtYears = (B.debtYears || 0) + 1; bizLog(`🏦 You're ${money(debt)} overdrawn (year ${B.debtYears}). Interest: ${money(-interest)}.${loanBal ? ` Loans outstanding: ${money(loanBal)}.` : ""}`, "🏦 In debt");
   const rich = assets - loanBal > Math.max(20e6, 10 * debt); // asset-rich owners (e.g. a club in a bad year) get forced sales, not bankruptcy
+  if (B.debtYears >= 4 && B.list.length === 1 && B.list[0].k === "fc" && !B.props.length) { clubForce(B); if (S.money >= 0) return; } // club is all that's left: dividend → mortgage → sale before any bankruptcy
   if (B.debtYears >= 4 && !rich) { await bankruptcy(); return; } // a fourth year in the red (without a real recovery in between): formal bankruptcy
   if (B.debtYears >= 2 && B.lux.length) { const sold = []; while (S.money < 0 && B.lux.length) { B.lux.sort((a, b) => b.value - a.value); const l = B.lux.shift(), v = Math.round(l.value * 0.6); S.money += v; sold.push(`${luxT(l.k).n} (${money(v)})`); }
     bizLog(`🚨 Two years in the red: the bank forces you to sell your luxury: ${sold.join(", ")}.`, "🚨 Forced sale"); syncLuxFame(); }
   // still in the red after three years but asset-rich: the bank makes you sell the cheapest business/property that clears the debt (85% of value) instead of bankrupting you
   if (S.money < 0 && B.debtYears >= 3 && assets - loanBal > 3 * -S.money) { const pool = [...B.list.filter(x => x.k !== "fc"), ...B.props].sort((x, y) => x.value - y.value); const x = pool.find(q => q.value * 0.85 >= -S.money) || pool[pool.length - 1];
     if (x) { const v = Math.round(fin(x.value) * 0.85); if (B.list.includes(x)) B.list.splice(B.list.indexOf(x), 1); else B.props.splice(B.props.indexOf(x), 1); settleLoans(x.id); S.money += v; bizLog(`🚨 ${B.debtYears} years overdrawn: the bank forced the sale of ${x.name} for ${money(v)}.`, "🚨 Forced sale"); } }
+  if (S.money < 0 && B.debtYears >= 4 && B.list.every(x => x.k === "fc") && !B.props.length) clubForce(B); // the forced sales above left only the club
   if (S.money < 0 && (-S.money > Math.max(100e3, (assets - loanBal) * 0.3) || assets - loanBal <= 0 || (B.debtYears >= 4 && !rich))) await bankruptcy(); }
+// P4m: an owner whose club is all that's left can't stay overdrawn forever. From year 4 in the red: forced dividend → forced mortgage → forced sale (each logged)
+function clubForce(B) { const fc = B.list.find(x => x.k === "fc"); if (!fc || S.money >= 0) return; const st = B.cfStep || 0; B.cfStep = st + 1; // escalates each forced year: 0 dividend, 1 mortgage, 2+ sale
+  const div = st === 0 ? Math.min(-S.money, Math.round(fin(fc.value) * 0.15)) : 0;
+  if (div > 0) { S.money += div; fc.inv = (fc.inv || 0) - div / 0.75; fc.value = bizValue(fc); B.forced = (B.forced || 0) + 1; bizLog(`🚨 ${B.debtYears} years overdrawn: the bank forced ${fc.name} to pay you a ${money(div)} dividend to cut your debt.`, "🚨 Forced dividend"); }
+  if (S.money < 0 && st <= 1) { const owed = B.loans.filter(l => l.ref === fc.id).reduce((a, l) => a + l.bal, 0), room = Math.round(fin(fc.value) * 0.6 - owed), amt = Math.min(room, Math.ceil(-S.money * 1.1 / 1000) * 1000);
+    if (amt > 0) { const lo = { kind: "club", rate: 0.08, years: 12, via: "the bank (forced)", amt }; lo.pay = annuity(amt, lo.rate, lo.years); B.loans.push({ id: nid(), kind: "club", ref: fc.id, label: `forced mortgage on ${fc.name}`, amt, bal: amt, rate: lo.rate, years: lo.years, pay: lo.pay, since: S.age, via: lo.via }); S.money += amt;
+      bizLog(`🚨 ${B.debtYears} years overdrawn: the bank put a forced ${money(amt)} mortgage on ${fc.name} at 8% (${money(lo.pay)}/yr).`, "🚨 Forced mortgage"); } }
+  if (S.money < 0) { const v = Math.round(fin(fc.value) * 0.85); B.list.splice(B.list.indexOf(fc), 1); settleLoans(fc.id); S.money += v;
+    bizLog(`🚨 ${B.debtYears} years overdrawn: the bank forced the sale of ${fc.name} for ${money(v)}.`, "🚨 Forced sale"); S.news.unshift(`${S.name} is forced to sell ${fc.name} to clear debts.`); B.cfStep = 0; } }
 async function bankruptcy() { const B = S.biz, sold = []; const sell = (arr, f, label) => { while (S.money < 0 && arr.length) { const x = arr.shift(); const v = Math.round(fin(x.value) * f); S.money += v; settleLoans(x.id); sold.push(`${label(x)} (${money(v)})`); } };
   sell(B.lux, 0.5, l => luxT(l.k).n);
   Object.keys(B.sh).forEach(s => { if (S.money < 0 && B.sh[s].n > 0) { const v = Math.round(B.sh[s].n * px(s) * 0.95); S.money += v; sold.push(`${s} shares (${money(v)})`); B.sh[s] = { n: 0, cost: 0 }; } });
   B.list.sort((a, b) => a.value - b.value); sell(B.list, 0.6, b => b.name); sell(B.props, 0.7, p => p.name);
   S.happiness = clamp(S.happiness - 20); S.fame = Math.max(0, (S.fame || 0) - 5);
-  syncLuxFame(); B.debtYears = 0; bizLog(`🚨 BANKRUPT. Creditors forced fire sales: ${sold.join(", ") || "nothing left to sell"}.`, "🚨 Bankruptcy"); S.news.unshift(`${S.name} declares bankruptcy after a spending spree.`);
+  syncLuxFame(); B.debtYears = 0; B.cfStep = 0; bizLog(`🚨 BANKRUPT. Creditors forced fire sales: ${sold.join(", ") || "nothing left to sell"}.`, "🚨 Bankruptcy"); S.news.unshift(`${S.name} declares bankruptcy after a spending spree.`);
   if (!document.getElementById("modal").classList.contains("show")) await showDecision("🚨 Bankruptcy", `You couldn't cover your debts. Creditors forced fire sales: ${sold.join(", ") || "nothing left"}. Cash now ${money(S.money)}.`, [{ label: "Start rebuilding" }]); }
 // ---------- decision events ----------
 const adultPeople = () => S.people.filter(p => p.age >= 18 && ["family", "friends", "partner"].includes(p.cat) && !p.dead);
@@ -4465,8 +4479,8 @@ function loanTerms(kind, price) { const K = LOAN_KINDS[kind]; let rate = K.rate,
   if (kind === "club" && S.pro && !S.retired) { const sp = sponsorOf(S.club); if (sp) { rate -= 0.01; via = `${sp.n} (your shirt sponsor)`; } }
   if ((S.fame || 0) >= 60) rate -= 0.005; const ltv = loanLtv(kind); const blocked = S.money < 0 || (S.biz && S.biz.debtYears > 0) || S.age < 18;
   return { kind, rate: +rate.toFixed(4), years: K.years, via, ltv, max: blocked ? 0 : Math.max(0, Math.min(Math.round(price * ltv), creditLimit())) }; }
-// famous players get bigger club loans: 60% → 65% at fame 45 → 70% at fame 55 (down payment 40% → 30%)
-function loanLtv(kind) { const K = LOAN_KINDS[kind], f = S.fame || 0; return kind === "club" ? (f >= 55 ? 0.7 : f >= 45 ? 0.65 : K.ltv) : K.ltv; }
+// famous players get bigger club loans: 60% → 65% at fame 40 → 70% at 45 → 75% at 55
+function loanLtv(kind) { const K = LOAN_KINDS[kind], f = S.fame || 0; return kind === "club" ? (f >= 55 ? 0.75 : f >= 45 ? 0.7 : f >= 40 ? 0.65 : K.ltv) : K.ltv; } // P4m: fame 40 → 35% deposit, 45 → 30%, 55 → 25%
 const annuity = (amt, r, n) => Math.round(amt * r / (1 - Math.pow(1 + r, -n)));
 function loanOffer(kind, price, amt) { const t = loanTerms(kind, price); if (amt == null) amt = Math.ceil((price - Math.max(0, S.money)) / 1000) * 1000; if (amt <= 0 || amt > t.max) return null; return { ...t, amt, pay: annuity(amt, t.rate, t.years) }; }
 function takeLoan(lo, ref, label) { const B = bizState(); B.loans.push({ id: nid(), kind: lo.kind, ref, label, amt: lo.amt, bal: lo.amt, rate: lo.rate, years: lo.years, pay: lo.pay, since: S.age, via: lo.via }); S.money += lo.amt;
@@ -4516,7 +4530,9 @@ YEAR_HOOKS.push(async () => { if (S.biz || S.age >= 17) { if (!S.biz && S.age >=
 // star power: a top player playing now is famous beyond his legacy score (OVR 88 ≈ +3, 90 ≈ +7, 95 ≈ +11); it fades ~15%/yr after retiring
 const starFame = () => S.pro && !S.retired && S.club ? Math.round(Math.max(0, S.ovr - 84) * 0.85 + (S.ovr >= 90 ? 2 : 0)) : Math.round((S.starFameLast || 0) * Math.pow(0.85, Math.max(0, S.age - (S.retiredAge || S.age))));
 YEAR_HOOKS.push(async () => { S.luxFameOn = 0; syncLuxFame(); const f = Math.min(5, S.fameBonus || 0); if (f) S.fame = Math.min(100, (S.fame || 0) + f);
-  const sf = starFame(); if (S.pro && !S.retired && S.club) S.starFameLast = sf; if (sf) S.fame = Math.min(100, (S.fame || 0) + sf); });
+  const sf = starFame(); if (S.pro && !S.retired && S.club) S.starFameLast = sf; if (sf) S.fame = Math.min(100, (S.fame || 0) + sf);
+  // P4m: trophies and awards (Ballon d'Or etc.) won in the last season add fame while you're playing (max +3 a year)
+  if (S.pro && !S.retired) { let tf = 0; try { tf = careerTrophies().filter(t => S.age - t.age <= 1 && !t.youth && !/Youth|U\d/.test(t.name)).length; } catch (e) {} if (tf) S.fame = Math.min(100, (S.fame || 0) + Math.min(3, tf)); } });
 function richListLite() { try { richList(); } catch (e) {} }
 // Life after football: AGE +1 keeps working after retirement (no club, season, transfers or contracts)
 async function retiredYear() {
