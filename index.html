@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Football Life</title>
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+<link rel="shortcut icon" href="favicon.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-title" content="Players-App">
 <style>
   :root {
     --bg: #0e1116;
@@ -399,6 +406,27 @@ body:has(#create-screen:not(.hide)) #menu-btn, body.creating #menu-btn { display
 /* P4p: elite club interest card */
 .elite-card { border: 2px solid #ffd600; border-radius: 12px; padding: 8px 10px; background: linear-gradient(160deg, #2a2400 0%, rgba(42,36,0,0) 70%); box-shadow: 0 0 14px rgba(255,214,0,0.35); overflow-wrap: anywhere; }
 .elite-h { color: #ffd600; font-weight: 900; font-size: 12px; letter-spacing: 1px; margin-bottom: 6px; }
+/* P4q pre-match card */
+.pm-card { border: 1px solid var(--border, #2a3340); border-radius: 12px; padding: 10px; background: var(--surface, #171c24); overflow-wrap: anywhere; }
+.pm-comp { font-size: 12px; color: var(--muted, #8b95a5); text-align: center; margin-bottom: 6px; }
+.pm-stakes { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; margin-bottom: 6px; }
+.pm-stakes span { font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 10px; background: #ffd60022; color: #ffd600; border: 1px solid #ffd60066; }
+.pm-teams { display: flex; align-items: flex-start; gap: 6px; }
+.pm-team { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 3px; font-size: 13px; }
+.pm-team b { line-height: 1.15; }
+.pm-vs { flex: none; align-self: center; font-weight: 900; font-size: 13px; color: var(--muted, #8b95a5); }
+.pm-badge { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; color: #fff; text-shadow: 0 1px 2px #000c; border: 2px solid #ffffff33; }
+.pm-mut { font-size: 11px; color: var(--muted, #8b95a5); }
+.pm-f { display: inline-block; width: 16px; height: 16px; line-height: 16px; border-radius: 4px; font-size: 10px; font-weight: 900; margin: 0 1px; color: #000; }
+.pm-W { background: #00e676; } .pm-D { background: #b0bec5; } .pm-L { background: #ff5252; color: #fff; }
+.pm-bar { height: 6px; border-radius: 3px; background: #ff525266; margin: 8px 0 3px; overflow: hidden; }
+.pm-bar span { display: block; height: 100%; background: var(--accent, #00e676); }
+.pm-verdict { text-align: center; font-size: 12px; font-weight: 800; margin-bottom: 6px; }
+.pm-row { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; padding: 4px 0; border-top: 1px solid #ffffff12; }
+.pm-row span { color: var(--muted, #8b95a5); flex: none; } .pm-row b { text-align: right; min-width: 0; }
+.pm-fx { margin-top: 6px; font-size: 12px; } .pm-fx summary { cursor: pointer; color: var(--muted, #8b95a5); }
+.pm-card ~ p, .pm-card ~ .md-h, .pm-card ~ .hl { display: none; }
+.pm-card ~ .pm-fx .hl { display: block; }
 </style>
 <body>
 <button id="menu-btn" aria-label="Menu"><span></span><span></span><span></span></button>
