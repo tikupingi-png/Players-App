@@ -388,6 +388,14 @@ body:has(#create-screen:not(.hide)) #menu-btn, body.creating #menu-btn { display
 .mm-tip{margin-top:6px;font-size:12px;color:var(--text,#e8edf2);background:rgba(255,255,255,.05);border-radius:8px;padding:6px 8px}
 .mm-head-line{font-weight:800;font-size:14px;margin:6px 0 2px;font-family:Georgia,serif}
 .mm-quote{font-style:italic;color:var(--accent2,#7fd4ff);font-size:12.5px;margin:2px 0 6px}
+
+/* P4n: skill tree on phones. "Beyond the tree" nodes were plain .node boxes (fixed 110×70 from the base tree style), so their text spilled out and overlapped. Now full-width stacked cards in normal flow. */
+.xnode { width: 100%; height: auto; min-height: 0; margin: 8px 0 0; padding: 10px 12px; display: block; text-align: left; cursor: default; overflow: hidden; }
+.xnode b { display: block; font-size: 14px; overflow-wrap: anywhere; }
+.xnode p { font-size: 12px; font-weight: 400; color: var(--muted); margin: 4px 0 8px; overflow-wrap: anywhere; white-space: normal; }
+.xnode .act-btn { margin: 0; white-space: normal; overflow-wrap: anywhere; text-align: center; }
+.top-nodes > .node, .top-nodes > .mv-node { width: auto !important; min-width: 0; overflow-wrap: anywhere; padding: 6px; }
+.node > span, .node small { max-width: 100%; overflow-wrap: anywhere; }
 </style>
 <body>
 <button id="menu-btn" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -4147,7 +4155,7 @@ function unlockExtra(id) { if (BUSY) return; const st = extraState(id); if (!st.
 const _openScreenMV = openScreen;
 openScreen = function (id) { _openScreenMV(id); if (id !== "training" || !S.pro) return; const c = document.getElementById("overlay-content"); if (!c) return;
   c.insertAdjacentHTML("beforeend", card("✨ Beyond the tree", Object.entries(EXTRA_NODES).map(([k, n]) => { const st = extraState(k);
-    return `<div class="node" style="margin:6px 0"><b>${n.label}</b><p style="font-size:11px;color:var(--muted)">${n.desc}</p><button class="act-btn" ${st.done ? "disabled" : ""} onclick="unlockExtra('${k}')">${st.done ? "✅ Active" : st.cost ? "Unlock • " + st.label : "🔒 " + esc(st.label)}</button></div>`; }).join("") + (hasX("zone") ? `<p style="font-size:12px;margin-top:4px">🔥 Zone matches: ${S.zoneCount || 0} • current streak ${S.zoneStreak || 0}</p>` : ""), "border-color:#ff9100")); };
+    return `<div class="node xnode"><b>${n.label}</b><p>${n.desc}</p><button class="act-btn" ${st.done ? "disabled" : ""} onclick="unlockExtra('${k}')">${st.done ? "✅ Active" : st.cost ? "Unlock • " + st.label : "🔒 " + esc(st.label)}</button></div>`; }).join("") + (hasX("zone") ? `<p style="font-size:12px;margin-top:4px">🔥 Zone matches: ${S.zoneCount || 0} • current streak ${S.zoneStreak || 0}</p>` : ""), "border-color:#ff9100")); };
 // chance modifiers
 let ZONE_ON = false, BIG_GAME = false;
 const zoneBonus = () => (ZONE_ON ? 0.15 : 0);
