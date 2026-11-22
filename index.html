@@ -5868,7 +5868,7 @@ Ararat Yerevan|72|Khoren Oganesian,CAM,55,ARM,74
 Aberdeen|70|
 Hibernian|71|
 Hearts|68|`,
-nat: `Jan Tomaszewski,GK,48,POL,80,ŁKS Łódź;Antoni Szymanowski,RB,51,POL,76,Wisła Kraków;Władysław Żmuda,CB,54,POL,76,Gwardia Warszawa;Zygmunt Maszczyk,CM,45,POL,74,Ruch Chorzów;Carlos Babington,CAM,49,ARG,77,Wattenscheid 09;Carlos Caszely,ST,50,CHI,79,Levante;Fernando Morena,ST,52,URU,79,Peñarol;Héctor Chumpitaz,CB,44,PER,76,Universitario;Juan Carlos Oblitas,LW,51,PER,76,Veracruz;Hristo Bonev,CAM,47,BUL,78,Lokomotiv Plovdiv;Antonín Panenka,CM,48,CZE,79,Bohemians Prague;Karol Dobiaš,LB,47,SVK,74,Spartak Trnava;Josip Katalinski,CB,48,BIH,77,Željezničar;Enver Marić,GK,48,BIH,76,Velež Mostar;Bruno Pezzey,CB,55,AUT,75,Wacker Innsbruck;Friedl Koncilia,GK,48,AUT,76,Wacker Innsbruck;László Bölöni,CM,53,ROU,75,ASA Târgu Mureș;Emmanuel Sanon,ST,51,HAI,72,Don Bosco`,
+nat: `Jan Tomaszewski,GK,48,POL,80,ŁKS Łódź;Antoni Szymanowski,RB,51,POL,76,Wisła Kraków;Władysław Żmuda,CB,54,POL,76,Gwardia Warszawa;Zygmunt Maszczyk,CM,45,POL,74,Ruch Chorzów;Carlos Babington,CAM,49,ARG,77,Wattenscheid 09;Carlos Caszely,ST,50,CHI,79,Levante;Fernando Morena,ST,52,URU,79,Peñarol;Héctor Chumpitaz,CB,44,PER,76,Universitario;Juan Carlos Oblitas,LW,51,PER,76,Veracruz;Hristo Bonev,CAM,47,BUL,78,Lokomotiv Plovdiv;Antonín Panenka,CM,48,CZE,79,Bohemians Prague;Karol Dobiaš,LB,47,SVK,74,Spartak Trnava;Josip Katalinski,CB,48,BIH,77,Željezničar;Enver Marić,GK,48,BIH,76,Velež Mostar;Bruno Pezzey,CB,55,AUT,75,Wacker Innsbruck;Friedl Koncilia,GK,48,AUT,76,Wacker Innsbruck;László Bölöni,CM,53,ROU,75,ASA Târgu Mureș;Emmanuel Sanon,ST,51,HAI,72,Don Bosco;Ivan Buljan,CB,49,CRO,77,Hajduk Split;Dušan Bajević,ST,48,BIH,79,Velež Mostar;Yevgeni Lovchev,CB,49,RUS,77,Spartak Moscow;Vladimir Pilguy,GK,48,RUS,76,Dynamo Moscow;Vladimir Fedotov,ST,43,RUS,74,CSKA Moscow;Aleksandr Makhovikov,CB,51,RUS,74,Dynamo Moscow`,
 ns: { NED: 89, GER: 90, BRA: 88, POL: 85, ARG: 82, ITA: 84, ESP: 76, ENG: 82, SCO: 80, SWE: 79, SRB: 81, CRO: 77, BIH: 74, SVN: 70, RUS: 79, UKR: 80, GEO: 70, CHI: 76, URU: 78, PER: 79, BEL: 79, FRA: 78, POR: 75, HUN: 79, CZE: 82, SVK: 78, BUL: 76, ROU: 76, AUT: 77, DEN: 72, IRL: 72, WAL: 74, NIR: 72, MEX: 72, USA: 58, GRE: 70, TUR: 68, NOR: 64, SUI: 68, HAI: 60, COD: 58, MAR: 66, ALG: 64, TUN: 66, NGA: 62, GHA: 66, CMR: 64, CIV: 58, SEN: 55, EGY: 62, IRN: 66, KOR: 60, JPN: 55, AUS: 62, CAN: 55, CRC: 58, COL: 66, PAR: 70, ECU: 62, BOL: 64, VEN: 50 }
 };
 // ---- 1990s: the 1994/95 season (players' ages at 1994) ----
@@ -6329,7 +6329,7 @@ nat: `Didier Drogba,ST,78,CIV,83,Shanghai Shenhua;Mohamed Aboutrika,CAM,78,EGY,7
 ns: { ESP: 92, GER: 90, ARG: 88, NED: 87, BRA: 87, POR: 86, ITA: 85, ENG: 84, FRA: 84, URU: 84, COL: 85, BEL: 85, CHI: 82, CRO: 83, SUI: 82, MEX: 80, USA: 78, RUS: 79, CIV: 81, GHA: 79, NGA: 78, CMR: 77, ALG: 77, JPN: 77, KOR: 76, BIH: 80, GRE: 79, SRB: 80, POL: 78, SWE: 78, DEN: 78, CZE: 78, UKR: 79, TUR: 78, ECU: 78, CRC: 77, AUT: 76, IRL: 75, WAL: 76, SCO: 76, NOR: 72, ISL: 74, EGY: 74, SEN: 75, MAR: 73, AUS: 74, PER: 76, PAR: 76, VEN: 74, HON: 73, IRN: 73, KSA: 70, QAT: 66 }
 };
 // ---- hook: swap the whole player base (leagues, squads, pool, nations) per era. Present = untouched. ----
-const ERADB_V = 1;
+const ERADB_V = 2; // 2 = born in the era year (v1 saves keep birthYear 2026; both load fine)
 let ERADB_ON = "present";
 const _eraDbSnap = (() => { const lg = {}, pdb = {}, nat = {};
   for (const k of Object.keys(LEAGUES)) lg[k] = { name: LEAGUES[k].name, teams: LEAGUES[k].teams.map(t => ({ ...t, stars: (t.stars || []).slice() })) };
@@ -6380,9 +6380,13 @@ function _eraNatRows(id, D) { const out = {}; const byNat = {};
   const extra = {}; D.nat.forEach(x => (extra[x.code] = extra[x.code] || []).push(x.row));
   const usedNames = new Set(D.real);
   for (const [code, P] of Object.entries(_eraDbSnap.nat)) { const rec = NATIONS_DB[code]; const pres = P.players;
-    const eraStr = D.ns[code] != null ? D.ns[code] : P.str; const rows = (extra[code] || []).slice();
-    const have = (byNat[code] || []).concat(rows), need = ERADB_SHAPE.slice();
+    const eraStr = D.ns[code] != null ? D.ns[code] : P.str;
+    // real era players first (best first), then the nation's extra stars; invented fillers only for the gaps
+    const reals = (byNat[code] || []).concat(extra[code] || []).sort((a, b) => b[4] - a[4]), rows = reals.slice();
+    const have = reals; let need = ERADB_SHAPE.slice();
+    const rr = reals.map(x => x[4]).sort((a, b) => a - b), cap = rr.length >= 5 ? Math.min(rr[Math.floor(rr.length / 3)] - 2, rr[0] + 2) : 99;
     have.forEach(r => { const i = need.indexOf(r[1] === "CF" ? "ST" : r[1]); if (i >= 0) need.splice(i, 1); });
+    if (reals.length >= 24) need = need.filter(p => p === "GK"); // deep real pool: neighbours cover the gaps, only keepers get filled
     const rts = pres.map(p => p[4] || 60).sort((a, b) => a - b), med = rts.length ? rts[Math.floor(rts.length / 2)] : 60;
     const surn = [...new Set(pres.map(p => p[0].split(" ").slice(-1)[0]).filter(s => s.length > 2))];
     const C = COUNTRIES[rec.name] || COUNTRIES[countryKey(rec.name)]; const sur = C && !C.extra && C.surnames.length >= 6 ? C.surnames : surn.length >= 6 ? surn : (C ? C.surnames : surn.length ? surn : ["Silva"]);
@@ -6391,7 +6395,7 @@ function _eraNatRows(id, D) { const out = {}; const byNat = {};
     need.forEach((pos, i) => { let nm = null;
       for (let t = 0; t < 12; t++) { const f = fpool[Math.floor(r() * fpool.length)], s = sur[Math.floor(r() * sur.length)]; nm = `${f} ${s}`; if (!ERADB_PRESENT.has(nm) && !usedNames.has(nm)) break; nm = null; }
       if (!nm) return; usedNames.add(nm);
-      const o = Math.round(Math.max(45, Math.min(80, Math.min(med + (eraStr - P.str), eraStr - 9) + (r() * 8 - 4) - (pos === "GK" && i > 0 ? 3 : 0))));
+      const o = Math.round(Math.max(45, Math.min(80, Math.min(Math.min(med + (eraStr - P.str), eraStr - 9) + (r() * 8 - 4), cap) - (pos === "GK" && i > 0 ? 3 : 0))));
       rows.push([nm, pos, 20 + Math.floor(r() * 14), "—", o]); });
     out[code] = { players: rows, str: eraStr }; }
   return out; }
@@ -6440,10 +6444,18 @@ const _eraApplyStarsEraDb = eraApplyStars;
 eraApplyStars = function () { if (eraDbActive()) return; return _eraApplyStarsEraDb.apply(this, arguments); };
 const _eraApplyClubsEraDb = eraApplyClubs;
 eraApplyClubs = function () { if (eraDbActive()) { ERA_APPLIED = eraId(); return; } return _eraApplyClubsEraDb.apply(this, arguments); };
+// rich list: real players' ages count from the era's start season, not from 2026
+if (typeof realRich === "function") { const _realRichEraDb = realRich;
+  realRich = function () { const L = _realRichEraDb.apply(this, arguments); if (!eraDbActive() || !Array.isArray(L)) return L; const sh = 2026 - ((S.birthYear || 2026) + DB_ANCHOR_AGE); return L.map(p => ({ ...p, age: p.age + sh })); }; }
+// calendar: a new era career is born in the era's own year (1958 / 1978 / 1996 / 2044), so every year the game prints
+// (news, Nations League, academy classes, World Cups) is the real era year; World Cups / Euros then fall on the real cycle
+let ERADB_BORN = null;
+const _freshEraDb = fresh;
+fresh = function () { const f = _freshEraDb.apply(this, arguments); if (ERADB_BORN && f) f.birthYear = ERADB_BORN; return f; };
 // start / load / continue hooks
 const _startGameEraDb = startGame;
-startGame = function () { const el = document.getElementById("c-era"); eraDbApply(el && ERAS[el.value] ? el.value : "present");
-  const r = _startGameEraDb.apply(this, arguments); try { if (S && S.started && S.era && S.era !== "present") { S.eraDb = ERADB_V; if (typeof saveGame === "function") saveGame(); } } catch (e) {} return r; };
+startGame = function () { const el = document.getElementById("c-era"), id = el && ERAS[el.value] ? el.value : "present"; eraDbApply(id);
+  ERADB_BORN = id !== "present" && ERAS[id].born ? ERAS[id].born : null; let r; try { r = _startGameEraDb.apply(this, arguments); } finally { ERADB_BORN = null; } try { if (S && S.started && S.era && S.era !== "present") { S.eraDb = ERADB_V; if (typeof saveGame === "function") saveGame(); } } catch (e) {} return r; };
 const _loadCareerEraDb = loadCareer;
 loadCareer = function (id) { try { if (!BUSY) { const rec = readSaves().find(x => x.id === id), st = rec && rec.state;
   if (rec) eraDbApply(st && st.era && st.era !== "present" && st.eraDb ? st.era : "present"); } } catch (e) {} return _loadCareerEraDb.apply(this, arguments); };
