@@ -3033,6 +3033,98 @@ runPending = async function () {
 YEAR_HOOKS.push(async () => { const kid = lifeYear(); if (kid) await showDecision(kid.role === "Son" ? "👶 It's a boy!" : "👶 It's a girl!", `${kid.name} is born. You hold your child for the first time and the whole world goes quiet.`, [{ label: "❤️ Welcome to the world" }]); });
 // yearly mood drift back toward a settled baseline, so a normal career hovers in a sane band (extremes still possible after big events)
 YEAR_HOOKS.push(async () => { if (S.age < 4) return; const pull = Math.round((65 - S.happiness) * 0.2); if (pull) S.happiness = clamp(S.happiness + pull); });
+// ===== AVATAR EXTENSION by Lum (P1) – wired in chunk C (P4z) =====
+// Load AFTER avatar.js and p4_life.js (it wraps the current avatarSVG, same as p4_life does).
+// Adds to the existing avatar object (all optional, old saves render exactly as before):
+//   age:    number (years) — drives kid shoulders, wrinkles, and default greying via famAvatar()
+//   sex:    "m" | "f"      — adds lashes + lip colour for "f" (subtle, same toy style)
+//   outfit: "kit" (default) | "jumper" | "suit" | "tracksuit" | "hoodie" | "blouse" | "polo"
+//   oc:     outfit colour (hex) — main colour of the outfit; tie/stripe colours derive from it
+//   hair:   new values "receding" | "balding" | "bob" | "bun" | "ponytail" (old values still work)
+//   glasses: true | false
+// Head-and-shoulders (full=false) is what People rows / person page use; full=true keeps the kit body.
+AV_OPTS.hair.push("receding", "balding", "bob", "bun", "ponytail");
+const AV_OUTFITS = ["jumper", "suit", "tracksuit", "hoodie", "blouse", "polo"];
+const _avatarSVGExt = avatarSVG;
+avatarSVG = function (a, full, K, num) {
+  a = a || {};
+  const NEW_HAIR = { receding: 1, balding: 1, bob: 1, bun: 1, ponytail: 1 };
+  // render the base with a hair value it knows (new styles are drawn below); "bald" keeps brows tinted by skin, so use "buzz"-less "bald" only for balding
+  const base = Object.assign({}, a, NEW_HAIR[a.hair] ? { hair: a.hair === "balding" || a.hair === "receding" ? "bald" : "none" } : {});
+  let svg = _avatarSVGExt(base, full, K, num);
+  const cx = 50, cy = full ? 38 : 44, F = { round: [21, 21], oval: [19, 23], square: [21, 22], long: [18, 25] }[a.face] || [20, 22], [rx, ry] = F, top = cy - ry;
+  const hc = AV_OPTS.hairColor[a.hairColor] || "#1b1b1b", skin = a.skin || AV_OPTS.skin[2], neckY = cy + ry - 3;
+  const kid = a.age != null && a.age < 13, old = a.age != null && a.age >= 50;
+  // --- brows: base used "bald" for receding/balding, which tints brows with skin; redraw them in hair colour
+  let browFix = "";
+  if (a.hair === "receding" || a.hair === "balding") browFix = `<path d="M${cx - 11} ${cy - 5} q4 -3 8 0 M${cx + 3} ${cy - 5} q4 -3 8 0" stroke="${hc}" stroke-width="1.8" fill="none" stroke-linecap="round"/>`;
+  // --- new hair (back layer goes before the body, front layer on top)
+  let back = "", front = "";
+  switch (a.hair) {
+    case "receding": front = `<path d="M${cx - rx - 1} ${cy - 1} Q${cx - rx - 1} ${top + 2} ${cx - rx + 7} ${top + 4} Q${cx - rx + 4} ${top + 9} ${cx - rx + 2} ${cy - 2}Z" fill="${hc}"/><path d="M${cx + rx + 1} ${cy - 1} Q${cx + rx + 1} ${top + 2} ${cx + rx - 7} ${top + 4} Q${cx + rx - 4} ${top + 9} ${cx + rx - 2} ${cy - 2}Z" fill="${hc}"/><path d="M${cx - 6} ${top + 3} Q${cx} ${top} ${cx + 6} ${top + 3} Q${cx} ${top + 5} ${cx - 6} ${top + 3}Z" fill="${hc}" opacity=".8"/>`; break;
+    case "balding": front = `<path d="M${cx - rx - 1} ${cy + 3} Q${cx - rx - 2} ${cy - 10} ${cx - rx + 5} ${cy - 13} L${cx - rx + 4} ${cy - 2}Z" fill="${hc}"/><path d="M${cx + rx + 1} ${cy + 3} Q${cx + rx + 2} ${cy - 10} ${cx + rx - 5} ${cy - 13} L${cx + rx - 4} ${cy - 2}Z" fill="${hc}"/>`; break;
+    case "bob": back = `<path d="M${cx - rx - 5} ${cy - 6} Q${cx - rx - 7} ${cy + ry - 2} ${cx - rx + 2} ${cy + ry - 1} L${cx + rx - 2} ${cy + ry - 1} Q${cx + rx + 7} ${cy + ry - 2} ${cx + rx + 5} ${cy - 6} Q${cx} ${top - 12} ${cx - rx - 5} ${cy - 6}Z" fill="${hc}"/>`;
+      front = `<path d="M${cx - rx - 2} ${cy} Q${cx - rx - 2} ${top - 6} ${cx} ${top - 6} Q${cx + rx + 2} ${top - 6} ${cx + rx + 2} ${cy} Q${cx + rx - 2} ${top + 4} ${cx + 4} ${top + 7} Q${cx - 6} ${top + 9} ${cx - rx - 2} ${cy}Z" fill="${hc}"/>`; break;
+    case "bun": front = `<circle cx="${cx}" cy="${top - 8}" r="8" fill="${hc}"/><path d="M${cx - rx - 1} ${cy - 3} Q${cx - rx} ${top - 4} ${cx} ${top - 4} Q${cx + rx} ${top - 4} ${cx + rx + 1} ${cy - 3} Q${cx + 6} ${top + 3} ${cx} ${top + 3} Q${cx - 6} ${top + 3} ${cx - rx - 1} ${cy - 3}Z" fill="${hc}"/>`; break;
+    case "ponytail": back = `<path d="M${cx + rx - 2} ${top + 6} Q${cx + rx + 14} ${top + 6} ${cx + rx + 9} ${cy + 18} Q${cx + rx + 4} ${cy + 8} ${cx + rx - 4} ${cy}Z" fill="${hc}"/>`;
+      front = `<path d="M${cx - rx - 1} ${cy - 3} Q${cx - rx} ${top - 5} ${cx} ${top - 5} Q${cx + rx} ${top - 5} ${cx + rx + 1} ${cy - 3} Q${cx + 4} ${top + 4} ${cx - rx - 1} ${cy - 3}Z" fill="${hc}"/>`; break;
+  }
+  // --- outfit (replaces the kit shoulders in head-and-shoulders mode)
+  let outfit = "";
+  const o = a.outfit, oc = a.oc || "#455a64", dk = shade(oc, .7), lt = shade(oc, 1.35);
+  if (!full && o && o !== "kit") {
+    const sh = `<path d="M${cx - 30} 100 Q${cx - 30} ${neckY + 7} ${cx - 10} ${neckY + 5} L${cx + 10} ${neckY + 5} Q${cx + 30} ${neckY + 7} ${cx + 30} 100Z" fill="${oc}"/>`;
+    const n5 = neckY + 5;
+    outfit = {
+      jumper: sh + `<path d="M${cx - 10} ${n5} Q${cx} ${n5 + 7} ${cx + 10} ${n5}" stroke="${dk}" stroke-width="3.5" fill="none" stroke-linecap="round"/>`,
+      suit: sh.replace(oc, "#263238") + `<path d="M${cx - 9} ${n5} L${cx} ${100} L${cx + 9} ${n5}Z" fill="#f5f5f5"/><path d="M${cx - 2.5} ${n5 + 3} h5 l1.5 2.5 -3 14 h-2 l-3 -14z" fill="${oc}"/><path d="M${cx - 10} ${n5} L${cx - 4} ${n5 + 18} L${cx - 13} ${n5 + 12}Z M${cx + 10} ${n5} L${cx + 4} ${n5 + 18} L${cx + 13} ${n5 + 12}Z" fill="#1c252b"/>`,
+      tracksuit: sh + `<path d="M${cx - 8} ${n5 - 2} Q${cx} ${n5 + 2} ${cx + 8} ${n5 - 2} L${cx + 9} ${n5 + 3} Q${cx} ${n5 + 7} ${cx - 9} ${n5 + 3}Z" fill="${dk}"/><line x1="${cx}" y1="${n5 + 5}" x2="${cx}" y2="100" stroke="${lt}" stroke-width="1.6"/><path d="M${cx - 26} 100 Q${cx - 25} ${n5 + 10} ${cx - 14} ${n5 + 4}" stroke="#fff" stroke-width="2.2" fill="none" opacity=".9"/><path d="M${cx + 26} 100 Q${cx + 25} ${n5 + 10} ${cx + 14} ${n5 + 4}" stroke="#fff" stroke-width="2.2" fill="none" opacity=".9"/>`,
+      hoodie: `<path d="M${cx - 17} ${n5 + 4} Q${cx - 20} ${n5 - 10} ${cx - rx + 2} ${cy + 6} L${cx + rx - 2} ${cy + 6} Q${cx + 20} ${n5 - 10} ${cx + 17} ${n5 + 4}Z" fill="${dk}"/>` + sh + `<path d="M${cx - 11} ${n5} Q${cx} ${n5 + 9} ${cx + 11} ${n5}" stroke="${dk}" stroke-width="4" fill="none"/><line x1="${cx - 4}" y1="${n5 + 6}" x2="${cx - 5}" y2="${n5 + 17}" stroke="#eee" stroke-width="1.4"/><line x1="${cx + 4}" y1="${n5 + 6}" x2="${cx + 5}" y2="${n5 + 17}" stroke="#eee" stroke-width="1.4"/>`,
+      blouse: sh + `<path d="M${cx - 10} ${n5} Q${cx - 8} ${n5 + 8} ${cx} ${n5 + 7} Q${cx + 8} ${n5 + 8} ${cx + 10} ${n5}" stroke="${lt}" stroke-width="3" fill="none"/><circle cx="${cx}" cy="${n5 + 14}" r="1.3" fill="${lt}"/>`,
+      polo: sh + `<path d="M${cx - 10} ${n5} L${cx - 2} ${n5 + 6} L${cx - 7} ${n5 + 9}Z M${cx + 10} ${n5} L${cx + 2} ${n5 + 6} L${cx + 7} ${n5 + 9}Z" fill="${lt}"/><line x1="${cx}" y1="${n5 + 6}" x2="${cx}" y2="${n5 + 15}" stroke="${dk}" stroke-width="1.4"/><circle cx="${cx}" cy="${n5 + 10}" r="1" fill="#fff"/>`
+    }[o] || "";
+  }
+  // --- face extras
+  let fx = "";
+  if (a.sex === "f") fx += `<path d="M${cx - 10.5} ${cy - 1.5} l-2 -1.5 M${cx + 10.5} ${cy - 1.5} l2 -1.5" stroke="#1b1b1b" stroke-width="1.2" stroke-linecap="round"/><path d="M${cx - 5} ${cy + 11} q5 4 10 0 q-5 1.5 -10 0z" fill="#c2185b" opacity=".75"/>`;
+  if (old) fx += `<path d="M${cx - 8} ${top + 7} q8 -2 16 0 M${cx - 6} ${top + 10} q6 -1.5 12 0" stroke="${shade(skin, .78)}" stroke-width="1" fill="none"/><path d="M${cx - 9} ${cy + 6} q-2 4 0 8 M${cx + 9} ${cy + 6} q2 4 0 8" stroke="${shade(skin, .75)}" stroke-width="1.1" fill="none"/><path d="M${cx - 14} ${cy} l-2 -1 M${cx - 14} ${cy + 2} l-2 1 M${cx + 14} ${cy} l2 -1 M${cx + 14} ${cy + 2} l2 1" stroke="${shade(skin, .75)}" stroke-width=".9"/>`;
+  if (a.glasses) fx += `<g fill="none" stroke="#263238" stroke-width="1.6"><rect x="${cx - 13}" y="${cy - 3}" width="11" height="9" rx="3"/><rect x="${cx + 2}" y="${cy - 3}" width="11" height="9" rx="3"/><path d="M${cx - 2} ${cy + 1} h4"/></g>`;
+  // --- splice: [svg open + defs + baseBack] [body] [ears/head/face/front ...]
+  const iBody = svg.indexOf(`<rect x="${cx - 5}" y="${neckY}"`), iEars = svg.search(/<ellipse cx="[\d.]+" cy="[\d.]+" rx="3\.5" ry="5"/);
+  if (iBody < 0 || iEars < 0) return svg;
+  let pre = svg.slice(0, iBody), body = svg.slice(iBody, iEars), rest = svg.slice(iEars).replace(/<\/svg>$/, "");
+  body = body + outfit;
+  if (kid && !full) body = `<g transform="translate(50 100) scale(.8) translate(-50 -100)">${body}</g>`;
+  if (kid && !full) rest = `<g transform="translate(50 ${cy}) scale(1.04) translate(-50 -${cy})">${rest}${fx}${front}${browFix}</g>`; else rest = rest + fx + front + browFix;
+  return pre + back + body + rest + "</svg>";
+};
+// ===== Skin-tone matched family generation (replacement for avFor() on relatives) =====
+// Deterministic per person: same seed -> same face on every render. Uses AV_BASE so God Mode skins never leak to NPCs.
+const TEXTURED = ["afro", "curls", "braids"], STRAIGHT = ["short", "buzz", "long", "mohawk"];
+function famAvatar(p, me, seed) {
+  const r = rng("fam" + (seed || "") + p.id), pk = arr => arr[Math.floor(r() * arr.length)], chance = x => r() < x;
+  const role = (p.role || "").toLowerCase(), f = p.gender ? p.gender === "f" : /mother|sister|daughter|niece|aunt|grandmother/.test(role);
+  const blood = !/adoptive|partner|wife|husband|friend|agent|coach|teammate/.test(role) && p.cat === "family";
+  const tones = AV_BASE.skin, pi = Math.max(0, tones.indexOf(me.skin)), age = p.age || 30;
+  // 1) skin: blood relatives = player's tone, or one step lighter/darker (never more); others = any tone
+  const skin = blood ? tones[Math.min(tones.length - 1, Math.max(0, pi + (chance(.55) ? 0 : pk([-1, 1]))))] : pk(tones);
+  // 2) hair texture follows the player's: textured family -> textured styles; straight -> straight styles
+  const textured = blood ? TEXTURED.includes(me.hair) || pi >= 5 : chance(.35);
+  let hair = f ? pk(textured ? ["afro", "braids", "curls", "bun"] : ["long", "bob", "bun", "ponytail"]) : pk(textured ? ["afro", "curls", "buzz", "short"] : ["short", "buzz", "short"]);
+  // 3) hair colour: inherit player's natural colour (dyed colours fall back to Black/Brown); grey with age
+  const natural = ["Black", "Brown", "Blonde", "Red"].includes(me.hairColor) ? me.hairColor : (pi >= 4 ? "Black" : "Brown");
+  let hairColor = blood ? (chance(.75) ? natural : (pi >= 4 ? "Black" : pk(["Black", "Brown", "Blonde"]))) : (pi >= 4 ? "Black" : pk(["Black", "Brown", "Blonde", "Red"]));
+  if (age >= 65 || (age >= 55 && chance(.7)) || (age >= 45 && chance(.3))) hairColor = "Grey";
+  // 4) men 45+: receding / balding sometimes; beards for adult men
+  if (!f && age >= 45 && chance(.45)) hair = age >= 58 && chance(.5) ? "balding" : "receding";
+  const beard = !f && age >= 20 && chance(.5) ? pk(["stubble", "moustache", "goatee", "full beard"]) : "none";
+  // 5) eyes: share the player's eye colour 60% of the time
+  const eyes = blood && chance(.6) ? me.eyes : pk(Object.keys(AV_BASE.eyes));
+  // 6) outfit by role
+  const outfit = age < 13 ? pk(["polo", "hoodie", "jumper"]) : /agent/.test(role) ? "suit" : /coach|scout/.test(role) ? "tracksuit" : f ? pk(["blouse", "jumper", "hoodie"]) : pk(["jumper", "hoodie", "polo", "suit"]);
+  const oc = pk(["#455a64", "#5d4037", "#1e88e5", "#43a047", "#8e24aa", "#c62828", "#00897b", "#f9a825", "#3949ab"]);
+  return { skin, hair, hairColor, face: blood && chance(.5) ? me.face : pk(AV_BASE.face), eyes, kit: "Green", boots: "Black", beard, sex: f ? "f" : "m", age, outfit, oc, glasses: age >= 50 && chance(.35) };
+}
 // ===================== PASS 4d: LEGENDS, FATHERS, LEGACY, RETIREMENT, DYNASTY =====================
 let _natByName = null;
 function nationRec(name) { if (typeof NATIONS_DB === "undefined") return null; if (NATIONS_DB[name]) return NATIONS_DB[name];
@@ -4772,10 +4864,10 @@ levScreen = function (id) { _levScreenT.apply(this, arguments); try { const b = 
 // ===== P4y: mergers – combine your own businesses, buy out rivals =====
 // upgrading a merged business upgrades every unit, so it costs more (upgCost itself is a const, so the extra is charged here)
 const BIZ_UNIT_CAP = 4;
-function upgExtra(b) { return b && (b.units || 1) > 1 && b.lvl < 5 ? Math.round(upgCost(b) * (b.units - 1) / 1000) * 1000 : 0; } // every unit gets upgraded, so every unit pays
+function upgExtra(b) { return b && b.units && b.units !== 1 && b.lvl < 5 ? Math.round(upgCost(b) * (b.units - 1) / 1000) * 1000 : 0; } // every unit gets upgraded, so cost scales by units (a ×0.7 business pays 70%: the extra is negative)
 const _upgradeBizM = upgradeBiz;
-upgradeBiz = function (id) { const b = S.biz && S.biz.list.find(x => x.id === id), ex = upgExtra(b); if (!ex) return _upgradeBizM.apply(this, arguments); if (busyNow()) return;
-  if (S.money < upgCost(b) + ex) { toast(`Needs ${money(upgCost(b) + ex)}`); return; } S.money -= ex; b.inv = (b.inv || 0) + ex; return _upgradeBizM.apply(this, arguments); };
+upgradeBiz = function (id) { const b = S.biz && S.biz.list.find(x => x.id === id), ex = upgExtra(b), lv0 = b && b.lvl; if (!ex) return _upgradeBizM.apply(this, arguments); if (busyNow()) return;
+  if (S.money < upgCost(b) + ex) { toast(`Needs ${money(upgCost(b) + ex)}`); return; } S.money -= ex; b.inv = (b.inv || 0) + ex; const r = _upgradeBizM.apply(this, arguments); if (b.lvl === lv0) { S.money += ex; b.inv -= ex; } return r; };
 function mergeQuote(a, b) { const TA = bizT(a.k), TB = bizT(b.k), LA = LVL_MULT[a.lvl - 1] || 1, LB = LVL_MULT[b.lvl - 1] || 1, lvl = Math.max(a.lvl, b.lvl), LN = LVL_MULT[lvl - 1] || 1;
   // the merged business takes the higher level; both sides are re-expressed in units of that level, so nothing gets upgraded twice
   const ua = (a.units || 1) * LA / LN, add = (TB.price * LB * (b.units || 1)) / (TA.price * LN), units = Math.round((ua + add) * 100) / 100;
@@ -4794,7 +4886,7 @@ function mergePicker(id) { if (busyNow()) return; const a = S.biz.list.find(x =>
 const RIVAL_PRE = ["Golden", "Urban", "Royal", "Prime", "Corner", "Elite", "Metro", "Vintage"];
 function rivalOffer(b) { if (b.k === "fc") return null; const room = BIZ_UNIT_CAP - (b.units || 1); if (room < 0.25 || (b.rivalLast != null && S.age - b.rivalLast < 3)) return null; // one buy-out per business every 3 years, none at the size cap
   if (!b.rival || b.rival.age !== S.age) { const T = bizT(b.k), u = Math.round(Math.min(room, rnd(0.45, 0.95)) * 100) / 100;
-    b.rival = { age: S.age, name: `${pick(RIVAL_PRE)} ${T.name.replace(/^Hometown /, "")}`, u, price: Math.round(T.price * (LVL_MULT[b.lvl - 1] || 1) * u * rnd(0.95, 1.35) * (1.15 - (b.rep == null ? 50 : b.rep) / 350) / 1000) * 1000 }; }
+    b.rival = { age: S.age, name: `${pick(RIVAL_PRE)} ${T.name.replace(/^Hometown /, "")}`, u, price: Math.round(T.price * (LVL_MULT[b.lvl - 1] || 1) * u * rnd(0.8, 1.1) * (1.15 - (b.rep == null ? 50 : b.rep) / 350) / 1000) * 1000 }; }
   return b.rival; }
 function buyRival(id, disc) { if (busyNow()) return; const b = S.biz.list.find(x => x.id === id); if (!b) return; const r = rivalOffer(b); if (!r || r.done) return; const price = Math.round(r.price * (disc || 1));
   if (S.money < price) { toast(`Needs ${money(price)}`); return; } if (!disc && !confirmSafe(`Buy out ${r.name} for ${money(price)}? ${b.name} grows ×${((b.units || 1) + r.u).toFixed(2)}.`)) return;
@@ -5703,6 +5795,83 @@ chooseIdol = async function () {
       if (done) { if (S.position !== ip) { S.position = ip; addEvent("📋 Position Chosen", `You decide you're a ${POS_NAME[ip].toLowerCase()} after all.`); } setIdol(i, rec); } }
   }
 };
+// ===== P4z: Lum's P1 art – family/people avatars, match-moment stills and outcome clips (files live in assets/p1/, never inlined) =====
+// --- avatars: People rows + person page get a real avatar (famAvatar), stored on p.av so a face never changes; age keeps up each render
+function personAv(p) { if (!p) return null; try { const me = S.avatar || {};
+    if (!p.av || !p.av.skin) p.av = famAvatar(p, me, S.id || S.name || "");
+    p.av.age = p.age; if (/teammate|captain|team-mate/i.test(p.role || "") && p.av.outfit && p.av.outfit !== "kit") p.av.outfit = "kit";
+    return p.av; } catch (e) { return null; } }
+function personAvHtml(p, size) { const a = personAv(p); if (!a) return ""; try { return `<div class="p1-av" style="width:${size}px;height:${size}px">${avatarSVG(a, false)}</div>`; } catch (e) { return ""; } }
+const _renderRelP1 = renderRel;
+renderRel = function () { const r = _renderRelP1.apply(this, arguments); try { document.querySelectorAll("#overlay-content .person-row").forEach(row => { const m = /openPerson\('([^']+)'\)/.exec(row.getAttribute("onclick") || ""), p = m && S.people.find(x => x.id === m[1]), av = row.querySelector(".avatar");
+    if (!p || !av) return; const a = personAv(p); if (!a) return; av.innerHTML = avatarSVG(a, false); av.classList.add("p1-face"); av.style.background = "#1b2230"; av.style.boxShadow = `0 0 0 2px ${relColor(p.closeness)}`; }); } catch (e) {} return r; };
+const _openPersonP1 = openPerson;
+openPerson = function (pid) { const r = _openPersonP1.apply(this, arguments); try { const p = S.people.find(x => x.id === pid), c = document.querySelector("#overlay-content .nice-card"); if (p && c && !c.querySelector(".p1-av")) c.insertAdjacentHTML("afterbegin", `<div style="display:flex;justify-content:center;margin-bottom:6px">${personAvHtml(p, 84)}</div>`); } catch (e) {} return r; };
+// --- match stills: a 16:9 banner in each live moment dialog, chosen by moment
+const P1_DIR = "assets/p1/";
+const P1_STILL = { gk1v1: "1v1-keeper", at1v1: "1v1-keeper", gkshot: "keeper-dive", atpen: "penalty", gkcross: "far-post-header", dfhead: "far-post-header", athead: "far-post-header",
+  gkdist: "midfield-pass-pressure", dfout: "midfield-pass-pressure", mdthrough: "midfield-pass-pressure", mdswitch: "midfield-pass-pressure",
+  dftackle: "last-ditch-tackle", dfblock: "last-ditch-tackle", dfmark: "last-ditch-tackle", mdpress: "last-ditch-tackle", mdlong: "shot-in-box", atbox: "shot-in-box", atdribble: "shot-in-box" };
+const P1_STILL_T = { chance: "shot-in-box", pass: "midfield-pass-pressure", defend: "last-ditch-tackle", setpiece: "far-post-header", attitude: "dressing-room", save: "keeper-dive" };
+function p1StillFor(m) { if (!m) return null; return P1_STILL[m.id] || (/pen/.test(m.id) ? "penalty" : P1_STILL_T[m.t]) || null; }
+function p1StillUrl(n) { return `${P1_DIR}match-stills/still-${n}.webp`; }
+function p1Css() { if (document.getElementById("p1-css")) return; const s = document.createElement("style"); s.id = "p1-css";
+  s.textContent = ".p1-still,.p1-clip{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:12px;margin:2px 0 8px;background:#0e1116}.p1-clipbox{position:relative;cursor:pointer}" +
+    ".p1-clipbox .p1-cap{position:absolute;left:8px;top:8px;background:rgba(0,0,0,.65);color:#fff;font-size:11px;font-weight:800;padding:3px 8px;border-radius:10px}.p1-clipbox .p1-x{position:absolute;right:8px;top:8px;background:rgba(0,0,0,.65);color:#fff;font-size:11px;padding:3px 8px;border-radius:10px}" +
+    ".p1-av{border-radius:50%;overflow:hidden;background:#1b2230;flex:none}.p1-av svg,.avatar.p1-face svg{width:100%;height:100%;display:block}.avatar.p1-face{overflow:hidden;padding:0}";
+  (document.head || document.documentElement).appendChild(s); }
+// --- outcome clips: queued by the flash, shown at the top of the NEXT dialog (so the match never waits on a video); tap to skip
+let P1_CLIP = null; const P1_NOMEDIA = typeof navigator !== "undefined" && /jsdom/i.test(navigator.userAgent || ""); // headless tests: never call play()/load()
+function p1ClipFor(out) { if (!out) return null; if (out.goal) return ["goal", "shot-in-box", "⚽ GOAL!"];
+  if ((out.type === "save") && out.tier === "great") return ["save", "keeper-dive", "🧤 What a save!"];
+  if ((out.tier === "poor" || out.tier === "mistake") && (out.stat === "shots" || out.type === "chance" || /pen/.test(out.id || ""))) return ["miss", "penalty", "😩 Missed"];
+  return null; }
+function p1Skip(el) { try { const v = el.querySelector("video"); if (v && !P1_NOMEDIA) { v.pause(); v.removeAttribute("src"); v.load && v.load(); } el.remove(); } catch (e) {} }
+const _mmFlashP1 = mmFlash;
+mmFlash = function (out) { const r = _mmFlashP1.apply(this, arguments); try { const c = p1ClipFor(out); if (c) P1_CLIP = c; } catch (e) {} return r; };
+const _showDecisionP1 = showDecision;
+showDecision = function (title, text, options, opts) { opts = opts || {};
+  try { if (typeof document !== "undefined") { p1Css(); let banner = "";
+      if (P1_CLIP && opts.html) { const [k, poster, cap] = P1_CLIP; P1_CLIP = null;
+        banner = `<div class="p1-clipbox" onclick="p1Skip(this)"><video class="p1-clip" muted playsinline loop autoplay preload="none" poster="${p1StillUrl(poster)}" src="${P1_DIR}clips/clip-${k}.mp4" onerror="this.parentNode&&this.parentNode.remove()"></video><span class="p1-cap">${cap}</span><span class="p1-x">tap to skip ✕</span></div>`; }
+      else if (opts.html && opts.html.indexOf('class="mm-head"') >= 0 && typeof MOMENTS !== "undefined") { const m = MOMENTS.find(x => typeof title === "string" && title.indexOf(`${MM_TYPE_ICON[x.t]} ${x.title} •`) === 0), n = p1StillFor(m);
+        if (n) banner = `<img class="p1-still" src="${p1StillUrl(n)}" alt="" loading="lazy" onerror="this.remove()">`; }
+      if (banner) { opts = Object.assign({}, opts); opts.html = opts.html.indexOf('class="mm-head"') >= 0 ? opts.html.replace(/(<div class="mm-head">[\s\S]*?<\/div>)/, `$1${banner}`) : banner + opts.html; } } } catch (e) {}
+  return _showDecisionP1.call(this, title, text, options, opts); };
+// iOS: make sure a clip that was inserted muted actually starts (autoplay attribute alone can be ignored on innerHTML)
+if (!P1_NOMEDIA) try { new MutationObserver(ms => { ms.forEach(m => m.addedNodes && m.addedNodes.forEach(n => { const v = n.querySelectorAll ? n.querySelectorAll("video.p1-clip") : []; v.forEach(x => { try { x.muted = true; const p = x.play(); if (p && p.catch) p.catch(() => {}); } catch (e) {} }); })); }).observe(document.documentElement, { childList: true, subtree: true }); } catch (e) {}
+// ===== P4z: voice bank (Lum) – a line only plays when its exact text is on screen. Off by default; one toggle (☰ menu) gates voice + SFX ("fl-sound").
+const VO_DIR = P1_DIR + "voice/";
+const VO_ON = () => { try { return localStorage.getItem("fl-sound") === "1"; } catch (e) { return false; } };
+let VO_EL = null, VO_OK = false, VO_NEXT = null;
+try { const un = () => { VO_OK = true; try { if (!VO_EL && !P1_NOMEDIA) { VO_EL = new Audio(); VO_EL.preload = "none"; } } catch (e) {} document.removeEventListener("pointerdown", un, true); document.removeEventListener("touchend", un, true); };
+  document.addEventListener("pointerdown", un, true); document.addEventListener("touchend", un, true); } catch (e) {}
+function voPlay(name, then) { if (P1_NOMEDIA) { window.__voLast = name; return; } try { if (!VO_ON() || !VO_OK || !name) return; if (!VO_EL) VO_EL = new Audio(); const a = VO_EL; a.pause(); VO_NEXT = then || null;
+    a.onended = () => { const n = VO_NEXT; VO_NEXT = null; if (n) voPlay(n); }; a.src = VO_DIR + name + ".mp3"; const p = a.play(); if (p && p.catch) p.catch(() => {}); } catch (e) {} }
+const VO_TIER = { great: "great", good: "good", neutral: "ok", poor: "poor", mistake: "mistake" };
+const VO_GOAL = ["GOAL! The place erupts!", "GOAL! You sprint to the corner flag.", "GOAL! Teammates pile on top of you."], VO_ASSIST = ["Assist! The scorer points straight at you.", "Assist – the crowd chants your name."], VO_CONC = ["They score from it. Heads drop.", "Goal for them – the keeper glares at you."];
+const VO_SAVE = { "Guessed right. SAVED!": 2, "Full stretch – PENALTY SAVED!": 3, "Fingertips! Over the bar.": 4 };
+function voForFlash(out) { const r = out && out.react; if (!r) return null; let i;
+  if ((i = VO_GOAL.indexOf(r)) >= 0) return "commentator_goal_" + (i + 1); if ((i = VO_ASSIST.indexOf(r)) >= 0) return "commentator_assist_" + (i + 1); if ((i = VO_CONC.indexOf(r)) >= 0) return "commentator_conceded_" + (i + 1);
+  if (out.type === "save" && VO_SAVE[out.text] && (out.tier === "great" || out.tier === "good")) return "commentator_save_" + VO_SAVE[out.text];
+  for (const t in VO_TIER) if ((i = (MM_REACT[t] || []).indexOf(r)) >= 0) return `commentator_${VO_TIER[t]}_${i + 1}`; return null; }
+const _mmFlashVO = mmFlash;
+mmFlash = function (out) { const r = _mmFlashVO.apply(this, arguments); try { voPlay(voForFlash(out)); } catch (e) {} return r; };
+const VO_VERDICT = [["Outstanding. That's how you do it.", "great"], ["Good game. Keep it up.", "good"], ["Solid, but there's more in you.", "ok"], ["Not your day. Back to work on Monday.", "poor"]];
+const VO_SCOUT = [["Not ready yet. Come back in a year.", "rough"], ["Decent. We'll keep watching.", "mid"], ["Good feet, good head. We're interested.", "good"], ["Get the parents on the phone. Today.", "great"]];
+const VO_EXTRA = { trial: " Show them you belong.", final: " Enjoy it – finals are why we play.", derby: " Keep your head – derbies get heated.", scout: " Play your game, not theirs." };
+function voForHtml(html) { if (!html) return null; const txt = html.replace(/<[^>]+>/g, " ").replace(/&quot;|&#39;|&#039;/g, m => m === "&quot;" ? '"' : "'").replace(/&amp;/g, "&");
+  for (const [s, k] of VO_SCOUT) if (txt.indexOf(s) >= 0) return ["scout_" + k + "_1"];
+  for (const [s, k] of VO_VERDICT) if (txt.indexOf(s) >= 0) return ["coach_verdict_" + k];
+  for (const g in COACH_TIPS) { const i = COACH_TIPS[g].findIndex(t => txt.indexOf(t) >= 0); if (i >= 0) { const ex = Object.keys(VO_EXTRA).find(k => txt.indexOf(VO_EXTRA[k].trim()) >= 0); return [`coach_tip_${g.toLowerCase()}_${i + 1}`, ex ? "coach_extra_" + ex : null]; } }
+  return null; }
+const _showDecisionVO = showDecision;
+showDecision = function (title, text, options, opts) { try { const v = voForHtml((opts && opts.html) || ""); if (v) setTimeout(() => voPlay(v[0], v[1]), 250); } catch (e) {} return _showDecisionVO.apply(this, arguments); };
+// ☰ menu toggle (shared with the awakening SFX)
+function voToggleLabel() { return VO_ON() ? "🔊 Voice & sound: on" : "🔇 Voice & sound: off"; }
+try { const host = document.querySelector("#menu-panel .menu-actions"); if (host && !document.getElementById("menu-sound")) { const b = document.createElement("button"); b.id = "menu-sound"; b.type = "button"; b.textContent = voToggleLabel();
+    b.onclick = () => { VO_OK = true; try { localStorage.setItem("fl-sound", VO_ON() ? "0" : "1"); } catch (e) {} b.textContent = voToggleLabel(); if (!VO_ON() && VO_EL) try { VO_EL.pause(); } catch (e) {} else voPlay("commentator_good_4"); };
+    host.insertBefore(b, host.firstChild); } } catch (e) {}
 // ===== INIT =====
 let CREATE_AV = randomAvatar();
 function fillCities() { const n = document.getElementById("c-nat").value; document.getElementById("c-city").innerHTML = COUNTRIES[n].cities.map(c => `<option>${esc(c)}</option>`).join("") + `<option value="Random">🎲 Random</option>`; }
