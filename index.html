@@ -5629,6 +5629,826 @@ startGame = function () { const el = document.getElementById("c-era"); ERA_PENDI
   ERA_PENDING = null; return r; };
 const _loadCareerEra = loadCareer;
 loadCareer = function (id) { const r = _loadCareerEra.apply(this, arguments); try { eraApplyClubs(); eraApplyStars(); eraClearCaches(); } catch (e) {} return r; };
+// ===== P4z: era player bases – real 1974 / 1994 / 2012 squads, invented Future players; Present untouched =====
+const ERADB_SRC = {};
+// ---- 1970s: the 1974/75 season (players' ages at 1974) ----
+ERADB_SRC["1970s"] = { start: 1974, lg: {
+ENG: ["First Division", `Liverpool|85|Ray Clemence,GK,48,ENG,84;Phil Neal,RB,51,ENG,78;Tommy Smith,CB,45,ENG,78;Phil Thompson,CB,54,ENG,76;Emlyn Hughes,CB,47,ENG,84;Alec Lindsay,LB,48,ENG,75;Ian Callaghan,CM,42,ENG,78;Ray Kennedy,CM,51,ENG,79;Brian Hall,CM,46,ENG,74;Peter Cormack,CM,46,SCO,76;Steve Heighway,LW,47,IRL,80;Jimmy Case,RW,54,ENG,72;Kevin Keegan,ST,51,ENG,87;John Toshack,ST,49,WAL,80
+Derby County|83|Colin Boulton,GK,45,ENG,76;Ron Webster,RB,43,ENG,72;David Nish,LB,47,ENG,77;Colin Todd,CB,48,ENG,82;Roy McFarland,CB,48,ENG,82;Peter Daniel,CB,55,ENG,70;Archie Gemmill,CM,47,SCO,80;Bruce Rioch,CM,47,SCO,80;Henry Newton,CM,44,ENG,73;Steve Powell,CM,55,ENG,70;Alan Hinton,LW,42,ENG,74;Kevin Hector,ST,44,ENG,78;Francis Lee,ST,44,ENG,79;Roger Davies,ST,50,ENG,74
+Leeds|84|David Harvey,GK,48,SCO,77;Paul Reaney,RB,44,ENG,76;Trevor Cherry,LB,48,ENG,75;Frank Gray,LB,54,SCO,72;Norman Hunter,CB,43,ENG,79;Gordon McQueen,CB,52,SCO,79;Paul Madeley,CB,44,ENG,78;Billy Bremner,CM,42,SCO,83;Johnny Giles,CM,40,IRL,80;Terry Yorath,CM,50,WAL,74;Peter Lorimer,RW,46,SCO,80;Eddie Gray,LW,48,SCO,79;Allan Clarke,ST,46,ENG,81;Joe Jordan,ST,51,SCO,77;Duncan McKenzie,ST,50,ENG,75
+Ipswich Town|80|Laurie Sivell,GK,51,ENG,70;Paul Cooper,GK,53,ENG,70;Mick Mills,RB,49,ENG,77;George Burley,RB,56,SCO,68;Kevin Beattie,CB,53,ENG,79;Allan Hunter,CB,46,NIR,77;Colin Harper,LB,46,ENG,69;Brian Talbot,CM,53,ENG,75;Colin Viljoen,CM,48,ENG,74;Bryan Hamilton,CM,46,NIR,72;Clive Woods,LW,47,ENG,72;Mick Lambert,LW,50,ENG,70;Trevor Whymark,ST,50,ENG,74;David Johnson,ST,51,ENG,75
+Everton|78|Dai Davies,GK,48,WAL,70;Roger Kenyon,CB,49,ENG,70;Mick Lyons,CB,51,ENG,72;Steve Seargeant,LB,51,ENG,68;Dave Clements,CM,45,NIR,72;Martin Dobson,CM,48,ENG,77;Mick Buckley,CM,53,ENG,70;Mike Bernard,CM,48,ENG,70;John Connolly,LW,50,SCO,72;Gary Jones,LW,51,ENG,70;Bob Latchford,ST,51,ENG,78;Jim Pearson,ST,53,SCO,70
+Stoke City|78|Peter Shilton,GK,49,ENG,84;Jackie Marsh,RB,48,ENG,68;Mike Pejic,LB,50,ENG,73;Denis Smith,CB,47,ENG,73;Alan Bloor,CB,43,ENG,70;Alan Hudson,CM,51,ENG,80;John Mahoney,CM,46,WAL,72;Geoff Salmons,LW,48,ENG,71;Terry Conroy,RW,46,IRL,71;Jimmy Greenhoff,ST,46,ENG,77;John Ritchie,ST,41,ENG,71
+Man City|79|Joe Corrigan,GK,48,ENG,74;Willie Donachie,LB,51,SCO,75;Mike Doyle,CB,46,ENG,76;Tommy Booth,CB,49,ENG,73;Alan Oakes,CM,42,ENG,72;Colin Bell,CM,46,ENG,84;Asa Hartford,CM,50,SCO,78;Dennis Tueart,LW,49,ENG,78;Mike Summerbee,RW,42,ENG,73;Rodney Marsh,ST,44,ENG,79;Joe Royle,ST,49,ENG,76
+QPR|78|Phil Parkes,GK,50,ENG,77;Dave Clement,RB,48,ENG,72;Ian Gillard,LB,50,ENG,72;Frank McLintock,CB,39,SCO,74;David Webb,CB,46,ENG,73;Gerry Francis,CM,51,ENG,79;Don Masson,CM,46,SCO,76;Dave Thomas,LW,50,ENG,74;Stan Bowles,CAM,48,ENG,80;Don Givens,ST,49,IRL,75
+Arsenal|77|Jimmy Rimmer,GK,48,ENG,74;Pat Rice,RB,49,NIR,75;Sammy Nelson,LB,49,NIR,72;Bob McNab,LB,43,ENG,70;Peter Simpson,CB,45,ENG,73;Terry Mancini,CB,42,IRL,70;Peter Storey,CDM,45,ENG,74;Alan Ball,CM,45,ENG,82;Liam Brady,CM,56,IRL,74;Eddie Kelly,CM,51,SCO,71;George Armstrong,LW,44,ENG,74;Brian Kidd,ST,49,ENG,76;John Radford,ST,47,ENG,75
+Tottenham|77|Pat Jennings,GK,45,NIR,85;Joe Kinnear,RB,46,IRL,71;Cyril Knowles,LB,44,ENG,74;Mike England,CB,41,WAL,75;Steve Perryman,CM,51,ENG,77;John Pratt,CM,48,ENG,70;Martin Peters,CM,43,ENG,79;Glenn Hoddle,CAM,57,ENG,66;Ralph Coates,LW,46,ENG,73;Alfie Conn,RW,52,SCO,72;Martin Chivers,ST,45,ENG,79;John Duncan,ST,49,SCO,73
+Man United|76|Alex Stepney,GK,42,ENG,75;Alex Forsyth,RB,52,SCO,70;Stewart Houston,LB,49,SCO,71;Jim Holton,CB,51,SCO,72;Martin Buchan,CB,49,SCO,78;Brian Greenhoff,CB,53,ENG,72;Sammy McIlroy,CM,54,NIR,74;Lou Macari,CM,49,SCO,77;Gerry Daly,CM,54,IRL,72;Mick Martin,CM,51,IRL,72;Willie Morgan,RW,44,SCO,74;Steve Coppell,RW,55,ENG,72;Stuart Pearson,ST,49,ENG,75
+West Ham|76|Mervyn Day,GK,55,ENG,72;John McDowell,RB,51,ENG,68;Frank Lampard,LB,48,ENG,74;Tommy Taylor,CB,51,ENG,72;Kevin Lock,CB,53,ENG,69;Billy Bonds,CM,46,ENG,78;Trevor Brooking,CM,48,ENG,81;Graham Paddon,CM,50,ENG,73;Pat Holland,RW,50,ENG,70;Billy Jennings,ST,52,ENG,72;Alan Taylor,ST,53,ENG,72;Keith Robson,ST,53,ENG,69;Bobby Gould,ST,46,ENG,70
+Newcastle|76|Iam McFaul,GK,43,NIR,70;Irving Nattrass,RB,52,ENG,69;Frank Clark,LB,43,ENG,70;Alan Kennedy,LB,54,ENG,70;Pat Howard,CB,47,ENG,70;Terry Hibbitt,CM,47,ENG,72;Terry McDermott,CM,51,ENG,74;Tommy Cassidy,CM,50,NIR,70;Tommy Craig,CM,50,SCO,72;Stewart Barrowclough,RW,51,ENG,69;Malcolm Macdonald,ST,50,ENG,81;John Tudor,ST,46,ENG,71
+Middlesbrough|76|Jim Platt,GK,52,NIR,70;John Craggs,RB,48,ENG,70;Willie Maddren,CB,51,ENG,73;Stuart Boam,CB,48,ENG,72;Graeme Souness,CM,53,SCO,77;David Armstrong,CM,54,ENG,74;Bobby Murdoch,CM,44,SCO,72;Alan Foggon,ST,50,ENG,71;John Hickton,ST,44,ENG,72;David Mills,ST,51,ENG,71
+Sheffield United|75|Len Badger,RB,45,ENG,69;Eddie Colquhoun,CB,45,SCO,70;Keith Eddy,CM,44,ENG,70;Tony Currie,CAM,50,ENG,80;Alan Woodward,RW,46,ENG,73;Tony Field,ST,46,ENG,70;Billy Dearden,ST,44,ENG,70
+Burnley|74|Alan Stevenson,GK,50,ENG,71;Keith Newton,LB,41,ENG,68;Colin Waldron,CB,48,ENG,70;Peter Noble,CM,44,ENG,72;Doug Collins,CM,45,ENG,70;Leighton James,LW,53,WAL,76;Paul Fletcher,ST,51,ENG,72;Ray Hankin,ST,56,ENG,70
+Wolves|74|Gary Pierce,GK,51,ENG,68;Geoff Palmer,RB,54,ENG,68;Derek Parkin,LB,48,ENG,72;Frank Munro,CB,47,SCO,72;John McAlle,CB,50,ENG,69;Mike Bailey,CM,42,ENG,71;Kenny Hibbitt,CM,51,ENG,74;Dave Wagstaffe,LW,43,ENG,72;Steve Kindon,LW,50,ENG,71;John Richards,ST,50,ENG,78;Derek Dougan,ST,38,NIR,70
+Coventry City|72|Bill Glazier,GK,43,ENG,69;Mick Coop,RB,48,ENG,68;Jimmy Holmes,LB,53,IRL,70;Larry Lloyd,CB,48,ENG,72;Willie Carr,CM,50,SCO,74;Tommy Hutchison,LW,47,SCO,75;Brian Alderson,ST,50,SCO,70;David Cross,ST,50,ENG,71
+Chelsea|73|Peter Bonetti,GK,41,ENG,76;Gary Locke,RB,55,ENG,67;Ron Harris,CB,44,ENG,73;Micky Droy,CB,51,ENG,70;John Dempsey,CB,46,IRL,71;John Hollins,CM,46,ENG,76;David Hay,CM,48,SCO,76;Ray Wilkins,CM,56,ENG,70;Steve Kember,CM,48,ENG,70;Ian Britton,CM,54,SCO,67;Charlie Cooke,RW,42,SCO,74;Ian Hutchinson,ST,48,ENG,72;Tommy Baldwin,ST,45,ENG,70;Bill Garner,ST,47,ENG,69
+Nottm Forest|72|Viv Anderson,RB,56,ENG,67;Sammy Chapman,CB,46,ENG,69;Ian Bowyer,CM,51,ENG,70;John McGovern,CM,49,SCO,72;Martin O'Neill,RW,52,NIR,72;John Robertson,LW,53,SCO,72;John O'Hare,ST,46,SCO,70;Tony Woodcock,ST,55,ENG,66`],
+ESP: ["Primera División", `Real Madrid|85|Miguel Ángel,GK,47,ESP,77;Mariano García Remón,GK,50,ESP,72;Goyo Benito,CB,46,ESP,76;José Antonio Camacho,LB,55,ESP,74;Pirri,CM,45,ESP,82;Paul Breitner,CM,51,GER,86;Günter Netzer,CM,44,GER,84;Manuel Velázquez,CM,43,ESP,74;Vicente del Bosque,CM,50,ESP,74;Amancio,RW,39,ESP,74;Roberto Martínez,ST,46,ARG,73;Santillana,ST,52,ESP,80
+Barcelona|86|Salvador Sadurní,GK,41,ESP,75;Joaquim Rifé,RB,42,ESP,72;Antonio Torres,CB,43,ESP,72;Migueli,CB,51,ESP,77;Francisco Gallego,CB,44,ESP,73;Marinho Peres,CB,47,BRA,77;Johan Neeskens,CM,51,NED,86;Juan Manuel Asensi,CM,49,ESP,79;Marcial Pina,CM,46,ESP,74;Juan Carlos Heredia,CM,52,ARG,74;Carles Rexach,RW,47,ESP,79;Johan Cruyff,CF,47,NED,93;Hugo Sotil,ST,49,PER,79;Manuel Clares,ST,48,ESP,72
+Atlético Madrid|82|Miguel Reina,GK,46,ESP,76;José Luis Capón,RB,48,ESP,73;Ramón Heredia,CB,51,ARG,76;Adelardo,CM,39,ESP,72;Javier Irureta,CM,48,ESP,75;José Eulogio Gárate,ST,44,ESP,79;Rubén Ayala,ST,50,ARG,79
+Real Zaragoza|76|José Luis Violeta,CB,41,ESP,72;Saturnino Arrúa,ST,49,PAR,78;Carlos Diarte,ST,54,PAR,76
+Athletic Club|77|José Ángel Iribar,GK,43,ESP,82;Ángel María Villar,CM,50,ESP,72;Txetxu Rojo,LW,47,ESP,78;Dani,ST,51,ESP,76;Carlos Ruiz,ST,48,ESP,75
+Valencia|75|Juan Cruz Sol,RB,47,ESP,74;Pepe Claramunt,CM,46,ESP,75
+Real Sociedad|74|Luis Arconada,GK,54,ESP,72;Inaxio Kortabarria,CB,50,ESP,75;Periko Alonso,CM,53,ESP,72;Jesús María Zamora,CM,55,ESP,72;Jesús María Satrústegui,ST,54,ESP,72
+Espanyol|73|
+Las Palmas|74|Daniel Carnevali,GK,46,ARG,76;Enrique Wolff,RB,49,ARG,76
+Real Betis|72|Julio Cardeñosa,CAM,49,ESP,74
+Sporting Gijón|73|Quini,ST,49,ESP,80
+Granada|70|Ladislao Mazurkiewicz,GK,45,URU,79
+Elche|70|
+Málaga|70|
+Racing Santander|69|
+Hércules|70|
+Salamanca|69|
+Celta Vigo|69|`],
+ITA: ["Serie A", `Juventus|85|Dino Zoff,GK,42,ITA,87;Claudio Gentile,RB,53,ITA,77;Antonello Cuccureddu,RB,49,ITA,74;Francesco Morini,CB,44,ITA,76;Gaetano Scirea,CB,53,ITA,79;Luciano Spinosi,CB,50,ITA,74;Giuseppe Furino,CM,46,ITA,76;Fabio Capello,CM,46,ITA,79;Franco Causio,RW,49,ITA,80;Oscar Damiani,RW,50,ITA,74;Pietro Anastasi,ST,48,ITA,80;Roberto Bettega,ST,50,ITA,82;José Altafini,ST,38,ITA,74
+Lazio|81|Felice Pulici,GK,45,ITA,75;Luigi Martini,LB,49,ITA,72;Giuseppe Wilson,CB,45,ITA,75;Giancarlo Oddi,CB,48,ITA,71;Luciano Re Cecconi,CM,48,ITA,76;Mario Frustalupi,CM,42,ITA,74;Vincenzo D'Amico,CAM,54,ITA,74;Renzo Garlaschelli,RW,50,ITA,73;Giorgio Chinaglia,ST,47,ITA,81
+AC Milan|80|Enrico Albertosi,GK,39,ITA,75;Angelo Anquilletti,RB,43,ITA,71;Aldo Maldera,LB,53,ITA,74;Maurizio Turone,CB,48,ITA,72;Romeo Benetti,CM,45,ITA,77;Alberto Bigon,CM,47,ITA,74;Gianni Rivera,CAM,43,ITA,83;Luciano Chiarugi,LW,47,ITA,74;Egidio Calloni,ST,52,ITA,73
+Inter|81|Ivano Bordon,GK,51,ITA,77;Giacinto Facchetti,LB,42,ITA,82;Mario Bertini,CM,44,ITA,74;Gabriele Oriali,CM,52,ITA,75;Sandro Mazzola,CAM,42,ITA,82;Roberto Boninsegna,ST,43,ITA,80
+Napoli|80|Pietro Carmignani,GK,45,ITA,73;Giuseppe Bruscolotti,RB,51,ITA,73;Tarcisio Burgnich,CB,39,ITA,74;Antonio Juliano,CM,43,ITA,78;Giorgio Braglia,LW,47,ITA,72;Sergio Clerici,ST,41,BRA,76
+Torino|80|Luciano Castellini,GK,45,ITA,76;Roberto Mozzini,CB,51,ITA,72;Nello Santin,CB,46,ITA,70;Renato Zaccarelli,CM,51,ITA,75;Patrizio Sala,CM,55,ITA,73;Eraldo Pecci,CM,55,ITA,73;Claudio Sala,RW,47,ITA,78;Paolo Pulici,ST,50,ITA,81;Francesco Graziani,ST,52,ITA,78
+Roma|78|Paolo Conti,GK,50,ITA,74;Francesco Rocca,RB,54,ITA,76;Sergio Santarini,CB,47,ITA,73;Giancarlo De Sisti,CM,43,ITA,76;Franco Cordova,CM,44,ITA,72;Agostino Di Bartolomei,CM,55,ITA,72;Pierino Prati,ST,46,ITA,76
+Bologna|76|Mauro Bellugi,CB,50,ITA,73;Giacomo Bulgarelli,CM,40,ITA,73;Beppe Savoldi,ST,47,ITA,79
+Fiorentina|76|Franco Superchi,GK,44,ITA,71;Moreno Roggi,RB,54,ITA,71;Vincenzo Guerini,CM,53,ITA,72;Domenico Caso,CM,54,ITA,72;Giancarlo Antognoni,CAM,54,ITA,80;Walter Speggiorin,ST,53,ITA,71
+Cagliari|75|Comunardo Niccolai,CB,46,ITA,70;Mario Brugnera,CM,46,ITA,71;Gigi Riva,ST,44,ITA,80
+Sampdoria|72|Marcello Lippi,CB,48,ITA,70
+Cesena|70|Pierluigi Cera,CB,41,ITA,70
+Ternana|68|
+Ascoli|69|
+Varese|68|
+Vicenza|70|`],
+GER: ["Bundesliga", `Bayern|88|Sepp Maier,GK,44,GER,87;Johnny Hansen,RB,43,DEN,74;Björn Andersson,LB,51,SWE,72;Franz Beckenbauer,CB,45,GER,91;Hans-Georg Schwarzenbeck,CB,48,GER,79;Franz Roth,CM,46,GER,77;Bernd Dürnberger,CM,53,GER,74;Jupp Kapellmann,CM,49,GER,75;Uli Hoeneß,RW,52,GER,83;Karl-Heinz Rummenigge,RW,55,GER,76;Conny Torstensson,ST,49,SWE,77;Klaus Wunder,ST,50,GER,72;Gerd Müller,ST,45,GER,90
+Gladbach|87|Wolfgang Kleff,GK,46,GER,78;Berti Vogts,RB,46,GER,83;Hans Klinkhammer,LB,53,GER,70;Hans-Jürgen Wittkamp,CB,47,GER,75;Rainer Bonhof,CM,52,GER,83;Herbert Wimmer,CM,44,GER,78;Uli Stielike,CM,54,GER,76;Dietmar Danner,CM,50,GER,74;Christian Kulik,CM,52,GER,72;Allan Simonsen,RW,52,DEN,82;Henning Jensen,ST,49,DEN,77;Jupp Heynckes,ST,45,GER,84
+Eintracht Frankfurt|81|Peter Kunter,GK,41,GER,71;Willi Neuberger,RB,46,GER,72;Karl-Heinz Körbel,CB,54,GER,75;Gert Trinklein,CB,49,GER,71;Bernd Nickel,CM,49,GER,76;Jürgen Grabowski,RW,44,GER,82;Bernd Hölzenbein,ST,46,GER,81
+FC Köln|81|Harald Schumacher,GK,54,GER,72;Harald Konopka,RB,52,GER,73;Wolfgang Weber,CB,44,GER,74;Bernd Cullmann,CM,49,GER,75;Wolfgang Overath,CM,43,GER,82;Heinz Flohe,CM,48,GER,80;Hannes Löhr,ST,42,GER,74;Dieter Müller,ST,54,GER,76
+Hamburger SV|79|Rudi Kargus,GK,52,GER,75;Manfred Kaltz,RB,53,GER,79;Peter Nogly,CB,47,GER,73;Caspar Memering,CM,53,GER,72;Georg Volkert,LW,45,GER,74;Willi Reimann,ST,49,GER,72
+Schalke 04|80|Norbert Nigbur,GK,48,GER,76;Helmut Kremers,LB,49,GER,75;Rolf Rüssmann,CB,50,GER,76;Klaus Fichtel,CB,44,GER,74;Hannes Bongartz,CM,51,GER,74;Erwin Kremers,LW,49,GER,75;Rüdiger Abramczik,RW,56,GER,73;Klaus Fischer,ST,49,GER,80
+Hertha BSC|77|Uwe Kliemann,CB,49,GER,73;Erich Beer,CM,46,GER,76
+Fortuna Düsseldorf|76|Gerd Zewe,CM,50,GER,73;Dieter Herzog,RW,46,GER,72;Klaus Allofs,ST,56,GER,70
+Kaiserslautern|75|Ronnie Hellström,GK,49,SWE,80;Roland Sandberg,ST,46,SWE,76;Klaus Toppmöller,ST,51,GER,73
+MSV Duisburg|74|Bernard Dietz,LB,48,GER,77;Ronald Worm,ST,53,GER,72
+Werder Bremen|73|Dieter Burdenski,GK,50,GER,74;Horst-Dieter Höttges,CB,43,GER,73
+Stuttgart|73|
+Kickers Offenbach|74|Sigfried Held,LW,42,GER,72
+Eintracht Braunschweig|74|Bernd Franke,GK,48,GER,73
+VfL Bochum|71|
+Rot-Weiss Essen|72|Willi Lippens,LW,45,NED,74
+Tennis Borussia Berlin|68|
+Dortmund|72|`],
+FRA: ["Division 1", `Saint-Étienne|83|Ivan Ćurković,GK,44,SRB,80;Gérard Janvion,RB,53,FRA,74;Gérard Farison,LB,44,FRA,72;Osvaldo Piazza,CB,47,ARG,79;Christian Lopez,CB,53,FRA,75;Jean-Michel Larqué,CM,47,FRA,79;Dominique Bathenay,CM,54,FRA,75;Christian Synaeghel,CM,51,FRA,74;Jacques Santini,CM,52,FRA,72;Patrick Revelli,RW,51,FRA,76;Dominique Rocheteau,RW,55,FRA,76;Hervé Revelli,ST,46,FRA,78
+Marseille|79|Marius Trésor,CB,50,FRA,80;Paulo César Caju,LW,49,BRA,80;Jairzinho,RW,44,BRA,82;Josip Skoblar,ST,41,CRO,78
+Nantes|78|Jean-Paul Bertrand-Demanes,GK,52,FRA,74;Hugo Bargas,CB,47,ARG,74;Patrice Rio,CB,48,FRA,72;Maxime Bossis,CB,55,FRA,72;Henri Michel,CM,47,FRA,80;Bernard Blanchet,RW,43,FRA,72
+Lyon|76|Serge Chiesa,CAM,50,FRA,74;Fleury Di Nallo,ST,43,FRA,72;Bernard Lacombe,ST,52,FRA,77
+Nice|76|Dominique Baratelli,GK,47,FRA,74;Roger Jouve,CM,49,FRA,72
+Bastia|73|Claude Papi,CM,49,FRA,75
+Reims|75|Carlos Bianchi,ST,49,ARG,80
+Sochaux|73|
+Metz|72|
+Monaco|74|Delio Onnis,ST,48,ARG,79
+Lens|73|
+Bordeaux|73|Alain Giresse,CM,52,FRA,75
+Nîmes|71|
+Strasbourg|71|
+Nancy|73|Michel Platini,CAM,55,FRA,76;Olivier Rouyer,RW,55,FRA,72
+Troyes|70|Ilija Petković,ST,45,SRB,75
+PSG|72|Mustapha Dahleb,CAM,52,ALG,76
+Lille|71|`],
+NED: ["Eredivisie", `Ajax|84|Piet Schrijvers,GK,46,NED,77;Heinz Stuy,GK,45,NED,74;Wim Suurbier,RB,45,NED,79;Ruud Krol,LB,49,NED,85;Barry Hulshoff,CB,46,NED,77;Horst Blankenburg,CB,47,GER,76;Arie Haan,CM,48,NED,82;Gerrie Mühren,CM,46,NED,79;Johnny Rep,RW,51,NED,81;Ruud Geels,ST,48,NED,80;Jan Mulder,ST,45,NED,74
+Feyenoord|84|Eddy Treijtel,GK,46,NED,76;Wim Rijsbergen,CB,52,NED,76;Joop van Daele,CB,47,NED,71;Harry Vos,CB,46,NED,70;Wim Jansen,CM,46,NED,81;Wim van Hanegem,CM,44,NED,85;Theo de Jong,CM,47,NED,77;Lex Schoenmaker,RW,47,NED,72;Peter Ressel,LW,45,NED,72
+PSV|83|Jan van Beveren,GK,48,NED,82;Adrie van Kraay,CB,53,NED,74;Huub Stevens,CB,53,NED,72;Björn Nordqvist,CB,42,SWE,75;Willy van de Kerkhof,CM,51,NED,78;René van de Kerkhof,RW,51,NED,78;Gerrie Deijkers,LW,46,NED,72;Willy van der Kuijlen,ST,46,NED,80;Ralf Edström,ST,52,SWE,78;Harry Lubse,ST,51,NED,72
+Twente|78|Epi Drost,CB,45,NED,72;Frans Thijssen,CM,52,NED,74;Arnold Mühren,CM,51,NED,75;Theo Pahlplatz,RW,47,NED,72;Jan Jeuring,ST,47,NED,72
+AZ|75|Hugo Hovenkamp,CB,50,NED,73;Kees Kist,ST,52,NED,75
+Sparta Rotterdam|73|
+Roda JC|73|Dick Nanninga,ST,49,NED,74
+Go Ahead Eagles|70|
+NEC|70|
+Utrecht|71|
+Telstar|68|
+NAC Breda|70|
+ADO Den Haag|72|Aad Mansveld,CB,44,NED,72
+MVV|69|
+Haarlem|69|
+FC Amsterdam|71|Jan Jongbloed,GK,40,NED,74
+De Graafschap|68|
+Excelsior|69|Rinus Israël,CB,42,NED,73`],
+BEL: ["First Division", `Anderlecht|82|Jan Ruiter,GK,46,NED,74;Gilbert Van Binst,RB,51,BEL,73;Hugo Broos,CB,52,BEL,72;Ludo Coeck,CM,55,BEL,72;Paul Van Himst,CAM,43,BEL,80;François Van der Elst,RW,54,BEL,73;Rob Rensenbrink,LW,47,NED,84;Attila Ladinszky,ST,49,HUN,75
+Club Brugge|80|Birger Jensen,GK,51,DEN,74;Erwin Vandendaele,CB,45,BEL,74;Georges Leekens,CB,49,BEL,72;Julien Cools,CM,47,BEL,74;Raoul Lambert,ST,44,BEL,77
+Standard Liège|79|Christian Piot,GK,47,BEL,78;Wilfried Van Moer,CM,45,BEL,79
+RWD Molenbeek|79|Johan Boskamp,CM,48,NED,75
+Lokeren|75|
+Beveren|74|Jean-Marie Pfaff,GK,53,BEL,75
+Antwerp|75|
+Charleroi|70|
+Lierse|72|
+Beerschot|71|
+Mechelen|69|
+Cercle Brugge|71|Morten Olsen,CB,49,DEN,76
+Gent|69|
+Waregem|71|
+Kortrijk|68|
+Berchem Sport|66|`],
+POR: ["Primeira Divisão", `Benfica|82|José Henrique,GK,43,POR,76;Humberto Coelho,CB,50,POR,80;Toni,CM,46,POR,77;Shéu,CM,53,POR,72;António Simões,LW,43,POR,75;Nené,ST,49,POR,79;Rui Jordão,ST,52,POR,78;Vítor Baptista,ST,48,POR,76;Artur Jorge,ST,46,POR,76;Eusébio,ST,42,POR,80
+Sporting CP|81|Vítor Damas,GK,46,POR,78;Héctor Yazalde,ST,46,ARG,83
+FC Porto|80|Rodolfo Reis,CM,53,POR,72;António Oliveira,CM,52,POR,76;Teófilo Cubillas,CAM,49,PER,85;Fernando Gomes,ST,56,POR,72
+Boavista|75|
+Vitória SC|74|
+Belenenses|73|
+Vitória Setúbal|74|
+Académica|71|
+Braga|72|
+Leixões|69|
+Farense|69|
+Atlético CP|68|
+CUF|68|
+Olhanense|67|
+Beira-Mar|68|
+Oriental|66|`],
+BRA: ["Campeonato Brasileiro", `Santos|82|Agustín Cejas,GK,45,ARG,74;Carlos Alberto Torres,RB,44,BRA,80;Clodoaldo,CM,49,BRA,79;Edu,LW,49,BRA,77;Pelé,ST,40,BRA,88
+Palmeiras|83|Émerson Leão,GK,49,BRA,82;Luís Pereira,CB,49,BRA,81;Alfredo Mostarda,CB,46,BRA,74;Dudu,CDM,39,BRA,72;Ademir da Guia,CM,42,BRA,80;Leivinha,ST,49,BRA,79;César Maluco,ST,49,BRA,76
+Cruzeiro|82|Raul Plassmann,GK,44,BRA,74;Nelinho,RB,50,BRA,79;Roberto Perfumo,CB,42,ARG,77;Wilson Piazza,CDM,43,BRA,77;Dirceu Lopes,CAM,46,BRA,78;Joãozinho,LW,54,BRA,75;Palhinha,ST,50,BRA,77
+Internacional|83|Manga,GK,37,BRA,74;Elías Figueroa,CB,46,CHI,85;Falcão,CM,53,BRA,78;Paulo César Carpegiani,CM,49,BRA,77;Valdomiro,RW,46,BRA,77
+Vasco da Gama|80|Edgardo Andrada,GK,39,ARG,74;Roberto Dinamite,ST,54,BRA,79
+Flamengo|79|Júnior,RB,54,BRA,74;Rodrigues Neto,LB,49,BRA,74;Zico,CAM,53,BRA,82;Narciso Doval,ST,44,ARG,74
+Corinthians|80|Zé Maria,RB,49,BRA,77;Wladimir,LB,54,BRA,72;Rivellino,CAM,46,BRA,85
+São Paulo|80|Waldir Peres,GK,51,BRA,77;Chicão,CDM,49,BRA,74;Pedro Rocha,CAM,42,URU,80;Serginho Chulapa,ST,53,BRA,75;Mirandinha,ST,52,BRA,74
+Fluminense|79|Félix,GK,37,BRA,72;Marco Antônio,LB,51,BRA,76;Edinho,CB,55,BRA,72
+Botafogo|79|Marinho Chagas,LB,52,BRA,79;Dirceu,LW,52,BRA,74
+Atlético Mineiro|78|Toninho Cerezo,CM,55,BRA,73;Dadá Maravilha,ST,46,BRA,76;Reinaldo,ST,57,BRA,73
+Grêmio|77|Atilio Ancheta,CB,49,URU,76
+Bahia|74|
+Santa Cruz|74|
+Sport Recife|72|
+Coritiba|73|
+Guarani|73|
+Portuguesa|73|
+América-RJ|72|
+Fortaleza|70|`],
+ARG: ["Primera División", `Independiente|82|Miguel Ángel Santoro,GK,42,ARG,76;Ricardo Pavoni,LB,43,URU,76;Francisco Sá,CB,45,ARG,76;Rubén Galván,CM,52,ARG,74;Ricardo Bochini,CAM,54,ARG,80;Agustín Balbuena,RW,45,ARG,73;Daniel Bertoni,RW,55,ARG,76
+River Plate|81|Ubaldo Fillol,GK,50,ARG,81;Daniel Passarella,CB,53,ARG,79;Juan José López,CM,50,ARG,76;Reinaldo Merlo,CM,50,ARG,74;Norberto Alonso,CAM,53,ARG,80;Oscar Más,LW,46,ARG,77;Carlos Morete,ST,52,ARG,77
+Huracán|80|Alfio Basile,CB,43,ARG,74;Miguel Brindisi,CM,50,ARG,79;Omar Larrosa,CM,47,ARG,75;René Houseman,RW,53,ARG,80;Roque Avallay,ST,45,ARG,74
+Boca Juniors|80|Rubén Suñé,CM,47,ARG,74;Osvaldo Potente,CAM,50,ARG,74
+Rosario Central|79|Aldo Poy,ST,45,ARG,73;Mario Kempes,ST,54,ARG,81
+Newell's Old Boys|78|Mario Zanabria,CM,48,ARG,76
+San Lorenzo|79|Roberto Telch,CM,43,ARG,74;Héctor Scotta,ST,50,ARG,78
+Racing Club|77|
+Estudiantes|77|
+Vélez Sarsfield|75|
+Banfield|72|
+Lanús|71|
+Gimnasia La Plata|72|
+Chacarita Juniors|71|
+Ferro Carril Oeste|70|
+Colón|70|
+Atlanta|70|
+Platense|69|
+Unión|70|
+Argentinos Juniors|70|`],
+USA: ["NASL", `New York Cosmos|68|
+Tampa Bay Rowdies|67|
+Los Angeles Aztecs|66|
+Dallas Tornado|65|Kyle Rote Jr.,ST,50,USA,68
+Seattle Sounders|65|
+Portland Timbers|64|
+Vancouver Whitecaps|64|
+San Jose Earthquakes|63|
+Boston Minutemen|63|
+Philadelphia Atoms|63|
+Rochester Lancers|62|
+Toronto Metros-Croatia|63|
+Washington Diplomats|62|
+Chicago Sting|63|
+St. Louis Stars|62|
+Denver Dynamos|60|
+Miami Toros|62|
+Baltimore Comets|61|
+Hartford Bicentennials|60|
+San Antonio Thunder|60|`] },
+pool: `Celtic|80|Danny McGrain,RB,50,SCO,79;Billy McNeill,CB,40,SCO,74;Jimmy Johnstone,RW,44,SCO,78;Bobby Lennox,LW,43,SCO,74;Kenny Dalglish,ST,51,SCO,82;Dixie Deans,ST,44,SCO,74
+Rangers|76|Peter McCloy,GK,46,SCO,72;Sandy Jardine,RB,48,SCO,77;John Greig,CB,42,SCO,74;Tom Forsyth,CB,49,SCO,74;Derek Johnstone,ST,53,SCO,74
+Dynamo Kyiv|83|Yevhen Rudakov,GK,42,UKR,77;Volodymyr Troshkin,RB,47,UKR,75;Mykhaylo Fomenko,CB,48,UKR,75;Viktor Kolotov,CM,49,UKR,77;Leonid Buryak,CM,53,UKR,76;Anatoliy Konkov,CM,49,UKR,76;Volodymyr Onyshchenko,RW,49,UKR,77;Oleg Blokhin,LW,52,UKR,87
+Legia Warsaw|76|Kazimierz Deyna,CM,47,POL,85;Robert Gadocha,LW,46,POL,79
+Stal Mielec|76|Henryk Kasperczak,CM,46,POL,77;Grzegorz Lato,RW,50,POL,84
+Górnik Zabrze|74|Jerzy Gorgoń,CB,49,POL,77;Andrzej Szarmach,ST,50,POL,80
+Red Star Belgrade|79|Vladislav Bogićević,CM,51,SRB,77;Dragan Džajić,LW,46,SRB,84
+Hajduk Split|78|Dražen Mužinić,RB,53,CRO,75;Branko Oblak,CM,47,SVN,78;Jurica Jerković,CAM,50,CRO,77;Ivica Šurjak,LW,53,CRO,78
+Dinamo Zagreb|73|
+Partizan|73|
+Rapid Vienna|74|Hans Krankl,ST,53,AUT,82
+Austria Wien|72|Herbert Prohaska,CM,55,AUT,76
+Malmö|75|Bo Larsson,CM,44,SWE,75;Staffan Tapper,CM,48,SWE,72
+Galatasaray|72|
+Fenerbahçe|73|
+Olympiacos|72|
+Panathinaikos|74|Mimis Domazos,CM,42,GRE,75;Antonis Antoniadis,ST,46,GRE,74
+Dukla Prague|76|Ivo Viktor,GK,42,CZE,80;Zdeněk Nehoda,ST,52,CZE,77
+Slovan Bratislava|75|Ján Pivarník,RB,47,SVK,75;Anton Ondruš,CB,50,SVK,79;Marián Masný,RW,50,SVK,78
+Slavia Prague|70|
+Sparta Prague|69|
+Ferencváros|76|Tibor Nyilasi,CM,55,HUN,76
+Újpest|77|Ferenc Bene,ST,44,HUN,77
+Steaua Bucharest|72|
+Dinamo Bucharest|73|Cornel Dinu,CB,48,ROU,76;Mircea Lucescu,RW,45,ROU,74;Dudu Georgescu,ST,50,ROU,79
+CSKA Sofia|73|
+Levski Sofia|71|
+Basel|70|
+FC Zürich|72|
+Spartak Moscow|73|
+Dinamo Tbilisi|74|Aleksandre Chivadze,CB,55,GEO,74;David Kipiani,CAM,51,GEO,78
+Ararat Yerevan|72|Khoren Oganesian,CAM,55,ARM,74
+Aberdeen|70|
+Hibernian|71|
+Hearts|68|`,
+nat: `Jan Tomaszewski,GK,48,POL,80,ŁKS Łódź;Antoni Szymanowski,RB,51,POL,76,Wisła Kraków;Władysław Żmuda,CB,54,POL,76,Gwardia Warszawa;Zygmunt Maszczyk,CM,45,POL,74,Ruch Chorzów;Carlos Babington,CAM,49,ARG,77,Wattenscheid 09;Carlos Caszely,ST,50,CHI,79,Levante;Fernando Morena,ST,52,URU,79,Peñarol;Héctor Chumpitaz,CB,44,PER,76,Universitario;Juan Carlos Oblitas,LW,51,PER,76,Veracruz;Hristo Bonev,CAM,47,BUL,78,Lokomotiv Plovdiv;Antonín Panenka,CM,48,CZE,79,Bohemians Prague;Karol Dobiaš,LB,47,SVK,74,Spartak Trnava;Josip Katalinski,CB,48,BIH,77,Željezničar;Enver Marić,GK,48,BIH,76,Velež Mostar;Bruno Pezzey,CB,55,AUT,75,Wacker Innsbruck;Friedl Koncilia,GK,48,AUT,76,Wacker Innsbruck;László Bölöni,CM,53,ROU,75,ASA Târgu Mureș;Emmanuel Sanon,ST,51,HAI,72,Don Bosco`,
+ns: { NED: 89, GER: 90, BRA: 88, POL: 85, ARG: 82, ITA: 84, ESP: 76, ENG: 82, SCO: 80, SWE: 79, SRB: 81, CRO: 77, BIH: 74, SVN: 70, RUS: 79, UKR: 80, GEO: 70, CHI: 76, URU: 78, PER: 79, BEL: 79, FRA: 78, POR: 75, HUN: 79, CZE: 82, SVK: 78, BUL: 76, ROU: 76, AUT: 77, DEN: 72, IRL: 72, WAL: 74, NIR: 72, MEX: 72, USA: 58, GRE: 70, TUR: 68, NOR: 64, SUI: 68, HAI: 60, COD: 58, MAR: 66, ALG: 64, TUN: 66, NGA: 62, GHA: 66, CMR: 64, CIV: 58, SEN: 55, EGY: 62, IRN: 66, KOR: 60, JPN: 55, AUS: 62, CAN: 55, CRC: 58, COL: 66, PAR: 70, ECU: 62, BOL: 64, VEN: 50 }
+};
+// ---- 1990s: the 1994/95 season (players' ages at 1994) ----
+ERADB_SRC["1990s"] = { start: 1994, lg: {
+ENG: ["Premier League", `Man United|86|Peter Schmeichel,GK,63,DEN,88;Paul Parker,RB,64,ENG,77;Gary Neville,RB,75,ENG,70;Denis Irwin,LB,65,IRL,81;Gary Pallister,CB,65,ENG,82;Steve Bruce,CB,60,ENG,80;Roy Keane,CM,71,IRL,84;Paul Ince,CM,67,ENG,84;Brian McClair,CM,63,SCO,76;Nicky Butt,CM,75,ENG,70;Paul Scholes,CAM,74,ENG,71;Ryan Giggs,LW,73,WAL,84;Lee Sharpe,LW,71,ENG,78;Andrei Kanchelskis,RW,69,RUS,83;David Beckham,RW,75,ENG,70;Eric Cantona,CF,66,FRA,88;Mark Hughes,ST,63,WAL,82
+Blackburn Rovers|85|Tim Flowers,GK,67,ENG,82;Jeff Kenna,RB,70,IRL,73;Henning Berg,CB,69,NOR,79;Colin Hendry,CB,65,SCO,80;Ian Pearce,CB,74,ENG,70;Graeme Le Saux,LB,68,ENG,80;Tim Sherwood,CM,69,ENG,78;David Batty,CDM,68,ENG,78;Mark Atkins,CM,68,ENG,72;Robbie Slater,CM,64,AUS,72;Stuart Ripley,RW,67,ENG,76;Jason Wilcox,LW,71,ENG,76;Alan Shearer,ST,70,ENG,89;Chris Sutton,ST,73,ENG,82;Mike Newell,ST,65,ENG,72;Kevin Gallacher,ST,66,SCO,74
+Newcastle|83|Pavel Srníček,GK,68,CZE,76;Marc Hottiger,RB,67,SUI,76;Steve Watson,RB,74,ENG,72;Darren Peacock,CB,68,ENG,75;Philippe Albert,CB,67,BEL,80;John Beresford,LB,66,ENG,76;Barry Venison,CDM,64,ENG,74;Robert Lee,CM,66,ENG,81;Lee Clark,CM,72,ENG,75;Peter Beardsley,CAM,61,ENG,82;Ruel Fox,RW,68,ENG,76;Scott Sellars,LW,65,ENG,74;Andy Cole,ST,71,ENG,83;Paul Kitson,ST,71,ENG,73
+Liverpool|83|David James,GK,70,ENG,78;Rob Jones,RB,71,ENG,77;Neil Ruddock,CB,68,ENG,77;John Scales,CB,66,ENG,77;Phil Babb,CB,70,IRL,76;Mark Wright,CB,63,ENG,75;Stig Inge Bjørnebye,LB,69,NOR,75;Julian Dicks,LB,68,ENG,77;John Barnes,CM,63,ENG,81;Jamie Redknapp,CM,73,ENG,78;Jan Mølby,CM,63,DEN,75;Michael Thomas,CM,67,ENG,74;Nigel Clough,CAM,66,ENG,74;Steve McManaman,RW,72,ENG,82;Robbie Fowler,ST,75,ENG,82;Ian Rush,ST,61,WAL,80
+Arsenal|81|David Seaman,GK,63,ENG,85;Lee Dixon,RB,64,ENG,79;Tony Adams,CB,66,ENG,82;Steve Bould,CB,62,ENG,77;Martin Keown,CB,66,ENG,77;Nigel Winterburn,LB,63,ENG,78;Stefan Schwarz,CM,69,SWE,79;John Jensen,CM,65,DEN,75;Ray Parlour,CM,73,ENG,74;David Hillier,CM,69,ENG,70;Paul Merson,CAM,68,ENG,80;Ian Wright,ST,63,ENG,84;Kevin Campbell,ST,70,ENG,75;Alan Smith,ST,62,ENG,74
+Nottm Forest|80|Mark Crossley,GK,69,WAL,76;Des Lyttle,RB,71,ENG,72;Stuart Pearce,LB,62,ENG,82;Colin Cooper,CB,67,ENG,76;Steve Chettle,CB,68,ENG,74;Lars Bohinen,CM,69,NOR,76;Scot Gemmill,CM,71,SCO,73;David Phillips,CM,63,WAL,72;Steve Stone,RW,71,ENG,77;Ian Woan,LW,67,ENG,74;Bryan Roy,LW,70,NED,80;Stan Collymore,ST,71,ENG,83;Jason Lee,ST,71,ENG,70
+Leeds|80|John Lukic,GK,60,ENG,75;Gary Kelly,RB,74,IRL,75;Tony Dorigo,LB,65,ENG,76;David Wetherall,CB,71,ENG,74;Chris Fairclough,CB,64,ENG,73;Lucas Radebe,CB,69,RSA,73;Gary McAllister,CM,64,SCO,82;Gary Speed,CM,69,WAL,80;Carlton Palmer,CDM,65,ENG,75;Rod Wallace,LW,69,ENG,75;Brian Deane,ST,68,ENG,76;Phil Masinga,ST,69,RSA,71
+Tottenham|80|Ian Walker,GK,71,ENG,76;Erik Thorstvedt,GK,62,NOR,75;Dean Austin,RB,70,ENG,71;Justin Edinburgh,LB,69,ENG,72;Colin Calderwood,CB,65,SCO,75;Sol Campbell,CB,74,ENG,75;Gary Mabbutt,CB,61,ENG,75;Gheorghe Popescu,CDM,67,ROU,80;David Howells,CM,67,ENG,72;Nick Barmby,CAM,74,ENG,77;Darren Anderton,RW,72,ENG,80;Ilie Dumitrescu,LW,69,ROU,79;Jürgen Klinsmann,ST,64,GER,87;Teddy Sheringham,ST,66,ENG,84
+Aston Villa|77|Mark Bosnich,GK,72,AUS,77;Earl Barrett,RB,67,ENG,74;Steve Staunton,LB,69,IRL,78;Paul McGrath,CB,59,IRL,79;Ugo Ehiogu,CB,72,ENG,74;Shaun Teale,CB,64,ENG,72;Andy Townsend,CM,63,IRL,77;Kevin Richardson,CM,62,ENG,74;Ray Houghton,CM,62,IRL,76;Dean Saunders,ST,64,WAL,79;Dalian Atkinson,ST,68,ENG,77;Dwight Yorke,ST,71,TRI,76
+Chelsea|77|Dmitri Kharine,GK,68,RUS,77;Steve Clarke,RB,63,SCO,74;Frank Sinclair,CB,71,JAM,73;Erland Johnsen,CB,67,NOR,73;Scott Minto,LB,71,ENG,70;Dennis Wise,CM,66,ENG,79;Gavin Peacock,CM,67,ENG,75;Eddie Newton,CM,71,ENG,72;Craig Burley,CM,71,SCO,72;David Rocastle,CM,67,ENG,74;John Spencer,ST,70,SCO,74;Paul Furlong,ST,68,ENG,74;Mark Stein,ST,66,ENG,74
+QPR|76|Tony Roberts,GK,69,WAL,71;David Bardsley,RB,64,ENG,72;Clive Wilson,LB,61,ENG,71;Alan McDonald,CB,63,NIR,73;Danny Maddix,CB,67,ENG,70;Ray Wilkins,CM,56,ENG,70;Ian Holloway,CM,63,ENG,70;Simon Barker,CM,64,ENG,71;Andy Impey,RW,71,ENG,72;Trevor Sinclair,RW,73,ENG,77;Les Ferdinand,ST,66,ENG,83;Kevin Gallen,ST,75,ENG,71
+Everton|76|Neville Southall,GK,58,WAL,82;Matt Jackson,RB,71,ENG,72;Andy Hinchcliffe,LB,69,ENG,74;Dave Watson,CB,61,ENG,75;Gary Ablett,CB,65,ENG,72;Joe Parkinson,CDM,71,ENG,72;Barry Horne,CM,62,WAL,73;John Ebbrell,CM,69,ENG,72;Vinny Samways,CM,68,ENG,72;Graham Stuart,CM,70,ENG,73;Anders Limpar,LW,65,SWE,78;Paul Rideout,ST,64,ENG,74;Duncan Ferguson,ST,71,SCO,77;Daniel Amokachi,ST,72,NGA,77
+Sheffield Wednesday|77|Chris Woods,GK,59,ENG,76;Roland Nilsson,RB,63,SWE,79;Dan Petrescu,RB,67,ROU,79;Des Walker,CB,65,ENG,79;Peter Atherton,CB,70,ENG,73;John Sheridan,CM,64,IRL,76;Klas Ingesson,CM,68,SWE,76;Chris Waddle,RW,60,ENG,80;Andy Sinton,LW,66,ENG,75;David Hirst,ST,67,ENG,76;Mark Bright,ST,62,ENG,75;Guy Whittingham,ST,64,ENG,72
+Wimbledon|74|Hans Segers,GK,61,NED,73;Warren Barton,RB,69,ENG,74;Dean Blackwell,CB,69,ENG,70;Alan Kimble,LB,66,ENG,70;Vinnie Jones,CM,65,WAL,73;Robbie Earle,CM,65,JAM,74;Øyvind Leonhardsen,CM,70,NOR,76;Marcus Gayle,LW,70,ENG,72;Dean Holdsworth,ST,68,ENG,76;Efan Ekoku,ST,67,NGA,73
+Southampton|74|Bruce Grobbelaar,GK,57,ZIM,75;Jason Dodd,RB,70,ENG,72;Francis Benali,LB,68,ENG,70;Ken Monkou,CB,64,NED,72;Neil Maddison,CM,69,ENG,70;Jim Magilton,CM,69,NIR,74;Matt Le Tissier,CAM,68,ENG,84
+West Ham|74|Luděk Mikloško,GK,61,CZE,77;Tim Breacker,RB,65,ENG,72;Alvin Martin,CB,58,ENG,72;Steve Potts,CB,67,ENG,73;Ian Bishop,CM,65,ENG,74;Martin Allen,CM,65,ENG,72;Don Hutchison,CM,71,SCO,74;John Moncur,CM,66,ENG,72;Matt Holmes,LW,69,ENG,71;Tony Cottee,ST,65,ENG,76;Trevor Morley,ST,61,ENG,72
+Coventry City|73|Steve Ogrizovic,GK,57,ENG,73;David Busst,CB,67,ENG,70;Paul Cook,CM,67,ENG,70;Sean Flynn,CM,68,ENG,70;Cobi Jones,RW,70,USA,74;Peter Ndlovu,LW,73,ZIM,76;Dion Dublin,ST,69,ENG,77
+Man City|74|Tony Coton,GK,61,ENG,76;Richard Edghill,RB,74,ENG,70;Terry Phelan,LB,67,IRL,74;Keith Curle,CB,63,ENG,76;Ian Brightwell,CB,68,ENG,70;Garry Flitcroft,CM,72,ENG,74;Steve Lomas,CM,74,NIR,72;Nicky Summerbee,RW,71,ENG,73;Peter Beagrie,LW,65,ENG,74;Niall Quinn,ST,66,IRL,77;Uwe Rösler,ST,68,GER,77;Paul Walsh,ST,62,ENG,74
+Crystal Palace|72|Nigel Martyn,GK,66,ENG,77;Richard Shaw,CB,68,ENG,73;Chris Coleman,CB,70,WAL,74;Eric Young,CB,60,WAL,70;Gareth Southgate,CM,70,ENG,76;John Salako,LW,69,ENG,74;Chris Armstrong,ST,71,ENG,76;Andy Preece,ST,67,ENG,70
+Norwich City|73|Bryan Gunn,GK,63,SCO,74;Ian Culverhouse,RB,64,ENG,71;Mark Bowen,LB,63,WAL,72;Jon Newsome,CB,70,ENG,73;Rob Newman,CB,63,ENG,70;Ian Crook,CM,63,ENG,73;Mike Milligan,CM,67,IRL,70;Neil Adams,RW,65,ENG,70;Darren Eadie,LW,75,ENG,70;Mark Robins,ST,69,ENG,72;Ashley Ward,ST,70,ENG,70`],
+ESP: ["Primera División", `Real Madrid|87|Paco Buyo,GK,58,ESP,80;Chendo,RB,61,ESP,75;Quique Sánchez Flores,RB,65,ESP,77;Fernando Hierro,CB,68,ESP,84;Rafael Alkorta,CB,68,ESP,78;Mikel Lasa,LB,71,ESP,74;Fernando Redondo,CDM,69,ARG,85;Luis Milla,CM,66,ESP,78;Rafael Martín Vázquez,CM,65,ESP,79;Luis Enrique,CM,70,ESP,80;Míchel,RW,63,ESP,80;Michael Laudrup,CAM,64,DEN,88;José Emilio Amavisca,LW,71,ESP,77;Alfonso,ST,72,ESP,76;Iván Zamorano,ST,67,CHI,86;Raúl,ST,77,ESP,74
+Barcelona|87|Carles Busquets,GK,67,ESP,74;Albert Ferrer,RB,70,ESP,79;Miguel Ángel Nadal,CB,66,ESP,80;Ronald Koeman,CB,63,NED,84;Abelardo,CB,70,ESP,78;Sergi Barjuán,LB,71,ESP,77;Pep Guardiola,CDM,71,ESP,84;José Mari Bakero,CM,63,ESP,80;Guillermo Amor,CM,67,ESP,78;Igor Korneev,CM,67,RUS,75;Gheorghe Hagi,CAM,65,ROU,87;Iván de la Peña,CAM,76,ESP,70;Txiki Begiristain,LW,64,ESP,79;Jordi Cruyff,RW,74,NED,72;Hristo Stoichkov,LW,66,BUL,90;Romário,ST,66,BRA,91
+Deportivo La Coruña|84|Francisco Liaño,GK,64,ESP,80;López Rekarte,LB,63,ESP,72;Miroslav Đukić,CB,66,SRB,82;Voro,CB,63,ESP,75;Donato,CDM,62,ESP,80;Mauro Silva,CDM,68,BRA,84;Javier Manjarín,RW,69,ESP,75;Fran,LW,69,ESP,80;Bebeto,ST,64,BRA,86;Emil Kostadinov,ST,67,BUL,82;Claudio Barragán,ST,64,ESP,76
+Atlético Madrid|79|Abel Resino,GK,60,ESP,77;Tomás Reñones,RB,60,ESP,72;Toni Muñoz,LB,68,ESP,73;Delfí Geli,LB,69,ESP,74;Roberto Solozábal,CB,69,ESP,74;Juan Manuel López,CB,69,ESP,74;Juan Vizcaíno,CM,66,ESP,74;Diego Simeone,CM,70,ARG,82;José Luis Caminero,CAM,67,ESP,82;Kiko,ST,72,ESP,80;Manolo,ST,65,ESP,76
+Valencia|79|Andoni Zubizarreta,GK,61,ESP,82;Paco Camarasa,RB,67,ESP,74;Miodrag Belodedici,CB,64,ROU,78;Fernando Gómez,CM,65,ESP,79;Mazinho,CM,66,BRA,80;Gaizka Mendieta,CM,74,ESP,70;Predrag Mijatović,ST,69,MNE,84;Luboslav Penev,ST,66,BUL,80
+Real Zaragoza|80|Andoni Cedrún,GK,60,ESP,74;Alberto Belsué,RB,68,ESP,74;Xavier Aguado,CB,68,ESP,75;Fernando Cáceres,CB,69,ARG,76;Santiago Aragón,CM,68,ESP,75;Nayim,CM,66,ESP,77;Gustavo Poyet,CM,67,URU,78;Miguel Pardeza,ST,65,ESP,76;Francisco Higuera,ST,65,ESP,74;Juan Esnáider,ST,73,ARG,77
+Sevilla|77|Monchi,GK,68,ESP,70;Rafa Paz,CM,65,ESP,73;Davor Šuker,ST,68,CRO,85
+Athletic Club|77|Juanjo Valencia,GK,71,ESP,72;Aitor Larrazábal,LB,71,ESP,73;Rafa Alkiza,CM,70,ESP,72;Julen Guerrero,CAM,74,ESP,82;José Ziganda,ST,66,ESP,75
+Real Betis|77|Toni Prats,GK,71,ESP,73;Tab Ramos,CM,66,USA,77
+Espanyol|76|Florin Răducioiu,ST,70,ROU,79
+Real Sociedad|77|Alberto López,GK,69,ESP,74;Agustín Aranzabal,LB,73,ESP,73;Oceano,CM,62,POR,77;Valery Karpin,RW,69,RUS,80;Meho Kodro,ST,67,BIH,79
+Celta Vigo|74|Vicente Engonga,CDM,65,ESP,74
+Racing Santander|74|Dmitri Radchenko,ST,70,RUS,74
+Compostela|72|
+Real Oviedo|73|Slaviša Jokanović,CDM,68,SRB,76;Robert Prosinečki,CAM,69,CRO,83
+Tenerife|75|Felipe Miñambres,RB,65,ESP,73;Juan Antonio Pizzi,ST,68,ESP,80
+Sporting Gijón|72|
+Albacete|71|
+Real Valladolid|70|
+Logroñés|69|Oleg Salenko,ST,69,RUS,77`],
+ITA: ["Serie A", `AC Milan|89|Sebastiano Rossi,GK,64,ITA,84;Mauro Tassotti,RB,60,ITA,80;Christian Panucci,RB,73,ITA,78;Franco Baresi,CB,60,ITA,89;Alessandro Costacurta,CB,66,ITA,85;Filippo Galli,CB,63,ITA,76;Paolo Maldini,LB,68,ITA,90;Marcel Desailly,CDM,68,FRA,86;Demetrio Albertini,CM,71,ITA,84;Stefano Eranio,RW,66,ITA,78;Zvonimir Boban,CAM,68,CRO,84;Dejan Savićević,CAM,66,MNE,87;Roberto Donadoni,LW,63,ITA,81;Gianluigi Lentini,RW,69,ITA,80;Paolo Di Canio,RW,68,ITA,79;Daniele Massaro,ST,61,ITA,79;Marco Simone,ST,69,ITA,80;Marco van Basten,ST,64,NED,88
+Juventus|88|Angelo Peruzzi,GK,70,ITA,85;Moreno Torricelli,RB,70,ITA,78;Robert Jarni,LB,68,CRO,80;Ciro Ferrara,CB,67,ITA,84;Jürgen Kohler,CB,65,GER,85;Massimo Carrera,CB,64,ITA,77;Sergio Porrini,CB,68,ITA,75;Didier Deschamps,CDM,68,FRA,84;Paulo Sousa,CDM,70,POR,85;Antonio Conte,CM,69,ITA,81;Alessio Tacchinardi,CM,75,ITA,72;Angelo Di Livio,RW,66,ITA,78;Roberto Baggio,CAM,67,ITA,91;Alessandro Del Piero,ST,74,ITA,82;Gianluca Vialli,ST,64,ITA,86;Fabrizio Ravanelli,ST,68,ITA,83
+Parma|86|Luca Bucci,GK,69,ITA,80;Gianluigi Buffon,GK,78,ITA,66;Antonio Benarrivo,RB,68,ITA,80;Néstor Sensini,CB,66,ARG,79;Lorenzo Minotti,CB,67,ITA,78;Luigi Apolloni,CB,67,ITA,78;Fernando Couto,CB,69,POR,80;Roberto Mussi,LB,63,ITA,75;Dino Baggio,CM,71,ITA,82;Massimo Crippa,CM,65,ITA,77;Gabriele Pin,CM,62,ITA,74;Gianfranco Zola,CF,66,ITA,87;Tomas Brolin,RW,69,SWE,82;Faustino Asprilla,ST,69,COL,84;Alessandro Melli,ST,69,ITA,75
+Lazio|85|Luca Marchegiani,GK,66,ITA,82;Giuseppe Favalli,LB,72,ITA,77;José Chamot,CB,69,ARG,78;Paolo Negro,CB,72,ITA,76;Roberto Cravero,CB,64,ITA,74;Alessandro Nesta,CB,76,ITA,72;Roberto Di Matteo,CM,70,ITA,79;Aron Winter,CM,67,NED,80;Thomas Doll,CM,66,GER,76;Paul Gascoigne,CAM,67,ENG,82;Diego Fuser,RW,68,ITA,79;Roberto Rambaudi,RW,62,ITA,76;Giuseppe Signori,ST,68,ITA,87;Alen Bokšić,ST,70,CRO,82;Pierluigi Casiraghi,ST,69,ITA,79
+Inter|82|Gianluca Pagliuca,GK,66,ITA,85;Giuseppe Bergomi,CB,63,ITA,81;Riccardo Ferri,CB,63,ITA,77;Gianluca Festa,CB,69,ITA,74;Wim Jonk,CM,66,NED,80;Nicola Berti,CM,67,ITA,80;Davide Fontolan,CM,66,ITA,76;Dennis Bergkamp,CAM,69,NED,85;Rubén Sosa,ST,66,URU,81;Marco Delvecchio,ST,73,ITA,73
+Roma|82|Giovanni Cervone,GK,62,ITA,77;Amedeo Carboni,LB,65,ITA,77;Aldair,CB,65,BRA,84;Marco Lanna,CB,68,ITA,72;Jonas Thern,CM,67,SWE,79;Massimiliano Cappioli,CM,68,ITA,75;Giuseppe Giannini,CAM,64,ITA,80;Francesco Totti,CAM,76,ITA,73;Francesco Moriero,RW,69,ITA,76;Abel Balbo,ST,66,ARG,83;Daniel Fonseca,ST,69,URU,80
+Sampdoria|83|Walter Zenga,GK,60,ITA,80;Moreno Mannini,RB,62,ITA,77;Pietro Vierchowod,CB,59,ITA,80;Siniša Mihajlović,LB,69,SRB,82;Vladimir Jugović,CM,69,SRB,82;Alberigo Evani,CM,63,ITA,76;Fausto Salsano,CM,62,ITA,74;David Platt,CAM,66,ENG,82;Ruud Gullit,CAM,62,NED,84;Attilio Lombardo,RW,66,ITA,80;Roberto Mancini,ST,64,ITA,85;Enrico Chiesa,ST,70,ITA,76
+Napoli|78|Giuseppe Taglialatela,GK,69,ITA,76;Fabio Cannavaro,CB,73,ITA,78;André Cruz,CB,68,BRA,79;Alain Boghossian,CM,70,FRA,76;Freddy Rincón,CM,66,COL,80;Fabio Pecchia,CM,73,ITA,74;Benito Carbone,CAM,71,ITA,76;Massimo Agostini,ST,64,ITA,76
+Fiorentina|80|Francesco Toldo,GK,71,ITA,81;Márcio Santos,CB,69,BRA,78;Stefano Pioli,CB,65,ITA,72;Pasquale Padalino,CB,72,ITA,72;Massimo Orlando,CM,71,ITA,74;Rui Costa,CAM,72,POR,84;Francesco Baiano,ST,68,ITA,79;Gabriel Batistuta,ST,69,ARG,88
+Torino|76|Abedi Pelé,LW,64,GHA,82;Ruggiero Rizzitelli,ST,67,ITA,78;Andrea Silenzi,ST,66,ITA,76
+Cagliari|76|Luís Oliveira,ST,69,BEL,78;Roberto Muzzi,ST,71,ITA,75
+Bari|74|Igor Protti,ST,67,ITA,78
+Cremonese|73|
+Padova|72|Alexi Lalas,CB,70,USA,73
+Genoa|73|Tomáš Skuhravý,ST,65,CZE,77
+Foggia|73|
+Reggiana|71|Sunday Oliseh,CDM,74,NGA,77;Paulo Futre,LW,66,POR,80
+Brescia|71|`],
+GER: ["Bundesliga", `Dortmund|85|Stefan Klos,GK,71,GER,80;Stefan Reuter,RB,66,GER,81;Knut Reinhardt,LB,68,GER,74;Matthias Sammer,CB,67,GER,89;Júlio César,CB,63,BRA,80;Martin Kree,CB,65,GER,75;Ned Zelić,CB,71,AUS,73;Michael Zorc,CM,62,GER,80;Steffen Freund,CM,70,GER,78;Andreas Möller,CAM,67,GER,87;Lars Ricken,CAM,76,GER,72;Karl-Heinz Riedle,ST,65,GER,82;Stéphane Chapuisat,ST,69,SUI,84;Flemming Povlsen,ST,66,DEN,78
+Bayern|84|Oliver Kahn,GK,69,GER,84;Jorginho,RB,64,BRA,80;Markus Babbel,CB,72,GER,78;Thomas Helmer,CB,65,GER,83;Lothar Matthäus,CB,61,GER,85;Christian Ziege,LB,72,GER,80;Christian Nerlinger,CM,73,GER,75;Dietmar Hamann,CM,73,GER,74;Markus Schupp,CM,66,GER,75;Marcel Witeczek,CM,68,GER,75;Mehmet Scholl,CAM,70,GER,83;Alain Sutter,LW,68,SUI,77;Jean-Pierre Papin,ST,63,FRA,84;Alexander Zickler,ST,74,GER,72
+Werder Bremen|83|Oliver Reck,GK,65,GER,79;Rune Bratseth,CB,61,NOR,79;Ulrich Borowka,CB,62,GER,74;Michael Schulz,CB,61,GER,75;Dieter Eilts,CDM,64,GER,79;Wolfgang Votava,CM,56,GER,72;Andreas Herzog,CAM,68,AUT,82;Mario Basler,RW,68,GER,82;Marco Bode,LW,69,GER,78;Wynton Rufer,ST,62,NZL,79;Bernd Hobsch,ST,68,GER,75
+Kaiserslautern|82|Andreas Reinke,GK,69,GER,76;Andreas Brehme,LB,60,GER,80;Miroslav Kadlec,CB,64,CZE,78;Ciriaco Sforza,CM,70,SUI,82;Martin Wagner,LW,68,GER,75;Stefan Kuntz,ST,62,GER,80;Olaf Marschall,ST,66,GER,76;Pavel Kuka,ST,68,CZE,78
+Leverkusen|81|Rüdiger Vollborn,GK,63,GER,75;Christian Wörns,CB,72,GER,77;Ioan Lupescu,CM,68,ROU,78;Claudio Reyna,CM,73,USA,74;Bernd Schuster,CAM,59,GER,80;Paulo Sérgio,RW,69,BRA,80;Andreas Thom,LW,65,GER,77;Ulf Kirsten,ST,65,GER,84;Rudi Völler,ST,60,GER,80
+Gladbach|81|Uwe Kamps,GK,64,GER,78;Patrik Andersson,CB,71,SWE,80;Stefan Effenberg,CM,68,GER,86;Karlheinz Pflipsen,CM,70,GER,76;Christian Hochstätter,CM,63,GER,74;Martin Dahlin,ST,68,SWE,83;Heiko Herrlich,ST,71,GER,79
+Eintracht Frankfurt|79|Andreas Köpke,GK,62,GER,83;Manfred Binz,CB,65,GER,75;Maurizio Gaudino,CM,66,GER,77;Jay-Jay Okocha,CAM,73,NGA,79;Ralf Weber,LW,69,GER,74;Tony Yeboah,ST,66,GHA,84
+Freiburg|77|Jörg Heinrich,RB,69,GER,77;Jens Todt,CM,70,GER,74;Rodolfo Cardoso,CAM,68,ARG,76
+Karlsruher SC|78|Claus Reitmaier,GK,64,GER,75;Michael Tarnat,LB,69,GER,74;Slaven Bilić,CB,68,CRO,77;Thomas Häßler,CAM,66,GER,84;Sergei Kiriakov,ST,70,RUS,77;Adrian Knup,ST,68,SUI,76
+FC Köln|77|Bodo Illgner,GK,67,GER,82;Henrik Andersen,LB,65,DEN,75;Toni Polster,ST,64,AUT,81
+Schalke 04|77|Jens Lehmann,GK,69,GER,78;Radoslav Látal,RB,70,CZE,75;Michael Büskens,LB,68,GER,73;Thomas Linke,CB,69,GER,76;Olaf Thon,CM,66,GER,80;Jiří Němec,CM,66,CZE,79;Ingo Anderbrügge,CM,64,GER,75;Youri Mulder,ST,69,NED,76
+Stuttgart|79|Eike Immel,GK,60,GER,76;Thomas Berthold,CB,64,GER,78;Guido Buchwald,CB,61,GER,79;Dunga,CDM,63,BRA,84;Andreas Buck,RW,67,GER,75;Fredi Bobic,ST,71,GER,78;Giovane Élber,ST,72,BRA,82
+Hamburger SV|77|Richard Golz,GK,68,GER,76;Yordan Letchkov,CM,67,BUL,80;Jörg Albertz,LW,71,GER,76;Valdas Ivanauskas,ST,66,LTU,76;Karsten Bäron,ST,73,GER,74
+1860 Munich|74|Piotr Nowak,CM,64,POL,76
+VfL Bochum|72|Eric Wynalda,ST,69,USA,77
+KFC Uerdingen|72|
+MSV Duisburg|71|
+Dynamo Dresden|71|`],
+FRA: ["Division 1", `PSG|84|Bernard Lama,GK,63,FRA,84;Patrick Colleter,LB,65,FRA,76;Alain Roche,CB,67,FRA,78;Ricardo Gomes,CB,64,BRA,80;Antoine Kombouaré,CB,63,FRA,75;Paul Le Guen,CDM,64,FRA,78;Vincent Guérin,CM,65,FRA,79;Valdo,CAM,64,BRA,81;Raí,CAM,65,BRA,84;Daniel Bravo,RW,63,FRA,76;David Ginola,LW,67,FRA,84;George Weah,ST,66,LBR,88
+Nantes|83|Dominique Casagrande,GK,71,FRA,76;Christian Karembeu,RB,70,FRA,80;Jean-Michel Ferri,CDM,69,FRA,76;Claude Makélélé,CM,73,FRA,77;Benoît Cauet,CM,69,FRA,76;Japhet N'Doram,CAM,66,CHA,81;Reynald Pedros,LW,71,FRA,80;Patrice Loko,ST,70,FRA,83;Nicolas Ouédec,ST,71,FRA,80
+Monaco|82|Jean-Luc Ettori,GK,55,FRA,73;Lilian Thuram,RB,72,FRA,80;Emmanuel Petit,CM,70,FRA,79;Claude Puel,CM,61,FRA,73;Enzo Scifo,CAM,66,BEL,83;Youri Djorkaeff,CAM,68,FRA,84;Thierry Henry,LW,77,FRA,68;Sonny Anderson,ST,70,BRA,82;Victor Ikpeba,ST,73,NGA,77
+Lyon|79|Pascal Olmeta,GK,61,FRA,76;Manuel Amoros,RB,62,FRA,76;Franck Gava,CM,70,FRA,75;Ludovic Giuly,RW,76,FRA,70;Florian Maurice,ST,74,FRA,77
+Auxerre|80|Lionel Charbonnier,GK,66,FRA,76;Taribo West,CB,74,NGA,76;Frank Verlaat,CB,68,NED,76;Alain Goma,CB,72,FRA,74;Sabri Lamouchi,CM,71,FRA,76;Moussa Saïb,CM,69,ALG,76;Corentin Martins,CAM,69,FRA,79;Lilian Laslandes,ST,71,FRA,75;Gérald Baticle,ST,69,FRA,74
+Bordeaux|80|Gaëtan Huard,GK,62,FRA,76;Bixente Lizarazu,LB,69,FRA,81;Richard Witschge,CM,69,NED,78;Zinedine Zidane,CAM,72,FRA,84;Christophe Dugarry,ST,72,FRA,79
+Lens|78|Guillaume Warmuz,GK,70,FRA,76;Eric Sikora,RB,68,FRA,74;Frédéric Déhu,CB,72,FRA,75;Tony Vairelles,ST,73,FRA,76;Roger Boli,ST,65,FRA,77
+Cannes|76|Patrick Vieira,CM,76,FRA,72;Johan Micoud,CAM,73,FRA,75
+Strasbourg|77|Alexander Vencel,GK,67,SVK,76;Frank Leboeuf,CB,68,FRA,79;Franck Sauzée,CM,65,FRA,80;Aleksandr Mostovoi,CAM,68,RUS,81;Marc Keller,LW,68,FRA,76
+Metz|76|Rigobert Song,CB,76,CMR,72;Robert Pires,LW,73,FRA,75;Cyrille Pouget,ST,72,FRA,74
+Le Havre|72|Vikash Dhorasoo,CM,73,FRA,72
+Nice|74|
+Montpellier|75|
+Saint-Étienne|77|Laurent Blanc,CB,65,FRA,83;Ľubomír Moravčík,CAM,65,SVK,80
+Bastia|74|Anto Drobnjak,ST,68,MNE,77
+Marseille|77|Fabien Barthez,GK,71,FRA,80;Tony Cascarino,ST,62,IRL,76
+Rennes|72|Sylvain Wiltord,ST,74,FRA,72
+Lille|72|`],
+NED: ["Eredivisie", `Ajax|88|Edwin van der Sar,GK,70,NED,85;Michael Reiziger,RB,73,NED,79;Danny Blind,CB,61,NED,83;Frank de Boer,CB,70,NED,85;Winston Bogarde,CB,70,NED,77;Sonny Silooy,CB,63,NED,75;Frank Rijkaard,CDM,62,NED,86;Edgar Davids,CM,73,NED,82;Clarence Seedorf,CM,76,NED,80;Ronald de Boer,CAM,70,NED,84;Jari Litmanen,CAM,71,FIN,87;Finidi George,RW,71,NGA,83;Marc Overmars,LW,73,NED,85;Kiki Musampa,LW,77,NED,70;Patrick Kluivert,ST,76,NED,80;Nwankwo Kanu,ST,76,NGA,78;Peter van Vossen,ST,68,NED,77
+PSV|82|Ronald Waterreus,GK,70,NED,74;Arthur Numan,LB,69,NED,79;Stan Valckx,CB,63,NED,77;Ernest Faber,CB,71,NED,74;Vampeta,CDM,74,BRA,72;Gerald Vanenburg,CM,64,NED,78;Peter Hoekstra,LW,73,NED,76;Boudewijn Zenden,LW,76,NED,70;Luc Nilis,ST,67,BEL,84;Ronaldo,ST,76,BRA,88
+Feyenoord|81|Ed de Goey,GK,66,NED,82;Ulrich van Gobbel,RB,71,NED,76;John de Wolf,CB,62,NED,75;Peter Bosz,CM,63,NED,74;Orlando Trustfull,CM,70,NED,74;Giovanni van Bronckhorst,CM,75,NED,72;Gaston Taument,RW,70,NED,78;Rob Witschge,LW,66,NED,76;Regi Blinker,LW,69,NED,77;Henrik Larsson,ST,71,SWE,80;Mike Obiku,ST,68,NGA,75
+Twente|76|
+Vitesse|77|Phillip Cocu,CM,70,NED,80;Glenn Helder,LW,68,NED,77;Roy Makaay,ST,75,NED,74
+Roda JC|77|Eric van der Luer,CM,65,NED,74
+Heerenveen|74|
+Willem II|73|
+NAC Breda|72|
+Utrecht|72|
+Sparta Rotterdam|71|
+Groningen|72|
+Fortuna Sittard|71|
+RKC Waalwijk|71|
+Volendam|70|
+NEC|70|
+Go Ahead Eagles|69|
+MVV|70|`],
+BEL: ["First Division", `Anderlecht|81|Filip De Wilde,GK,64,BEL,78;Bertrand Crasson,RB,71,BEL,77;Celestine Babayaro,LB,78,NGA,68;Michel De Wolf,CB,58,BEL,74;Glen De Boeck,CB,71,BEL,75;Johan Walem,CM,72,BEL,76;Bruno Versavel,CM,67,BEL,75;Pär Zetterberg,CAM,70,SWE,79;Marc Degryse,CAM,65,BEL,81;Danny Boffin,LW,65,BEL,75;Josip Weber,ST,64,BEL,77
+Club Brugge|80|Dany Verlinden,GK,63,BEL,77;Vital Borkelmans,LB,63,BEL,74;Franky Van der Elst,CDM,61,BEL,78;Lorenzo Staelens,CM,64,BEL,78;Paul Okon,CM,72,AUS,77;Gert Verheyen,RW,70,BEL,76
+Standard Liège|79|Gilbert Bodart,GK,62,BEL,77;Régis Genaux,RB,73,BEL,74;Philippe Léonard,LB,74,BEL,74;Guy Hellers,CM,64,LUX,74;Marc Wilmots,CM,69,BEL,81;Michaël Goossens,ST,73,BEL,74
+Lierse|75|Nico Van Kerckhoven,LB,70,BEL,75;Eric Van Meir,CB,68,BEL,75
+Lommel SK|72|
+Eendracht Aalst|74|Gilles De Bilde,ST,71,BEL,76
+Charleroi|74|
+Mechelen|76|
+Antwerp|75|
+Cercle Brugge|72|
+Gent|73|
+Germinal Ekeren|74|
+RWD Molenbeek|71|
+Seraing|74|
+Beveren|70|
+Oostende|69|`],
+POR: ["Primeira Divisão", `FC Porto|83|Vítor Baía,GK,69,POR,84;Secretário,RB,70,POR,75;Rui Jorge,LB,73,POR,72;Jorge Costa,CB,71,POR,80;Aloísio,CB,63,BRA,77;Paulinho Santos,CDM,70,POR,76;Emerson,CDM,72,BRA,78;Rui Barros,CAM,65,POR,79;Folha,RW,71,POR,77;Ljubinko Drulović,LW,68,SRB,80;Domingos Paciência,ST,69,POR,80;Sergei Yuran,ST,69,RUS,78
+Benfica|82|Michel Preud'homme,GK,59,BEL,82;Abel Xavier,RB,72,POR,76;Dimas,LB,69,POR,75;Hélder,CB,71,POR,78;Carlos Mozer,CB,60,BRA,79;Paulo Bento,CDM,69,POR,76;Vítor Paneira,RW,66,POR,78;João Pinto,CAM,71,POR,84;Claudio Caniggia,ST,67,ARG,82;Edílson,ST,71,BRA,79
+Sporting CP|82|Paulo Torres,LB,71,POR,74;Nuno Valente,LB,74,POR,70;Noureddine Naybet,CB,70,MAR,78;Emílio Peixe,CM,73,POR,76;Krasimir Balakov,CAM,66,BUL,85;Luís Figo,RW,72,POR,84;Emmanuel Amunike,LW,70,NGA,80;Andrzej Juskowiak,ST,68,POL,79;Ricardo Sá Pinto,ST,72,POR,77
+Vitória SC|76|
+Farense|74|Hassan Nader,ST,65,MAR,76
+Braga|75|
+Marítimo|75|
+Boavista|76|Nuno Gomes,ST,76,POR,70
+Belenenses|74|
+Vitória Setúbal|73|
+Estrela Amadora|72|
+Gil Vicente|71|
+Salgueiros|71|
+União Leiria|70|
+Chaves|70|
+Beira-Mar|70|
+Tirsense|69|
+Académica|70|`],
+BRA: ["Campeonato Brasileiro", `Palmeiras|84|Velloso,GK,68,BRA,77;Antônio Carlos,CB,69,BRA,79;Cléber,CB,69,BRA,78;Roberto Carlos,LB,73,BRA,84;César Sampaio,CDM,68,BRA,80;Flávio Conceição,CM,74,BRA,74;Zinho,CM,67,BRA,81;Rivaldo,CAM,72,BRA,84;Edmundo,ST,71,BRA,83;Evair,ST,65,BRA,79
+São Paulo|83|Zetti,GK,65,BRA,80;Rogério Ceni,GK,73,BRA,70;Cafu,RB,70,BRA,84;Palhinha,CAM,67,BRA,77;Juninho Paulista,CAM,73,BRA,80;Denílson,LW,77,BRA,70;Müller,ST,66,BRA,81
+Corinthians|82|Ronaldo Giovanelli,GK,67,BRA,78;Zé Elias,CM,76,BRA,72;Marcelinho Carioca,CAM,71,BRA,82;Viola,ST,69,BRA,79
+Flamengo|80|Gilmar Rinaldi,GK,59,BRA,74;Júnior Baiano,CB,70,BRA,77;Sávio,LW,74,BRA,78
+Vasco da Gama|79|Carlos Germano,GK,70,BRA,77;Ricardo Rocha,CB,62,BRA,78;Valdir Bigode,ST,72,BRA,76
+Santos|79|Edinho,GK,70,BRA,74;Giovanni,CAM,72,BRA,79;Jamelli,ST,74,BRA,74
+Grêmio|80|Danrlei,GK,73,BRA,76;Dinho,CDM,66,BRA,75;Arílson,CM,73,BRA,75;Carlos Miguel,CAM,72,BRA,76
+Internacional|78|
+Cruzeiro|80|Dida,GK,73,BRA,77
+Atlético Mineiro|79|Cláudio Taffarel,GK,66,BRA,84
+Botafogo|79|Gonçalves,CB,66,BRA,76;Túlio Maravilha,ST,69,BRA,78
+Fluminense|77|Branco,LB,64,BRA,77
+Bahia|74|
+Guarani|77|Djalminha,CAM,70,BRA,80;Márcio Amoroso,ST,74,BRA,77
+Bragantino|74|
+Portuguesa|75|
+Sport Recife|74|Juninho Pernambucano,CM,75,BRA,72
+Vitória|74|
+Paraná|73|
+Goiás|73|`],
+ARG: ["Primera División", `River Plate|83|Germán Burgos,GK,69,ARG,77;Hernán Díaz,RB,65,ARG,77;Celso Ayala,CB,70,PAR,78;Roberto Ayala,CB,73,ARG,78;Leonardo Astrada,CDM,70,ARG,78;Matías Almeyda,CM,73,ARG,76;Sergio Berti,CM,69,ARG,75;Enzo Francescoli,CAM,61,URU,84;Marcelo Gallardo,CAM,76,ARG,77;Ariel Ortega,RW,74,ARG,82;Hernán Crespo,ST,75,ARG,79
+Vélez Sarsfield|82|José Luis Chilavert,GK,65,PAR,84;Raúl Cardozo,LB,67,ARG,74;Roberto Trotta,CB,69,ARG,77;Víctor Hugo Sotomayor,CB,65,ARG,74;José Basualdo,CM,63,ARG,75;Marcelo Gómez,CM,70,ARG,74;Christian Bassedas,CM,73,ARG,77;Roberto Pompei,CM,70,ARG,74;Omar Asad,ST,71,ARG,76;José Flores,ST,71,ARG,76;Patricio Camps,ST,72,ARG,75
+Boca Juniors|81|Carlos Navarro Montoya,GK,66,COL,78;Carlos Mac Allister,LB,68,ARG,74;Néstor Fabbri,CB,68,ARG,74;Blas Giunta,CM,63,ARG,73;Alberto Márcico,CAM,60,ARG,76;Diego Maradona,CAM,60,ARG,84;Sergio Martínez,ST,69,URU,77
+Independiente|81|Luis Islas,GK,65,ARG,77;Diego Cagna,CM,70,ARG,76;Daniel Garnero,CAM,69,ARG,77;Gustavo López,LW,73,ARG,78;Sebastián Rambert,ST,74,ARG,76;Albeiro Usuriaga,ST,66,COL,76
+San Lorenzo|79|
+Racing Club|78|
+Rosario Central|76|
+Newell's Old Boys|77|
+Huracán|75|
+Lanús|76|
+Banfield|74|
+Gimnasia La Plata|75|
+Ferro Carril Oeste|74|
+Platense|72|
+Argentinos Juniors|73|
+Deportivo Español|72|
+Talleres|72|
+Belgrano|72|
+Estudiantes|74|
+Gimnasia de Jujuy|71|`],
+USA: ["MLS", `LA Galaxy|68|
+D.C. United|69|
+Columbus Crew|66|
+New England Revolution|65|
+NY/NJ MetroStars|66|
+Tampa Bay Mutiny|67|
+Dallas Burn|65|
+Kansas City Wiz|66|
+Colorado Rapids|64|
+San Jose Clash|64|
+Chicago Fire|66|
+Miami Fusion|64|`] },
+pool: `Rangers|79|Andy Goram,GK,64,SCO,80;Richard Gough,CB,62,SCO,77;Basile Boli,CB,67,FRA,77;Brian Laudrup,RW,69,DEN,85;Gordon Durie,ST,65,SCO,75;Mark Hateley,ST,61,ENG,77;Ally McCoist,ST,62,SCO,78
+Celtic|76|Packie Bonner,GK,60,IRL,75;Paul McStay,CM,64,SCO,78;John Collins,CM,68,SCO,77
+Galatasaray|77|Hakan Şükür,ST,71,TUR,80
+Fenerbahçe|75|
+Beşiktaş|74|
+Dynamo Kyiv|76|Serhiy Rebrov,ST,74,UKR,76;Andriy Shevchenko,ST,76,UKR,74
+Spartak Moscow|78|Viktor Onopko,CB,69,RUS,78;Dmitri Alenichev,CM,72,RUS,76;Ilya Tsymbalar,CM,69,RUS,77
+Red Star Belgrade|76|Dejan Petković,CAM,72,SRB,78
+Partizan|75|Savo Milošević,ST,73,SRB,79
+Hajduk Split|76|Igor Štimac,CB,67,CRO,79;Aljoša Asanović,CAM,65,CRO,79;Milan Rapaić,RW,73,CRO,76
+Dinamo Zagreb|74|Igor Cvitanović,ST,70,CRO,76
+Steaua Bucharest|75|Adrian Ilie,ST,74,ROU,76
+Sparta Prague|75|Pavel Nedvěd,CM,72,CZE,78;Horst Siegl,ST,69,CZE,75
+Slavia Prague|74|Radek Bejbl,CM,72,CZE,76;Vladimír Šmicer,CAM,73,CZE,79;Karel Poborský,RW,72,CZE,79;Patrik Berger,LW,73,CZE,78
+Olympiacos|75|Rashidi Yekini,ST,63,NGA,80
+Panathinaikos|76|Józef Wandzik,GK,63,POL,75;Krzysztof Warzycha,ST,64,POL,78
+AEK Athens|74|
+IFK Göteborg|76|Thomas Ravelli,GK,59,SWE,80;Jesper Blomqvist,LW,74,SWE,77
+Austria Salzburg|75|Heimo Pfeifenberger,ST,66,AUT,75
+Rapid Vienna|72|Dietmar Kühbauer,CM,71,AUT,76
+Legia Warsaw|72|
+Ferencváros|71|
+Basel|68|
+Grasshoppers|73|
+Brøndby|73|
+FC Copenhagen|70|
+Levski Sofia|72|
+CSKA Sofia|71|
+Maccabi Haifa|70|
+Lokomotiv Moscow|73|
+Club Africain|66|`,
+nat: `Borislav Mihaylov,GK,63,BUL,78,Mulhouse;Trifon Ivanov,CB,65,BUL,79,Neuchâtel Xamax;Bogdan Stelea,GK,67,ROU,75,Mallorca;Leonardo,LB,69,BRA,80,Kashima Antlers;Carlos Valderrama,CAM,61,COL,83,Atlético Junior;Jorge Campos,GK,66,MEX,80,Pumas UNAM;Hugo Sánchez,ST,58,MEX,78,Atlante;Marcelo Balboa,CB,67,USA,74,León;Tony Meola,GK,69,USA,74,—;Roger Milla,ST,52,CMR,70,Tonnerre Yaoundé;Marcelo Salas,ST,74,CHI,80,Universidad de Chile;Kennet Andersson,ST,67,SWE,79,Caen;Dragan Stojković,CAM,65,SRB,82,Nagoya Grampus;John Aldridge,ST,58,IRL,76,Tranmere Rovers;Jan Åge Fjørtoft,ST,67,NOR,76,Swindon Town;Saeed Al-Owairan,ST,67,KSA,76,Al-Shabab`,
+ns: { BRA: 90, ITA: 89, GER: 88, NED: 87, ARG: 86, FRA: 85, ESP: 85, ENG: 84, ROU: 84, BUL: 83, SWE: 84, COL: 82, NGA: 82, CRO: 83, CZE: 82, DEN: 83, RUS: 81, SRB: 83, MNE: 76, MEX: 78, NOR: 81, IRL: 80, BEL: 81, POR: 82, SUI: 80, URU: 79, CHI: 79, PAR: 78, USA: 75, CMR: 77, SCO: 79, WAL: 76, KSA: 72, KOR: 73, JPN: 72, MAR: 76, GHA: 77, RSA: 76, CIV: 74, POL: 76, GRE: 74, TUR: 76, AUT: 76, UKR: 77, FIN: 70, IRN: 72, BOL: 74, ECU: 72, CRC: 70, JAM: 70, AUS: 72, NIR: 72, SVK: 74, SVN: 70, BIH: 70, LBR: 70, ZIM: 70, TRI: 68, CHA: 50, LUX: 50, LTU: 66 }
+};
+// ---- 2010s: the 2012/13 season (players' ages at 2012) ----
+ERADB_SRC["2010s"] = { start: 2012, lg: {
+ENG: ["Premier League", `Man United|86|David de Gea,GK,90,ESP,82;Anders Lindegaard,GK,84,DEN,74;Rafael,RB,90,BRA,79;Rio Ferdinand,CB,78,ENG,82;Nemanja Vidić,CB,81,SRB,86;Jonny Evans,CB,88,NIR,78;Chris Smalling,CB,89,ENG,76;Phil Jones,CB,92,ENG,77;Patrice Evra,LB,81,FRA,83;Michael Carrick,CDM,81,ENG,83;Darren Fletcher,CM,84,SCO,76;Paul Scholes,CM,74,ENG,81;Tom Cleverley,CM,89,ENG,75;Shinji Kagawa,CAM,89,JPN,82;Ryan Giggs,LW,73,WAL,79;Ashley Young,LW,85,ENG,79;Nani,RW,86,POR,82;Antonio Valencia,RW,85,ECU,83;Robin van Persie,ST,83,NED,88;Wayne Rooney,ST,85,ENG,87;Javier Hernández,ST,88,MEX,80;Danny Welbeck,ST,90,ENG,76
+Man City|87|Joe Hart,GK,87,ENG,84;Pablo Zabaleta,RB,85,ARG,81;Micah Richards,RB,88,ENG,78;Vincent Kompany,CB,86,BEL,86;Joleon Lescott,CB,82,ENG,79;Kolo Touré,CB,81,CIV,76;Matija Nastasić,CB,93,SRB,75;Gaël Clichy,LB,85,FRA,80;Aleksandar Kolarov,LB,85,SRB,79;Yaya Touré,CM,83,CIV,87;Gareth Barry,CDM,81,ENG,79;Javi García,CDM,87,ESP,79;Jack Rodwell,CM,91,ENG,74;David Silva,CAM,86,ESP,88;Samir Nasri,CAM,87,FRA,83;James Milner,RW,86,ENG,79;Sergio Agüero,ST,88,ARG,87;Carlos Tevez,ST,84,ARG,85;Edin Džeko,ST,86,BIH,83;Mario Balotelli,ST,90,ITA,81
+Chelsea|85|Petr Čech,GK,82,CZE,87;Branislav Ivanović,RB,84,SRB,82;César Azpilicueta,RB,89,ESP,79;John Terry,CB,80,ENG,84;Gary Cahill,CB,85,ENG,81;David Luiz,CB,87,BRA,82;Ashley Cole,LB,80,ENG,84;Frank Lampard,CM,78,ENG,84;Ramires,CM,87,BRA,81;John Obi Mikel,CDM,87,NGA,78;Oriol Romeu,CDM,91,ESP,73;Oscar,CAM,91,BRA,80;Juan Mata,CAM,88,ESP,86;Eden Hazard,LW,91,BEL,86;Marko Marin,LW,89,GER,76;Victor Moses,LW,90,NGA,75;Fernando Torres,ST,84,ESP,82;Daniel Sturridge,ST,89,ENG,79
+Arsenal|83|Wojciech Szczęsny,GK,90,POL,80;Bacary Sagna,RB,83,FRA,81;Carl Jenkinson,RB,92,ENG,70;Per Mertesacker,CB,84,GER,82;Thomas Vermaelen,CB,85,BEL,81;Laurent Koscielny,CB,85,FRA,81;Kieran Gibbs,LB,89,ENG,76;Mikel Arteta,CDM,82,ESP,82;Jack Wilshere,CM,92,ENG,80;Aaron Ramsey,CM,90,WAL,77;Abou Diaby,CM,86,FRA,76;Santi Cazorla,CAM,84,ESP,85;Tomáš Rosický,CAM,80,CZE,80;Lukas Podolski,LW,85,GER,82;Andrey Arshavin,LW,81,RUS,77;Gervinho,LW,87,CIV,78;Theo Walcott,RW,89,ENG,81;Alex Oxlade-Chamberlain,RW,93,ENG,74;Olivier Giroud,ST,86,FRA,80
+Tottenham|82|Hugo Lloris,GK,86,FRA,84;Brad Friedel,GK,71,USA,76;Kyle Walker,RB,90,ENG,78;Jan Vertonghen,CB,87,BEL,82;Michael Dawson,CB,83,ENG,77;Younès Kaboul,CB,86,FRA,77;William Gallas,CB,77,FRA,76;Benoît Assou-Ekotto,LB,84,CMR,77;Sandro,CDM,89,BRA,78;Scott Parker,CDM,80,ENG,79;Moussa Dembélé,CM,87,BEL,80;Gylfi Sigurðsson,CAM,89,ISL,78;Clint Dempsey,CAM,83,USA,79;Gareth Bale,LW,89,WAL,88;Aaron Lennon,RW,87,ENG,78;Jermain Defoe,ST,82,ENG,79;Emmanuel Adebayor,ST,84,TOG,79
+Liverpool|81|Pepe Reina,GK,82,ESP,83;Glen Johnson,RB,84,ENG,80;Martin Škrtel,CB,84,SVK,80;Daniel Agger,CB,84,DEN,81;Jamie Carragher,CB,78,ENG,77;José Enrique,LB,86,ESP,77;Steven Gerrard,CM,80,ENG,85;Lucas Leiva,CDM,87,BRA,78;Joe Allen,CM,90,WAL,76;Nuri Şahin,CM,88,TUR,78;Jordan Henderson,CM,90,ENG,75;Stewart Downing,LW,84,ENG,77;Raheem Sterling,RW,94,ENG,70;Luis Suárez,ST,87,URU,87;Fabio Borini,ST,91,ITA,74
+Everton|79|Tim Howard,GK,79,USA,79;Tony Hibbert,RB,81,ENG,72;Seamus Coleman,RB,88,IRL,75;Phil Jagielka,CB,82,ENG,79;Sylvain Distin,CB,77,FRA,77;Leighton Baines,LB,84,ENG,82;Marouane Fellaini,CM,87,BEL,81;Leon Osman,CM,81,ENG,77;Darron Gibson,CM,87,IRL,74;Steven Pienaar,LW,82,RSA,78;Kevin Mirallas,RW,87,BEL,78;Nikica Jelavić,ST,85,CRO,78;Victor Anichebe,ST,88,NGA,72
+Newcastle|78|Tim Krul,GK,88,NED,79;Danny Simpson,RB,87,ENG,72;Fabricio Coloccini,CB,82,ARG,80;Steven Taylor,CB,86,ENG,74;Davide Santon,LB,91,ITA,75;Cheick Tioté,CDM,86,CIV,79;Yohan Cabaye,CM,86,FRA,82;Hatem Ben Arfa,RW,87,FRA,81;Jonás Gutiérrez,LW,83,ARG,76;Papiss Cissé,ST,85,SEN,79;Demba Ba,ST,85,SEN,80
+West Brom|75|Ben Foster,GK,83,ENG,78;Jonas Olsson,CB,83,SWE,75;Claudio Yacob,CDM,87,ARG,74;Youssouf Mulumbu,CM,87,COD,75;James Morrison,CM,86,SCO,74;Chris Brunt,LW,84,NIR,75;Shane Long,ST,87,IRL,75;Romelu Lukaku,ST,93,BEL,77
+Swansea City|76|Michel Vorm,GK,83,NED,78;Ashley Williams,CB,84,WAL,77;Chico Flores,CB,87,ESP,73;Leon Britton,CM,82,ENG,74;Ki Sung-yueng,CM,89,KOR,76;Jonathan de Guzmán,CM,87,NED,76;Pablo Hernández,RW,85,ESP,76;Nathan Dyer,RW,87,ENG,74;Wayne Routledge,LW,85,ENG,73;Michu,ST,86,ESP,79
+West Ham|74|Jussi Jääskeläinen,GK,75,FIN,75;James Collins,CB,83,WAL,74;Winston Reid,CB,88,NZL,74;Mohamed Diamé,CM,87,SEN,75;Kevin Nolan,CM,82,ENG,75;Mark Noble,CM,87,ENG,75;Matt Jarvis,LW,86,ENG,74;Andy Carroll,ST,89,ENG,77
+Norwich City|73|John Ruddy,GK,86,ENG,76;Sébastien Bassong,CB,86,CMR,74;Bradley Johnson,CM,87,ENG,72;Wes Hoolahan,CAM,82,IRL,76;Robert Snodgrass,RW,87,SCO,76;Anthony Pilkington,LW,88,IRL,73;Grant Holt,ST,81,ENG,74
+Fulham|75|Mark Schwarzer,GK,72,AUS,77;Brede Hangeland,CB,81,NOR,77;Philippe Senderos,CB,85,SUI,74;John Arne Riise,LB,80,NOR,74;Steve Sidwell,CM,82,ENG,72;Giorgos Karagounis,CM,77,GRE,75;Bryan Ruiz,CAM,85,CRC,77;Damien Duff,RW,79,IRL,75;Dimitar Berbatov,ST,81,BUL,82;Mladen Petrić,ST,81,CRO,75;Hugo Rodallega,ST,85,COL,73
+Stoke City|75|Asmir Begović,GK,87,BIH,80;Ryan Shawcross,CB,87,ENG,77;Robert Huth,CB,84,GER,75;Glenn Whelan,CDM,84,IRL,73;Steven N'Zonzi,CM,88,FRA,75;Charlie Adam,CM,85,SCO,75;Jon Walters,ST,83,IRL,74;Kenwyne Jones,ST,84,TRI,73;Peter Crouch,ST,81,ENG,76
+Southampton|73|Artur Boruc,GK,80,POL,76;Nathaniel Clyne,RB,91,ENG,74;José Fonte,CB,83,POR,74;Maya Yoshida,CB,88,JPN,74;Luke Shaw,LB,95,ENG,68;Morgan Schneiderlin,CM,89,FRA,77;Jack Cork,CM,89,ENG,72;Steven Davis,CM,85,NIR,74;Adam Lallana,CAM,88,ENG,77;Gastón Ramírez,CAM,90,URU,76;Jay Rodriguez,ST,89,ENG,75;Rickie Lambert,ST,82,ENG,76
+Aston Villa|74|Brad Guzan,GK,84,USA,76;Shay Given,GK,76,IRL,76;Ron Vlaar,CB,85,NED,76;Ashley Westwood,CM,90,ENG,71;Fabian Delph,CM,89,ENG,72;Andreas Weimann,ST,91,AUT,72;Gabriel Agbonlahor,ST,86,ENG,75;Christian Benteke,ST,90,BEL,78
+Sunderland|74|Simon Mignolet,GK,88,BEL,79;John O'Shea,CB,81,IRL,75;Lee Cattermole,CDM,88,ENG,74;Craig Gardner,CM,86,ENG,72;Seb Larsson,CM,85,SWE,74;Stéphane Sessègnon,CAM,84,BEN,78;Adam Johnson,RW,87,ENG,76;Steven Fletcher,ST,87,SCO,76
+Wigan Athletic|72|Ali Al-Habsi,GK,81,OMA,76;Maynor Figueroa,CB,83,HON,73;James McCarthy,CM,90,IRL,76;James McArthur,CM,87,SCO,74;Jordi Gómez,CM,85,ESP,73;Shaun Maloney,LW,83,SCO,75;Arouna Koné,ST,83,CIV,76;Franco Di Santo,ST,89,ARG,73
+Reading|71|Alex McCarthy,GK,89,ENG,70;Jimmy Kébé,RW,84,MLI,72;Hal Robson-Kanu,ST,89,WAL,70;Adam Le Fondre,ST,86,ENG,72;Pavel Pogrebnyak,ST,83,RUS,74
+QPR|73|Júlio César,GK,79,BRA,80;José Bosingwa,RB,82,POR,76;Clint Hill,CB,78,ENG,70;Stéphane Mbia,CDM,86,CMR,76;Esteban Granero,CM,87,ESP,77;Park Ji-sung,CM,81,KOR,76;Adel Taarabt,CAM,89,MAR,78;Shaun Wright-Phillips,RW,81,ENG,74;Bobby Zamora,ST,81,ENG,74;Djibril Cissé,ST,81,FRA,75`],
+ESP: ["La Liga", `Barcelona|90|Víctor Valdés,GK,82,ESP,84;Dani Alves,RB,83,BRA,85;Martín Montoya,RB,91,ESP,72;Gerard Piqué,CB,87,ESP,86;Carles Puyol,CB,78,ESP,85;Javier Mascherano,CB,84,ARG,84;Marc Bartra,CB,91,ESP,72;Jordi Alba,LB,89,ESP,83;Adriano,LB,84,BRA,77;Sergio Busquets,CDM,88,ESP,86;Alex Song,CDM,87,CMR,80;Xavi,CM,80,ESP,90;Andrés Iniesta,CM,84,ESP,90;Thiago Alcântara,CM,91,ESP,79;Cesc Fàbregas,CAM,87,ESP,86;Lionel Messi,RW,87,ARG,94;Alexis Sánchez,RW,88,CHI,82;Pedro,LW,87,ESP,82;Cristian Tello,LW,91,ESP,74;David Villa,ST,81,ESP,85
+Real Madrid|89|Iker Casillas,GK,81,ESP,88;Álvaro Arbeloa,RB,83,ESP,79;Sergio Ramos,CB,86,ESP,87;Pepe,CB,83,POR,86;Raphaël Varane,CB,93,FRA,76;Marcelo,LB,88,BRA,83;Fábio Coentrão,LB,88,POR,80;Xabi Alonso,CDM,81,ESP,87;Sami Khedira,CDM,87,GER,82;Michael Essien,CM,82,GHA,79;Luka Modrić,CM,85,CRO,86;Mesut Özil,CAM,88,GER,87;Kaká,CAM,82,BRA,82;Ángel Di María,RW,88,ARG,84;José Callejón,RW,87,ESP,76;Cristiano Ronaldo,LW,85,POR,93;Karim Benzema,ST,87,FRA,85;Gonzalo Higuaín,ST,87,ARG,84
+Atlético Madrid|83|Thibaut Courtois,GK,92,BEL,80;Juanfran,RB,85,ESP,79;Diego Godín,CB,86,URU,81;Miranda,CB,84,BRA,81;Filipe Luís,LB,85,BRA,81;Gabi,CDM,83,ESP,79;Mario Suárez,CM,87,ESP,77;Tiago,CM,81,POR,77;Koke,CM,92,ESP,78;Raúl García,CM,86,ESP,77;Arda Turan,LW,87,TUR,82;Cristian Rodríguez,LW,85,URU,76;Adrián López,ST,88,ESP,77;Diego Costa,ST,88,BRA,78;Radamel Falcao,ST,86,COL,88
+Valencia|80|Diego Alves,GK,85,BRA,79;João Pereira,RB,84,POR,77;Antonio Barragán,RB,87,ESP,72;Adil Rami,CB,85,FRA,79;Víctor Ruiz,CB,89,ESP,76;Jérémy Mathieu,LB,83,FRA,77;Tino Costa,CM,85,ARG,77;Fernando Gago,CM,86,ARG,76;Éver Banega,CM,88,ARG,80;Dani Parejo,CM,89,ESP,76;Jonas,CAM,84,BRA,78;Sofiane Feghouli,RW,89,ALG,78;Andrés Guardado,LW,86,MEX,78;Roberto Soldado,ST,85,ESP,82
+Málaga|80|Willy Caballero,GK,81,ARG,79;Jesús Gámez,RB,85,ESP,74;Martín Demichelis,CB,80,ARG,79;Diego Lugano,CB,80,URU,76;Weligton,CB,79,BRA,75;Nacho Monreal,LB,86,ESP,77;Jérémy Toulalan,CDM,83,FRA,80;Ignacio Camacho,CDM,90,ESP,75;Isco,CAM,92,ESP,82;Júlio Baptista,CAM,81,BRA,77;Joaquín,RW,81,ESP,79;Eliseu,LW,83,POR,75;Javier Saviola,ST,81,ARG,78;Roque Santa Cruz,ST,81,PAR,75
+Real Sociedad|78|Claudio Bravo,GK,83,CHI,80;Carlos Martínez,RB,86,ESP,74;Iñigo Martínez,CB,91,ESP,77;Mikel González,CB,85,ESP,74;Alberto de la Bella,LB,85,ESP,74;Asier Illarramendi,CDM,90,ESP,78;Markel Bergara,CDM,86,ESP,74;Rubén Pardo,CM,92,ESP,72;Xabi Prieto,CAM,83,ESP,78;Antoine Griezmann,LW,91,FRA,79;Carlos Vela,LW,89,MEX,80;Imanol Agirretxe,ST,87,ESP,75
+Sevilla|78|Diego López,GK,81,ESP,82;Andrés Palop,GK,73,ESP,76;Coke,RB,87,ESP,74;Federico Fazio,CB,87,ARG,76;Emir Spahić,CB,80,BIH,76;Alberto Moreno,LB,92,ESP,72;Gary Medel,CDM,87,CHI,78;Geoffrey Kondogbia,CM,93,FRA,73;Piotr Trochowski,CM,84,GER,74;Ivan Rakitić,CM,88,CRO,82;Jesús Navas,RW,85,ESP,82;Álvaro Negredo,ST,85,ESP,81
+Athletic Club|78|Gorka Iraizoz,GK,81,ESP,77;Andoni Iraola,RB,82,ESP,78;Fernando Amorebieta,CB,85,VEN,76;Aymeric Laporte,CB,94,FRA,72;Mikel San José,CB,89,ESP,76;Ander Iturraspe,CDM,89,ESP,75;Ander Herrera,CM,89,ESP,79;Óscar de Marcos,CM,89,ESP,76;Markel Susaeta,RW,87,ESP,77;Iker Muniain,LW,92,ESP,80;Fernando Llorente,ST,85,ESP,81;Aritz Aduriz,ST,81,ESP,78
+Real Betis|76|Adrián San Miguel,GK,87,ESP,72;Beñat,CM,87,ESP,77;Rubén Castro,ST,81,ESP,77;Jorge Molina,ST,82,ESP,74
+Rayo Vallecano|72|Piti,ST,81,ESP,75;Leo Baptistão,ST,92,BRA,73
+Getafe|73|Abdel Barrada,CAM,89,MAR,75;Pedro León,RW,86,ESP,75;Diego Castro,LW,82,ESP,75
+Levante|74|Keylor Navas,GK,86,CRC,78;Sergio Ballesteros,CB,75,ESP,72;José Barkero,CAM,79,ESP,73
+Espanyol|73|Kiko Casilla,GK,86,ESP,75;Héctor Moreno,CB,88,MEX,76;Joan Verdú,CAM,83,ESP,76;Sergio García,ST,83,ESP,76
+Real Valladolid|72|Patrick Ebert,RW,87,GER,74;Óscar González,CAM,90,ESP,74;Javi Guerra,ST,82,ESP,74
+Granada|71|Yacine Brahimi,CAM,90,ALG,75;Odion Ighalo,ST,89,NGA,72
+Osasuna|72|Andrés Fernández,GK,86,ESP,72;Kike Sola,ST,86,ESP,72
+Celta Vigo|72|Hugo Mallo,RB,91,ESP,72;Augusto Fernández,CM,86,ARG,75;Michael Krohn-Dehli,LW,83,DEN,74;Iago Aspas,ST,87,ESP,76
+Mallorca|71|Dudu Aouate,GK,77,ISR,73;Giovani dos Santos,CAM,89,MEX,77;Tomer Hemed,ST,87,ISR,72
+Deportivo La Coruña|71|Pizzi,CAM,89,POR,72;Bruno Gama,RW,87,POR,73;Riki,ST,80,ESP,72
+Real Zaragoza|71|Leo Franco,GK,77,ARG,72;Apoño,CM,84,ESP,72;Hélder Postiga,ST,82,POR,76`],
+ITA: ["Serie A", `Juventus|86|Gianluigi Buffon,GK,78,ITA,88;Stephan Lichtsteiner,RB,84,SUI,80;Mauricio Isla,RB,88,CHI,78;Andrea Barzagli,CB,81,ITA,83;Leonardo Bonucci,CB,87,ITA,82;Giorgio Chiellini,CB,84,ITA,85;Martín Cáceres,CB,87,URU,77;Kwadwo Asamoah,LB,88,GHA,80;Andrea Pirlo,CM,79,ITA,88;Arturo Vidal,CM,87,CHI,85;Claudio Marchisio,CM,86,ITA,84;Paul Pogba,CM,93,FRA,77;Simone Pepe,RW,83,ITA,76;Emanuele Giaccherini,LW,85,ITA,76;Mirko Vučinić,ST,83,MNE,82;Sebastian Giovinco,ST,87,ITA,80;Fabio Quagliarella,ST,83,ITA,79;Alessandro Matri,ST,84,ITA,78;Nicklas Bendtner,ST,88,DEN,75
+Napoli|83|Morgan De Sanctis,GK,77,ITA,79;Christian Maggio,RB,82,ITA,78;Hugo Campagnaro,CB,80,ARG,78;Paolo Cannavaro,CB,81,ITA,77;Juan Camilo Zúñiga,LB,85,COL,77;Gökhan İnler,CM,84,SUI,80;Valon Behrami,CDM,85,SUI,77;Blerim Džemaili,CM,86,SUI,76;Marek Hamšík,CAM,87,SVK,85;Lorenzo Insigne,LW,91,ITA,76;Eduardo Vargas,LW,89,CHI,75;Goran Pandev,ST,83,MKD,78;Edinson Cavani,ST,87,URU,87
+AC Milan|82|Christian Abbiati,GK,77,ITA,78;Ignazio Abate,RB,86,ITA,77;Mattia De Sciglio,RB,92,ITA,73;Philippe Mexès,CB,82,FRA,78;Cristián Zapata,CB,86,COL,77;Mario Yepes,CB,76,COL,76;Kevin Constant,LB,87,GUI,73;Nigel de Jong,CDM,84,NED,80;Massimo Ambrosini,CDM,77,ITA,75;Riccardo Montolivo,CM,85,ITA,80;Sulley Muntari,CM,84,GHA,76;Kevin-Prince Boateng,CAM,87,GHA,79;Stephan El Shaarawy,LW,92,ITA,80;Robinho,LW,84,BRA,80;Bojan,ST,90,ESP,76;Giampaolo Pazzini,ST,84,ITA,78;M'Baye Niang,ST,94,FRA,70
+Inter|81|Samir Handanović,GK,84,SVN,84;Javier Zanetti,RB,73,ARG,78;Walter Samuel,CB,78,ARG,78;Andrea Ranocchia,CB,88,ITA,77;Juan Jesus,CB,91,BRA,74;Yuto Nagatomo,LB,86,JPN,77;Álvaro Pereira,LB,85,URU,77;Esteban Cambiasso,CM,80,ARG,80;Fredy Guarín,CM,86,COL,79;Wesley Sneijder,CAM,84,NED,84;Philippe Coutinho,CAM,92,BRA,75;Ricky Álvarez,CAM,88,ARG,75;Antonio Cassano,ST,82,ITA,80;Diego Milito,ST,79,ARG,82;Rodrigo Palacio,ST,82,ARG,80
+Roma|80|Maarten Stekelenburg,GK,82,NED,78;Nicolás Burdisso,CB,81,ARG,77;Leandro Castán,CB,86,BRA,77;Marquinhos,CB,94,BRA,74;Federico Balzaretti,LB,81,ITA,76;Daniele De Rossi,CM,83,ITA,84;Miralem Pjanić,CM,90,BIH,80;Michael Bradley,CM,87,USA,77;Alessandro Florenzi,CM,91,ITA,74;Francesco Totti,CAM,76,ITA,83;Erik Lamela,RW,92,ARG,78;Pablo Osvaldo,ST,86,ITA,79;Mattia Destro,ST,91,ITA,76
+Lazio|80|Federico Marchetti,GK,83,ITA,79;Abdoulay Konko,RB,84,FRA,74;André Dias,CB,79,BRA,75;Lorik Cana,CB,83,ALB,76;Stefan Radu,LB,86,ROU,76;Cristian Ledesma,CM,82,ARG,77;Ogenyi Onazi,CM,92,NGA,72;Hernanes,CAM,85,BRA,83;Stefano Mauri,CAM,80,ITA,77;Antonio Candreva,RW,87,ITA,79;Senad Lulić,LW,86,BIH,77;Miroslav Klose,ST,78,GER,82
+Fiorentina|80|Emiliano Viviano,GK,85,ITA,77;Nenad Tomović,RB,87,SRB,73;Gonzalo Rodríguez,CB,84,ARG,78;Facundo Roncaglia,CB,87,ARG,74;Manuel Pasqual,LB,82,ITA,74;David Pizarro,CM,79,CHI,80;Borja Valero,CM,85,ESP,81;Alberto Aquilani,CM,84,ITA,78;Matías Fernández,CAM,86,CHI,77;Adem Ljajić,CAM,91,SRB,77;Juan Cuadrado,RW,88,COL,78;Stevan Jovetić,ST,89,MNE,82;Luca Toni,ST,77,ITA,74
+Udinese|77|Željko Brkić,GK,86,SRB,76;Danilo Larangeira,CB,84,BRA,75;Mehdi Benatia,CB,87,MAR,79;Pablo Armero,LB,86,COL,76;Giampiero Pinzi,CM,81,ITA,74;Allan,CM,91,BRA,74;Luis Muriel,ST,91,COL,76;Antonio Di Natale,ST,77,ITA,81
+Catania|74|Mariano Andújar,GK,83,ARG,75;Francesco Lodi,CM,84,ITA,75;Alejandro Gómez,LW,88,ARG,77;Gonzalo Bergessio,ST,84,ARG,75
+Parma|75|Antonio Mirante,GK,83,ITA,75;Gabriel Paletta,CB,86,ITA,75;Marco Parolo,CM,85,ITA,76;Jonathan Biabiany,RW,88,FRA,74;Nicola Sansone,LW,91,ITA,73;Amauri,ST,80,ITA,75
+Cagliari|73|Michael Agazzi,GK,84,ITA,74;Davide Astori,CB,87,ITA,76;Daniele Conti,CM,79,ITA,74;Radja Nainggolan,CM,88,BEL,78;Marco Sau,ST,87,ITA,73;Mauricio Pinilla,ST,84,CHI,74
+Chievo|71|Boukary Dramé,LB,85,SEN,72;Sergio Pellissier,ST,79,ITA,74
+Bologna|73|Gianluca Curci,GK,85,ITA,73;Alessandro Diamanti,CAM,83,ITA,78;Alberto Gilardino,ST,82,ITA,77
+Sampdoria|73|Sergio Romero,GK,87,ARG,77;Angelo Palombo,CM,81,ITA,74;Andrea Poli,CM,89,ITA,74;Pedro Obiang,CM,92,ESP,70;Eder,ST,86,BRA,74;Mauro Icardi,ST,93,ARG,72
+Atalanta|73|Andrea Consigli,GK,87,ITA,76;Luca Cigarini,CM,86,ITA,75;Maximiliano Moralez,CAM,87,ARG,75;Giacomo Bonaventura,LW,89,ITA,75;Germán Denis,ST,81,ARG,77
+Torino|72|Jean-François Gillet,GK,79,BEL,75;Kamil Glik,CB,88,POL,75;Alessio Cerci,RW,87,ITA,77;Rolando Bianchi,ST,83,ITA,74
+Genoa|72|Sébastien Frey,GK,80,FRA,77;Juan Manuel Vargas,LB,83,PER,76;Andrea Bertolacci,CM,91,ITA,72;Marco Borriello,ST,82,ITA,75;Ciro Immobile,ST,90,ITA,75
+Palermo|72|Ezequiel Muñoz,CB,90,ARG,73;Egidio Arévalo Ríos,CDM,82,URU,75;Josip Iličić,CAM,88,SVN,77;Fabrizio Miccoli,ST,79,ITA,77;Paulo Dybala,ST,93,ARG,72
+Siena|70|Emanuele Calaiò,ST,82,ITA,73
+Pescara|68|Juan Fernando Quintero,CAM,93,COL,72`],
+GER: ["Bundesliga", `Bayern|89|Manuel Neuer,GK,86,GER,89;Philipp Lahm,RB,83,GER,88;Rafinha,RB,85,BRA,78;Jérôme Boateng,CB,88,GER,83;Dante,CB,83,BRA,83;Holger Badstuber,CB,89,GER,81;Daniel Van Buyten,CB,78,BEL,78;David Alaba,LB,92,AUT,81;Javi Martínez,CDM,88,ESP,84;Luiz Gustavo,CDM,87,BRA,80;Anatoliy Tymoshchuk,CDM,79,UKR,76;Bastian Schweinsteiger,CM,84,GER,88;Toni Kroos,CM,90,GER,85;Thomas Müller,CAM,89,GER,86;Franck Ribéry,LW,83,FRA,89;Arjen Robben,RW,84,NED,88;Xherdan Shaqiri,RW,91,SUI,78;Mario Mandžukić,ST,86,CRO,83;Mario Gómez,ST,85,GER,84;Claudio Pizarro,ST,78,PER,77
+Dortmund|86|Roman Weidenfeller,GK,80,GER,82;Łukasz Piszczek,RB,85,POL,82;Mats Hummels,CB,88,GER,86;Neven Subotić,CB,88,SRB,83;Felipe Santana,CB,86,BRA,74;Marcel Schmelzer,LB,88,GER,79;Sven Bender,CDM,89,GER,80;Sebastian Kehl,CDM,80,GER,77;Ilkay Gündoğan,CM,90,GER,82;Moritz Leitner,CM,92,GER,72;Mario Götze,CAM,92,GER,84;Marco Reus,LW,89,GER,85;Kevin Großkreutz,LW,88,GER,77;Jakub Błaszczykowski,RW,85,POL,81;Robert Lewandowski,ST,88,POL,86;Julian Schieber,ST,89,GER,72
+Schalke 04|82|Timo Hildebrand,GK,79,GER,76;Atsuto Uchida,RB,88,JPN,77;Benedikt Höwedes,CB,88,GER,80;Kyriakos Papadopoulos,CB,92,GRE,78;Joel Matip,CB,91,CMR,75;Christian Fuchs,LB,86,AUT,77;Roman Neustädter,CDM,88,GER,77;Jermaine Jones,CDM,81,USA,76;Marco Höger,CM,89,GER,74;Lewis Holtby,CAM,90,GER,79;Julian Draxler,CAM,93,GER,77;Jefferson Farfán,RW,84,PER,82;Ibrahim Afellay,LW,86,NED,77;Klaas-Jan Huntelaar,ST,83,NED,84
+Leverkusen|81|Bernd Leno,GK,92,GER,79;Daniel Carvajal,RB,92,ESP,76;Ömer Toprak,CB,89,TUR,77;Philipp Wollscheid,CB,89,GER,75;Sebastian Boenisch,LB,87,POL,73;Michal Kadlec,LB,84,CZE,74;Lars Bender,CDM,89,GER,81;Simon Rolfes,CM,82,GER,78;Gonzalo Castro,CM,87,GER,78;André Schürrle,LW,90,GER,81;Sidney Sam,RW,88,GER,78;Stefan Kießling,ST,84,GER,81
+Gladbach|78|Marc-André ter Stegen,GK,92,GER,78;Tony Jantschke,RB,90,GER,74;Martin Stranzl,CB,80,AUT,77;Álvaro Domínguez,CB,89,ESP,76;Filip Daems,LB,78,BEL,72;Håvard Nordtveit,CDM,90,NOR,75;Granit Xhaka,CM,92,SUI,75;Juan Arango,LW,80,VEN,79;Patrick Herrmann,RW,91,GER,76;Mike Hanke,ST,83,GER,74;Luuk de Jong,ST,90,NED,76
+Wolfsburg|78|Diego Benaglio,GK,83,SUI,80;Simon Kjær,CB,89,DEN,77;Naldo,CB,82,BRA,78;Josué,CM,79,BRA,74;Diego,CAM,85,BRA,81;Vieirinha,RW,86,POR,76;Ivica Olić,ST,79,CRO,79;Bas Dost,ST,89,NED,75
+Stuttgart|77|Sven Ulreich,GK,88,GER,75;Serdar Tasci,CB,87,GER,76;Christian Gentner,CM,85,GER,77;Martin Harnik,RW,87,AUT,77;Ibrahima Traoré,LW,88,GUI,74;Shinji Okazaki,ST,86,JPN,76;Vedad Ibišević,ST,84,BIH,79
+Hamburger SV|77|René Adler,GK,85,GER,79;Heiko Westermann,CB,83,GER,77;Dennis Aogo,LB,87,GER,76;Tomás Rincón,CDM,88,VEN,75;Milan Badelj,CM,89,CRO,76;Rafael van der Vaart,CAM,83,NED,82;Heung-min Son,LW,92,KOR,76;Artjoms Rudņevs,ST,88,LVA,74
+Hannover 96|76|Ron-Robert Zieler,GK,89,GER,77;Christian Pander,LB,83,GER,72;Lars Stindl,CM,88,GER,74;Szabolcs Huszti,CAM,83,HUN,77;Mame Diouf,ST,87,SEN,76
+Werder Bremen|76|Sebastian Mielitz,GK,89,GER,72;Clemens Fritz,RB,80,GER,74;Sebastian Prödl,CB,87,AUT,75;Aaron Hunt,CAM,86,GER,78;Kevin De Bruyne,CAM,91,BEL,79;Eljero Elia,LW,87,NED,76;Marko Arnautović,LW,89,AUT,76;Nils Petersen,ST,88,GER,74
+Eintracht Frankfurt|76|Kevin Trapp,GK,90,GER,75;Pirmin Schwegler,CM,87,SUI,76;Sebastian Rode,CM,90,GER,76;Alexander Meier,CAM,83,GER,78;Takashi Inui,LW,88,JPN,75
+Freiburg|75|Oliver Baumann,GK,90,GER,75;Matthias Ginter,CB,94,GER,70;Julian Schuster,CM,85,GER,73;Jonathan Schmid,RW,90,FRA,74;Max Kruse,ST,88,GER,76
+Mainz|75|Elkin Soto,CM,80,COL,74;Nicolai Müller,RW,87,GER,75;Ádám Szalai,ST,87,HUN,76
+Hoffenheim|74|Tim Wiese,GK,81,GER,77;Fabian Johnson,LB,87,USA,75;Sejad Salihović,CM,84,BIH,74;Roberto Firmino,CAM,91,BRA,75;Kevin Volland,ST,92,GER,74
+Nürnberg|73|Raphael Schäfer,GK,79,GER,75;Timmy Simons,CDM,76,BEL,74;Hiroshi Kiyotake,CAM,89,JPN,76
+Augsburg|72|Daniel Baier,CM,84,GER,74;Sascha Mölders,ST,85,GER,72
+Fortuna Düsseldorf|70|
+Greuther Fürth|69|`],
+FRA: ["Ligue 1", `PSG|86|Salvatore Sirigu,GK,87,ITA,81;Christophe Jallet,RB,83,FRA,76;Thiago Silva,CB,84,BRA,88;Alex,CB,82,BRA,80;Mamadou Sakho,CB,90,FRA,77;Maxwell,LB,81,BRA,79;Thiago Motta,CDM,82,ITA,82;Blaise Matuidi,CM,87,FRA,81;Marco Verratti,CM,92,ITA,77;Clément Chantôme,CM,87,FRA,74;Javier Pastore,CAM,89,ARG,82;Nenê,CAM,81,BRA,78;Ezequiel Lavezzi,LW,85,ARG,82;Jérémy Ménez,RW,87,FRA,79;Zlatan Ibrahimović,ST,81,SWE,89;Kevin Gameiro,ST,87,FRA,77
+Marseille|80|Steve Mandanda,GK,85,FRA,81;Rod Fanni,RB,81,FRA,75;Nicolas N'Koulou,CB,90,CMR,78;Souleymane Diawara,CB,78,SEN,75;Jérémy Morel,LB,84,FRA,74;Charles Kaboré,CDM,88,BFA,74;Benoît Cheyrou,CM,81,FRA,76;Joey Barton,CM,82,ENG,76;Mathieu Valbuena,CAM,84,FRA,80;Morgan Amalfitano,RW,85,FRA,75;André Ayew,LW,89,GHA,78;Jordan Ayew,ST,91,GHA,72;Loïc Rémy,ST,87,FRA,79;André-Pierre Gignac,ST,85,FRA,77
+Lyon|80|Rémy Vercoutre,GK,80,FRA,74;Anthony Lopes,GK,90,POR,72;Mouhamadou Dabo,RB,86,FRA,72;Dejan Lovren,CB,89,CRO,77;Bakary Koné,CB,88,BFA,74;Samuel Umtiti,CB,93,FRA,70;Maxime Gonalons,CDM,89,FRA,78;Clément Grenier,CM,91,FRA,76;Steed Malbranque,CM,80,FRA,74;Yoann Gourcuff,CAM,86,FRA,78;Jimmy Briand,RW,85,FRA,76;Lisandro López,ST,83,ARG,80;Bafétimbi Gomis,ST,85,FRA,79;Alexandre Lacazette,ST,91,FRA,76
+Lille|79|Mickaël Landreau,GK,79,FRA,78;Lucas Digne,LB,93,FRA,72;Aurélien Chedjou,CB,85,CMR,76;Marko Baša,CB,82,MNE,74;Rio Mavuba,CDM,84,FRA,77;Florent Balmont,CM,80,FRA,76;Idrissa Gueye,CM,89,SEN,72;Marvin Martin,CAM,88,FRA,76;Dimitri Payet,LW,87,FRA,79;Salomon Kalou,LW,85,CIV,79;Nolan Roux,ST,88,FRA,74;Tulio de Melo,ST,85,BRA,73
+Saint-Étienne|78|Stéphane Ruffier,GK,86,FRA,79;Faouzi Ghoulam,LB,91,ALG,72;Loïc Perrin,CB,85,FRA,76;Josuha Guilavogui,CDM,90,FRA,76;Fabien Lemoine,CM,87,FRA,73;Romain Hamouma,LW,87,FRA,75;Brandão,ST,80,BRA,74;Pierre-Emerick Aubameyang,ST,89,GAB,80
+Montpellier|77|Geoffrey Jourdren,GK,86,FRA,75;Hilton,CB,77,BRA,75;Younès Belhanda,CAM,90,MAR,78;Rémy Cabella,CAM,90,FRA,74;Souleymane Camara,ST,82,SEN,74
+Bordeaux|77|Cédric Carrasso,GK,81,FRA,77;Jaroslav Plašil,CM,82,CZE,76;Henri Saivet,CM,90,SEN,72;Ludovic Obraniak,CAM,84,POL,75;Cheick Diabaté,ST,88,MLI,75
+Nice|75|David Ospina,GK,88,COL,79;Valentin Eysseric,CAM,92,FRA,72;Dario Cvitanich,ST,84,ARG,75
+Lorient|74|Fabien Audard,GK,78,FRA,72;Alaixys Romao,CDM,84,TOG,74;Jérémie Aliadière,ST,83,FRA,74
+Toulouse|75|Ali Ahamada,GK,91,FRA,73;Serge Aurier,RB,92,CIV,72;Étienne Capoue,CDM,88,FRA,77;Moussa Sissoko,CM,89,FRA,78;Wissam Ben Yedder,ST,90,FRA,72
+Rennes|76|Benoît Costil,GK,87,FRA,76;Yann M'Vila,CDM,90,FRA,78;Julien Féret,CAM,82,FRA,75;Romain Alessandrini,LW,89,FRA,74
+Valenciennes|72|Foued Kadir,RW,83,ALG,73
+Bastia|71|
+Reims|71|
+Sochaux|72|Ryad Boudebouz,CAM,90,ALG,75;Cédric Bakambu,ST,91,COD,70
+Evian|71|
+Ajaccio|70|Guillermo Ochoa,GK,85,MEX,77
+Brest|70|`],
+NED: ["Eredivisie", `Ajax|81|Kenneth Vermeer,GK,86,NED,76;Ricardo van Rhijn,RB,91,NED,72;Toby Alderweireld,CB,89,BEL,78;Niklas Moisander,CB,85,FIN,76;Daley Blind,LB,90,NED,75;Nicolai Boilesen,LB,92,DEN,73;Christian Poulsen,CDM,80,DEN,74;Thulani Serero,CM,90,RSA,73;Lasse Schöne,CM,86,DEN,76;Siem de Jong,CAM,89,NED,78;Christian Eriksen,CAM,92,DEN,81;Tobias Sana,RW,89,SWE,72;Viktor Fischer,LW,94,DEN,72;Derk Boerrigter,LW,86,NED,74;Ryan Babel,LW,86,NED,75;Kolbeinn Sigþórsson,ST,90,ISL,74
+PSV|81|Przemysław Tytoń,GK,87,POL,75;Jetro Willems,LB,94,NED,72;Karim Rekik,CB,94,NED,70;Mark van Bommel,CDM,77,NED,77;Atiba Hutchinson,CDM,83,CAN,75;Stijn Schaars,CM,84,NED,74;Kevin Strootman,CM,90,NED,81;Georginio Wijnaldum,CAM,90,NED,79;Ola Toivonen,CAM,86,SWE,77;Jeremain Lens,RW,87,NED,78;Luciano Narsingh,RW,90,NED,76;Dries Mertens,LW,87,BEL,80;Memphis Depay,LW,94,NED,70;Zakaria Bakkali,LW,96,BEL,66;Tim Matavž,ST,89,SVN,76
+Feyenoord|79|Erwin Mulder,GK,89,NED,74;Daryl Janmaat,RB,89,NED,75;Stefan de Vrij,CB,92,NED,76;Bruno Martins Indi,CB,92,NED,75;Joris Mathijsen,CB,80,NED,74;Jordy Clasie,CDM,91,NED,76;Tonny Vilhena,CM,95,NED,70;Lex Immers,CAM,86,NED,73;Ruben Schaken,RW,82,NED,72;Jean-Paul Boëtius,LW,94,NED,70;Graziano Pellè,ST,85,ITA,76
+Twente|78|Nikolay Mihaylov,GK,88,BUL,74;Douglas,CB,88,BRA,73;Wout Brama,CDM,86,NED,73;Leroy Fer,CM,90,NED,76;Dušan Tadić,LW,88,SRB,78;Nacer Chadli,LW,89,BEL,76;Luc Castaignos,ST,92,NED,72
+Vitesse|77|Patrick van Aanholt,LB,90,NED,73;Marco van Ginkel,CM,92,NED,75;Davy Pröpper,CM,91,NED,72;Wilfried Bony,ST,88,CIV,79
+AZ|76|Esteban Alvarado,GK,89,CRC,73;Nick Viergever,CB,89,NED,72;Adam Maher,CAM,93,NED,74;Roy Beerens,RW,87,NED,74;Maarten Martens,LW,84,BEL,74;Jozy Altidore,ST,89,USA,77
+Heerenveen|74|Filip Đuričić,CAM,92,SRB,74;Alfreð Finnbogason,ST,89,ISL,76
+Utrecht|73|Jens Toornstra,CM,89,NED,73
+Groningen|72|Virgil van Dijk,CB,91,NED,70;Tim Sparv,CDM,87,FIN,71
+NEC|71|
+Roda JC|71|
+PEC Zwolle|70|
+Heracles|71|
+NAC Breda|70|
+ADO Den Haag|71|
+Willem II|69|
+RKC Waalwijk|69|
+VVV-Venlo|68|`],
+BEL: ["Pro League", `Anderlecht|79|Silvio Proto,GK,83,BEL,76;Guillaume Gillet,RB,84,BEL,75;Olivier Deschacht,LB,81,BEL,73;Cheikhou Kouyaté,CDM,89,SEN,75;Lucas Biglia,CM,86,ARG,79;Dennis Praet,CAM,94,BEL,70;Matías Suárez,CAM,88,ARG,77;Massimo Bruno,RW,93,BEL,72;Milan Jovanović,LW,81,SRB,76;Dieumerci Mbokani,ST,85,COD,78
+Club Brugge|77|Thomas Meunier,RB,91,BEL,70;Vadis Odjidja-Ofoe,CM,89,BEL,74;Víctor Vázquez,CAM,87,ESP,75;Maxime Lestienne,LW,92,BEL,74;Carlos Bacca,ST,86,COL,77
+Genk|76|Kalidou Koulibaly,CB,91,SEN,72;Thomas Buffel,CAM,81,BEL,73;Jelle Vossen,ST,89,BEL,75
+Standard Liège|76|Eiji Kawashima,GK,83,JPN,75;Laurent Ciman,CB,85,BEL,74;William Vainqueur,CDM,88,FRA,74;Imoh Ezekiel,ST,93,NGA,72;Michy Batshuayi,ST,93,BEL,70
+Zulte Waregem|74|Junior Malanda,CM,94,BEL,70;Thorgan Hazard,CAM,93,BEL,74;Mbaye Leye,ST,82,SEN,72
+Lokeren|74|Hamdi Harbaoui,ST,85,TUN,74
+Gent|73|
+Kortrijk|72|
+Mechelen|71|
+Charleroi|70|
+Cercle Brugge|69|William Carvalho,CDM,92,POR,72
+OH Leuven|70|
+Lierse|69|
+Waasland-Beveren|68|
+Mons|68|
+Beerschot|67|`],
+POR: ["Primeira Liga", `FC Porto|84|Helton,GK,78,BRA,81;Danilo,RB,91,BRA,76;Otamendi,CB,88,ARG,79;Maicon,CB,88,BRA,76;Eliaquim Mangala,CB,91,FRA,76;Alex Sandro,LB,91,BRA,77;Fernando,CDM,87,BRA,80;Steven Defour,CM,88,BEL,77;João Moutinho,CM,86,POR,83;Lucho González,CAM,81,ARG,79;James Rodríguez,CAM,91,COL,82;Silvestre Varela,RW,85,POR,77;Christian Atsu,LW,92,GHA,72;Jackson Martínez,ST,86,COL,82
+Benfica|84|Artur,GK,81,BRA,77;Maxi Pereira,RB,84,URU,78;Luisão,CB,81,BRA,80;Ezequiel Garay,CB,86,ARG,80;Jardel,CB,86,BRA,75;Lorenzo Melgarejo,LB,90,PAR,73;Nemanja Matić,CDM,88,SRB,80;Enzo Pérez,CM,86,ARG,78;André Gomes,CM,93,POR,72;Carlos Martins,CM,82,POR,75;Pablo Aimar,CAM,79,ARG,77;Nicolás Gaitán,LW,88,ARG,81;Ola John,LW,92,NED,74;Eduardo Salvio,RW,90,ARG,78;Óscar Cardozo,ST,83,PAR,80;Lima,ST,83,BRA,78;Rodrigo,ST,91,ESP,77
+Sporting CP|79|Rui Patrício,GK,88,POR,80;Cédric Soares,RB,91,POR,72;Xandão,CB,88,BRA,73;Marcos Rojo,LB,90,ARG,75;Adrien Silva,CM,89,POR,74;André Martins,CM,90,POR,73;Elias,CM,85,BRA,75;João Mário,CM,93,POR,68;Zakaria Labyad,CAM,93,MAR,73;Diego Capel,LW,88,ESP,75;Bruma,LW,94,POR,70;Ricky van Wolfswinkel,ST,89,NED,78
+Braga|78|Hugo Viana,CM,83,POR,75;Rúben Micael,CM,86,POR,74;Mossoró,CAM,83,BRA,74;Alan,RW,79,BRA,76;Éder,ST,87,POR,74
+Paços de Ferreira|73|
+Estoril|73|
+Rio Ave|72|
+Nacional|72|
+Vitória SC|73|
+Marítimo|72|
+Gil Vicente|69|
+Académica|70|
+Olhanense|68|
+Vitória Setúbal|69|
+Beira-Mar|67|
+Moreirense|67|`],
+BRA: ["Brasileirão", `Fluminense|80|Diego Cavalieri,GK,82,BRA,78;Bruno,RB,85,BRA,72;Gum,CB,86,BRA,73;Leandro Euzébio,CB,81,BRA,73;Carlinhos,LB,87,BRA,73;Edinho,CDM,82,BRA,73;Jean,CM,86,BRA,75;Deco,CM,77,POR,77;Thiago Neves,CAM,85,BRA,79;Wellington Nem,RW,92,BRA,75;Fred,ST,83,BRA,80
+Atlético Mineiro|81|Victor,GK,83,BRA,78;Marcos Rocha,RB,88,BRA,75;Réver,CB,85,BRA,77;Leonardo Silva,CB,79,BRA,75;Pierre,CDM,82,BRA,74;Ronaldinho,CAM,80,BRA,82;Bernard,LW,92,BRA,77;Jô,ST,87,BRA,76
+Corinthians|81|Cássio,GK,87,BRA,78;Alessandro,RB,77,BRA,72;Chicão,CB,81,BRA,74;Paulo André,CB,83,BRA,75;Fábio Santos,LB,85,BRA,74;Ralf,CDM,84,BRA,76;Paulinho,CM,88,BRA,80;Danilo Gabriel,CAM,79,BRA,75;Jorge Henrique,RW,82,BRA,73;Emerson Sheik,ST,78,BRA,76;Paolo Guerrero,ST,84,PER,79;Romarinho,ST,90,BRA,72
+São Paulo|80|Rogério Ceni,GK,73,BRA,78;Rafael Tolói,CB,90,BRA,74;Paulo Miranda,CB,88,BRA,73;Denílson,CDM,88,BRA,74;Paulo Henrique Ganso,CAM,89,BRA,80;Jádson,CAM,83,BRA,77;Lucas Moura,RW,92,BRA,80;Osvaldo,LW,87,BRA,74;Luís Fabiano,ST,80,BRA,79
+Santos|80|Rafael Cabral,GK,90,BRA,74;Durval,CB,80,BRA,73;Léo,LB,75,BRA,72;Arouca,CDM,87,BRA,75;Neymar,LW,92,BRA,86
+Grêmio|79|Marcelo Grohe,GK,87,BRA,75;Werley,CB,88,BRA,72;Fernando Lucas,CDM,92,BRA,73;Elano,CM,81,BRA,76;Zé Roberto,CM,74,BRA,76;Marcelo Moreno,ST,87,BOL,74;Kléber,ST,83,BRA,75
+Vasco da Gama|78|Fernando Prass,GK,78,BRA,76;Dedé,CB,88,BRA,78;Juninho Pernambucano,CM,75,BRA,76;Carlos Alberto,CAM,84,BRA,74
+Internacional|79|Muriel,GK,87,BRA,74;Índio,CB,75,BRA,72;Pablo Guiñazú,CDM,78,ARG,74;Andrés D'Alessandro,CAM,81,ARG,80;Diego Forlán,ST,79,URU,79;Leandro Damião,ST,89,BRA,79
+Botafogo|77|Jefferson,GK,83,BRA,77;Andrezinho,CM,83,BRA,73;Clarence Seedorf,CAM,76,NED,78;Nicolás Lodeiro,CAM,89,URU,75;Vitinho,LW,93,BRA,72;Elkeson,ST,89,BRA,74
+Flamengo|77|Felipe,GK,84,BRA,73;Léo Moura,RB,78,BRA,74;Ibson,CM,83,BRA,73;Renato Abreu,CM,78,BRA,74;Vágner Love,ST,84,BRA,78
+Cruzeiro|77|Fábio,GK,80,BRA,76;Walter Montillo,CAM,84,ARG,77;Borges,ST,80,BRA,73
+Palmeiras|75|Henrique,CB,86,BRA,74;Marcos Assunção,CM,76,BRA,75;Jorge Valdivia,CAM,83,CHI,78;Hernán Barcos,ST,84,ARG,76
+Náutico|72|
+Coritiba|73|
+Ponte Preta|72|
+Bahia|72|
+Portuguesa|72|
+Sport Recife|71|
+Figueirense|70|
+Atlético Goianiense|70|`],
+ARG: ["Primera División", `Vélez Sarsfield|78|Sebastián Sosa,GK,86,URU,74;Fabián Cubero,RB,78,ARG,73;Gino Peruzzi,RB,92,ARG,72;Sebastián Domínguez,CB,80,ARG,74;Héctor Canteros,CM,89,ARG,73;Facundo Ferreyra,ST,91,ARG,73
+Newell's Old Boys|78|Nahuel Guzmán,GK,86,ARG,73;Milton Casco,LB,88,ARG,72;Gabriel Heinze,CB,78,ARG,74;Lucas Bernardi,CDM,77,ARG,73;Pablo Pérez,CM,85,ARG,74;Maxi Rodríguez,LW,81,ARG,76;Ignacio Scocco,ST,85,ARG,76
+Lanús|77|Agustín Marchesín,GK,88,ARG,72;Guido Pizarro,CM,90,ARG,73
+Boca Juniors|78|Agustín Orión,GK,81,ARG,76;Clemente Rodríguez,LB,81,ARG,73;Leandro Paredes,CM,94,ARG,68;Juan Román Riquelme,CAM,78,ARG,79;Juan Sánchez Miño,LW,90,ARG,72;Santiago Silva,ST,80,URU,74;Lucas Viatri,ST,87,ARG,73
+River Plate|77|Marcelo Barovero,GK,84,ARG,76;Gabriel Mercado,RB,87,ARG,73;Ramiro Funes Mori,CB,91,ARG,72;Germán Pezzella,CB,91,ARG,70;Leonardo Ponzio,CDM,82,ARG,75;Carlos Sánchez,RW,86,URU,75;Manuel Lanzini,CAM,93,ARG,73;Rodrigo Mora,ST,87,URU,75;Fernando Cavenaghi,ST,83,ARG,75;David Trezeguet,ST,77,FRA,75
+Racing Club|75|Sebastián Saja,GK,79,ARG,73;Giovanni Moreno,CAM,86,COL,74;Ricardo Centurión,LW,93,ARG,72;Teófilo Gutiérrez,ST,85,COL,75
+Arsenal de Sarandí|74|
+Belgrano|74|
+Estudiantes|75|Guido Carrillo,ST,91,ARG,70;Duván Zapata,ST,91,COL,72
+Tigre|74|
+San Lorenzo|75|
+Godoy Cruz|73|
+Argentinos Juniors|72|
+Colón|72|
+All Boys|71|
+Quilmes|70|
+Atlético de Rafaela|70|
+San Martín de San Juan|69|
+Unión|69|
+Independiente|74|Ernesto Farías,ST,80,ARG,73`],
+USA: ["MLS", `LA Galaxy|70|Omar Gonzalez,CB,88,USA,74;David Beckham,CM,75,ENG,78;Landon Donovan,LW,82,USA,79;Robbie Keane,ST,80,IRL,78
+Seattle Sounders|69|Fredy Montero,ST,87,COL,75
+Sporting Kansas City|69|Matt Besler,CB,87,USA,72;Graham Zusi,CM,86,USA,73;Kei Kamara,ST,84,SLE,72
+Real Salt Lake|68|Nick Rimando,GK,79,USA,73;Kyle Beckerman,CDM,82,USA,72;Javier Morales,CAM,80,ARG,73;Álvaro Saborío,ST,82,CRC,73
+New York Red Bulls|69|Rafael Márquez,CB,79,MEX,76;Tim Cahill,CAM,79,AUS,76;Thierry Henry,ST,77,FRA,79
+Houston Dynamo|67|Brad Davis,LW,81,USA,72
+San Jose Earthquakes|68|Chris Wondolowski,ST,83,USA,73
+D.C. United|66|Dwayne De Rosario,CAM,78,CAN,73
+Chicago Fire|66|
+Columbus Crew|65|Federico Higuaín,CAM,84,ARG,73
+Montreal Impact|65|Alessandro Nesta,CB,76,ITA,74;Marco Di Vaio,ST,76,ITA,74
+Vancouver Whitecaps|64|
+FC Dallas|65|
+Philadelphia Union|64|
+Portland Timbers|63|
+Colorado Rapids|64|
+New England Revolution|63|
+Toronto FC|62|Torsten Frings,CDM,76,GER,72`] },
+pool: `Galatasaray|78|Fernando Muslera,GK,86,URU,80;Emmanuel Eboué,RB,83,CIV,74;Felipe Melo,CDM,83,BRA,78;Selçuk İnan,CM,85,TUR,77;Hamit Altıntop,CM,82,TUR,77;Johan Elmander,ST,81,SWE,74;Burak Yılmaz,ST,85,TUR,80
+Fenerbahçe|77|Volkan Demirel,GK,81,TUR,77;Mehmet Topal,CDM,86,TUR,75;Raul Meireles,CM,83,POR,78;Emre Belözoğlu,CM,80,TUR,76;Dirk Kuyt,RW,80,NED,78;Miloš Krasić,RW,84,SRB,76;Moussa Sow,ST,86,SEN,77;Pierre Webó,ST,82,CMR,74
+Beşiktaş|74|Manuel Fernandes,CM,86,POR,76;Hugo Almeida,ST,84,POR,76
+Shakhtar Donetsk|80|Andriy Pyatov,GK,84,UKR,77;Darijo Srna,RB,82,CRO,80;Fernandinho,CM,85,BRA,80;Henrikh Mkhitaryan,CAM,89,ARM,80;Willian,CAM,88,BRA,80;Alex Teixeira,CAM,90,BRA,76;Douglas Costa,LW,90,BRA,77;Luiz Adriano,ST,87,BRA,77
+Dynamo Kyiv|76|Oleh Husyev,RB,83,UKR,74;Miguel Veloso,CDM,86,POR,77;Niko Kranjčar,CAM,84,CRO,76;Andriy Yarmolenko,RW,89,UKR,79;Brown Ideye,ST,88,NGA,74
+Zenit|81|Vyacheslav Malafeev,GK,79,RUS,76;Domenico Criscito,LB,86,ITA,77;Bruno Alves,CB,81,POR,79;Nicolas Lombaerts,CB,85,BEL,77;Igor Denisov,CDM,84,RUS,77;Axel Witsel,CM,89,BEL,82;Roman Shirokov,CM,81,RUS,78;Danny,CAM,83,POR,79;Hulk,RW,86,BRA,83;Aleksandr Kerzhakov,ST,82,RUS,78
+Anzhi Makhachkala|78|Yuri Zhirkov,LB,83,RUS,77;Lassana Diarra,CDM,85,FRA,79;Lacina Traoré,ST,90,CIV,75;Samuel Eto'o,ST,81,CMR,84
+CSKA Moscow|77|Igor Akinfeev,GK,86,RUS,80;Vasili Berezutski,CB,82,RUS,76;Alan Dzagoev,CAM,90,RUS,78;Keisuke Honda,CAM,86,JPN,79;Ahmed Musa,LW,92,NGA,75;Seydou Doumbia,ST,87,CIV,78
+Spartak Moscow|75|Kim Källström,CM,82,SWE,75;Aiden McGeady,LW,86,IRL,75;Emmanuel Emenike,ST,87,NGA,76
+Celtic|76|Fraser Forster,GK,88,ENG,76;Efe Ambrose,CB,88,NGA,72;Victor Wanyama,CDM,91,KEN,75;Scott Brown,CM,85,SCO,75;Kris Commons,CAM,83,SCO,74;Georgios Samaras,ST,85,GRE,74;Gary Hooper,ST,88,ENG,75
+Olympiacos|75|Vasilis Torosidis,RB,85,GRE,75;Rafik Djebbour,ST,84,ALG,73;Kostas Mitroglou,ST,88,GRE,74
+RB Salzburg|74|Kevin Kampl,CM,90,SVN,74;Sadio Mané,LW,92,SEN,76;Alan Carvalho,ST,89,BRA,75;Jonathan Soriano,ST,85,ESP,76
+Basel|74|Yann Sommer,GK,88,SUI,77;Fabian Schär,CB,91,SUI,72;Aleksandar Dragović,CB,91,AUT,75;Fabian Frei,CM,89,SUI,73;Mohamed Salah,RW,92,EGY,75;Valentin Stocker,LW,89,SUI,75;Alexander Frei,ST,79,SUI,76;Marco Streller,ST,81,SUI,75
+Maccabi Tel Aviv|67|Vincent Enyeama,GK,82,NGA,76`,
+nat: `Didier Drogba,ST,78,CIV,83,Shanghai Shenhua;Mohamed Aboutrika,CAM,78,EGY,75,Al Ahly;Vedran Ćorluka,CB,86,CRO,78,Lokomotiv Moscow;Stipe Pletikosa,GK,79,CRO,77,Rostov;Aleksandr Kokorin,ST,91,RUS,74,Dynamo Moscow;Yevhen Konoplyanka,LW,89,UKR,79,Dnipro;Craig Bellamy,ST,79,WAL,74,Cardiff City;Asamoah Gyan,ST,85,GHA,76,Al Ain;Yasuhito Endō,CM,80,JPN,76,Gamba Osaka;Lee Chung-yong,RW,88,KOR,74,Bolton Wanderers;Mile Jedinak,CDM,84,AUS,74,Crystal Palace;Oribe Peralta,ST,84,MEX,76,Santos Laguna;Lucas Barrios,ST,84,PAR,77,Guangzhou Evergrande;Felipe Caicedo,ST,88,ECU,74,Lokomotiv Moscow;Jefferson Montero,LW,89,ECU,74,Morelia;Salomón Rondón,ST,89,VEN,75,Rubin Kazan;Seydou Keita,CM,80,MLI,77,Dalian Aerbin`,
+ns: { ESP: 92, GER: 90, ARG: 88, NED: 87, BRA: 87, POR: 86, ITA: 85, ENG: 84, FRA: 84, URU: 84, COL: 85, BEL: 85, CHI: 82, CRO: 83, SUI: 82, MEX: 80, USA: 78, RUS: 79, CIV: 81, GHA: 79, NGA: 78, CMR: 77, ALG: 77, JPN: 77, KOR: 76, BIH: 80, GRE: 79, SRB: 80, POL: 78, SWE: 78, DEN: 78, CZE: 78, UKR: 79, TUR: 78, ECU: 78, CRC: 77, AUT: 76, IRL: 75, WAL: 76, SCO: 76, NOR: 72, ISL: 74, EGY: 74, SEN: 75, MAR: 73, AUS: 74, PER: 76, PAR: 76, VEN: 74, HON: 73, IRN: 73, KSA: 70, QAT: 66 }
+};
+// ---- hook: swap the whole player base (leagues, squads, pool, nations) per era. Present = untouched. ----
+const ERADB_V = 1;
+let ERADB_ON = "present";
+const _eraDbSnap = (() => { const lg = {}, pdb = {}, nat = {};
+  for (const k of Object.keys(LEAGUES)) lg[k] = { name: LEAGUES[k].name, teams: LEAGUES[k].teams.map(t => ({ ...t, stars: (t.stars || []).slice() })) };
+  for (const k of Object.keys(PLAYER_DB)) if (PLAYER_DB[k] && Array.isArray(PLAYER_DB[k].clubs)) pdb[k] = PLAYER_DB[k].clubs;
+  for (const [k, v] of Object.entries(NATIONS_DB)) nat[k] = { players: v.players.slice(), str: v.str };
+  return { lg, pdb, nat, pool: EURO_POOL.map(t => ({ ...t, stars: (t.stars || []).slice() })) }; })();
+// every present-day real name (used for leak checks + filler rerolls)
+const ERADB_PRESENT = (() => { const s = new Set(); Object.values(_eraDbSnap.pdb).forEach(cl => cl.forEach(c => c.players.forEach(p => s.add(p[0]))));
+  Object.values(_eraDbSnap.nat).forEach(n => n.players.forEach(p => s.add(p[0]))); return s; })();
+const ERADB_FIRST = {
+  "1970s": { UK: "John,David,Peter,Brian,Kevin,Steve,Alan,Terry,Trevor,Colin,Keith,Ian,Graham,Derek,Malcolm,Ray", ES: "José,Juan,Antonio,Manuel,Francisco,Miguel,Ángel,Jesús,Rafael,Luis,Enrique,Joaquín", LATAM: "Juan,Carlos,Jorge,Héctor,Roberto,Rubén,Osvaldo,Daniel,Alberto,Ricardo,Néstor,Hugo",
+    BRPT: "José,João,Antônio,Paulo,Carlos,Luís,Manuel,Francisco,Roberto,Sérgio,Jorge,Fernando", FR: "Jean,Michel,Pierre,Alain,Gérard,Patrick,Bernard,Jacques,Philippe,Daniel,Christian,Dominique", IT: "Giuseppe,Giovanni,Antonio,Franco,Mario,Roberto,Paolo,Claudio,Sergio,Luciano,Bruno,Gianni",
+    DE: "Hans,Klaus,Jürgen,Peter,Manfred,Wolfgang,Dieter,Horst,Uwe,Bernd,Günter,Rainer", NL: "Jan,Johan,Piet,Wim,Kees,Henk,Ruud,Arie,Gerrit,Willem,René,Frans", US: "John,Robert,Michael,David,James,William,Gary,Steve,Mark,Richard,Larry,Dennis",
+    WAF: "Samuel,Joseph,Emmanuel,Peter,Stephen,John,Kwasi,Abdul,Moses,Daniel,Christopher,Sunday", MENA: "Mohamed,Ahmed,Mahmoud,Hassan,Ali,Mustafa,Abdel,Rachid,Ibrahim,Salah,Omar,Khaled" },
+  "1990s": { UK: "Paul,Mark,Lee,Darren,Gary,Steve,Andy,Jason,Craig,Neil,Ian,Stuart,Martin,Wayne", ES: "Javier,José,Juan,Carlos,Fernando,Miguel,Sergio,David,Raúl,Rafael,Luis,Francisco", LATAM: "Diego,Gustavo,Marcelo,Claudio,Martín,Javier,Fernando,Hernán,Ariel,Pablo,Sebastián,Leonardo",
+    BRPT: "Marcelo,Rodrigo,Fábio,André,Ricardo,Paulo,Márcio,Leandro,Rui,Nuno,Sérgio,Fernando", FR: "Laurent,Christophe,Stéphane,Frédéric,Sébastien,Olivier,Fabien,David,Nicolas,Eric,Franck,Thierry", IT: "Alessandro,Andrea,Marco,Stefano,Massimo,Fabio,Roberto,Luca,Paolo,Daniele,Christian,Simone",
+    DE: "Stefan,Thomas,Michael,Andreas,Markus,Frank,Jens,Oliver,Carsten,Thorsten,Dirk,Christian", NL: "Marco,Dennis,Patrick,Edwin,Ronald,Frank,Jaap,Arthur,Bert,Danny,Michel,Peter", US: "Chris,Brian,Mike,Jason,Eric,Brad,Jeff,Matt,Kevin,Tony,Greg,Scott",
+    WAF: "Emmanuel,Samuel,Daniel,Victor,Sunday,Joseph,Peter,Godwin,Augustine,Patrick,Francis,Stephen", MENA: "Mohamed,Ahmed,Karim,Hassan,Nabil,Hicham,Mustapha,Tarek,Rachid,Youssef,Ali,Said" } };
+// future: invented names, one per present-day player, collision-free and stable
+const ERADB_FUT_FIRST = FUT_FIRST.concat(["Aro", "Bex", "Cael", "Dov", "Elan", "Fen", "Gaio", "Hux", "Iko", "Jarek", "Kaelo", "Lex", "Mako", "Nilo", "Oren", "Pim", "Rafe", "Sami", "Tal", "Uri", "Vito", "Wren", "Xan", "Yari", "Zev", "Amari", "Bodhi", "Cielo", "Darian", "Enzo"]);
+const ERADB_FUT_A = FUT_A.concat(["Bre", "Cor", "Dun", "Fal", "Gar", "Hal", "Ish", "Jor", "Kas", "Lor", "Mab", "Nor", "Pel", "Quor", "Ras", "Sen", "Tav", "Ul", "Var", "Wex"]);
+const ERADB_FUT_B = FUT_B.concat(["anu", "ek", "illo", "onde", "ura", "evi", "aki", "orn", "isto", "umba", "elle", "ovic", "anza", "eto", "imar", "osz", "ander", "iru", "ala", "esco"]);
+let _eraFutMap = null;
+function eraFutName(orig) { if (!_eraFutMap) _eraFutMap = new Map(); let n = _eraFutMap.get(orig); if (n) return n;
+  if (!eraFutName.used) eraFutName.used = new Set(ERADB_PRESENT);
+  for (let salt = 0; ; salt++) { const h = hashStr("fut" + salt + orig), h2 = hashStr("fu2" + salt + orig);
+    n = `${ERADB_FUT_FIRST[h % ERADB_FUT_FIRST.length]} ${ERADB_FUT_A[(h >>> 7) % ERADB_FUT_A.length]}${ERADB_FUT_B[h2 % ERADB_FUT_B.length]}`;
+    if (!eraFutName.used.has(n)) break; }
+  eraFutName.used.add(n); _eraFutMap.set(orig, n); return n; }
+// ---- parse the era source data ----
+const _eraDbParsed = {};
+function _eraDbClubs(txt, start) { return txt.trim().split("\n").map(l => l.trim()).filter(Boolean).map(l => { const [name, str, pl] = l.split("|");
+  const players = (pl || "").split(";").filter(Boolean).map(s => { const [n, pos, yy, nat, ovr] = s.split(","); return [n.trim(), pos, start - (1900 + +yy), nat, +ovr]; });
+  return { name, str: +str, kit: null, players, gen: true }; }); }
+function eraDbData(id) { if (_eraDbParsed[id]) return _eraDbParsed[id]; const D = ERADB_SRC[id]; if (!D) return null;
+  const lg = {}; for (const [k, [ln, txt]] of Object.entries(D.lg)) lg[k] = { name: ln, clubs: _eraDbClubs(txt, D.start) };
+  const nat = (D.nat || "").split(";").filter(Boolean).map(s => { const [n, pos, yy, code, ovr, club] = s.split(","); return { code, row: [n.trim(), pos, D.start - (1900 + +yy), club || "—", +ovr] }; });
+  const real = new Set(); Object.values(lg).forEach(L => L.clubs.forEach(c => c.players.forEach(p => real.add(p[0]))));
+  const pool = _eraDbClubs(D.pool || "", D.start); pool.forEach(c => c.players.forEach(p => real.add(p[0]))); nat.forEach(x => real.add(x.row[0]));
+  return (_eraDbParsed[id] = { start: D.start, lg, pool, nat, ns: D.ns || {}, real }); }
+// present pool clubs that did not exist (or not under that name) in the older eras
+const ERADB_NOPOOL = { "1970s": "RB Salzburg,Midtjylland,FCSB,Astana,Başakşehir,Sheriff,Ludogorets,FC Copenhagen,Lincoln Red Imps,KÍ Klaksvík,Zrinjski,Aris Limassol,Bodø/Glimt,Celje,Olimpija", "1990s": "RB Salzburg,Midtjylland,FCSB,Astana,Başakşehir,Sheriff,Ludogorets,Olimpija", "2010s": "" };
+const ERADB_SHAPE = ["GK", "GK", "GK", "CB", "CB", "CB", "CB", "LB", "LB", "RB", "RB", "CDM", "CDM", "CM", "CM", "CM", "CAM", "CAM", "LW", "LW", "RW", "RW", "ST", "ST", "ST"];
+function _eraNatRows(id, D) { const out = {}; const byNat = {};
+  const add = (code, row) => (byNat[code] = byNat[code] || []).push(row);
+  Object.values(D.lg).forEach(L => L.clubs.forEach(c => c.players.forEach(p => add(p[3], [p[0], p[1], p[2], c.name, p[4]]))));
+  D.pool.forEach(c => c.players.forEach(p => add(p[3], [p[0], p[1], p[2], c.name, p[4]])));
+  const extra = {}; D.nat.forEach(x => (extra[x.code] = extra[x.code] || []).push(x.row));
+  const usedNames = new Set(D.real);
+  for (const [code, P] of Object.entries(_eraDbSnap.nat)) { const rec = NATIONS_DB[code]; const pres = P.players;
+    const eraStr = D.ns[code] != null ? D.ns[code] : P.str; const rows = (extra[code] || []).slice();
+    const have = (byNat[code] || []).concat(rows), need = ERADB_SHAPE.slice();
+    have.forEach(r => { const i = need.indexOf(r[1] === "CF" ? "ST" : r[1]); if (i >= 0) need.splice(i, 1); });
+    const rts = pres.map(p => p[4] || 60).sort((a, b) => a - b), med = rts.length ? rts[Math.floor(rts.length / 2)] : 60;
+    const surn = [...new Set(pres.map(p => p[0].split(" ").slice(-1)[0]).filter(s => s.length > 2))];
+    const C = COUNTRIES[rec.name] || COUNTRIES[countryKey(rec.name)]; const sur = C && !C.extra && C.surnames.length >= 6 ? C.surnames : surn.length >= 6 ? surn : (C ? C.surnames : surn.length ? surn : ["Silva"]);
+    const r = rng("eradbn" + id + code), reg = regionOf(rec.name), FR = ERADB_FIRST[id] && ERADB_FIRST[id][reg] ? ERADB_FIRST[id][reg].split(",") : null;
+    const fpool = FR || (REGION_NAMES[reg] && reg !== "default" ? REGION_NAMES[reg].m : null) || (reg === "EASIA" ? namePool(rec.name).m : null) || (() => { const m = [...new Set(pres.map(p => p[0].split(" ")[0]).filter(s => s.length > 2 && !/\./.test(s)))]; return m.length >= 6 ? m : REGION_NAMES.default.m; })();
+    need.forEach((pos, i) => { let nm = null;
+      for (let t = 0; t < 12; t++) { const f = fpool[Math.floor(r() * fpool.length)], s = sur[Math.floor(r() * sur.length)]; nm = `${f} ${s}`; if (!ERADB_PRESENT.has(nm) && !usedNames.has(nm)) break; nm = null; }
+      if (!nm) return; usedNames.add(nm);
+      const o = Math.round(Math.max(45, Math.min(80, Math.min(med + (eraStr - P.str), eraStr - 9) + (r() * 8 - 4) - (pos === "GK" && i > 0 ? 3 : 0))));
+      rows.push([nm, pos, 20 + Math.floor(r() * 14), "—", o]); });
+    out[code] = { players: rows, str: eraStr }; }
+  return out; }
+function _eraDbClear() { try { _dbIdx = null; _pdbNat = null; _natByName = null; _REAL_RICH = null; _leagueOfName = null; SEARCH_IDX = null; _ic = {}; _icKey = ""; } catch (e) {}
+  for (const o of [_sqCache, _bdCache, _natPoolCache, _seasonCache, _fmCache, _budCache, _banCache, _mkCache]) try { for (const k in o) delete o[k]; } catch (e) {}
+  ERA_APPLIED = null; }
+function _eraTeam(c) { const top = c.players.slice().sort((a, b) => b[4] - a[4]).slice(0, 2).map(p => p[0]); return { name: c.name, str: c.str, stars: top, gen: true, db: true }; }
+function eraDbApply(id) { id = ERAS[id] ? id : "present"; if (!ERADB_SRC[id] && id !== "future") id = "present"; if (ERADB_ON === id) return;
+  const SN = _eraDbSnap; delete PLAYER_DB.XPL;
+  if (id === "present" || id === "future") {
+    for (const k of Object.keys(SN.lg)) { LEAGUES[k].name = SN.lg[k].name; LEAGUES[k].teams.splice(0, LEAGUES[k].teams.length, ...SN.lg[k].teams.map(t => ({ ...t, stars: t.stars.slice() }))); }
+    for (const k of Object.keys(SN.pdb)) PLAYER_DB[k].clubs = SN.pdb[k];
+    EURO_POOL.splice(0, EURO_POOL.length, ...SN.pool.map(t => ({ ...t, stars: t.stars.slice() })));
+    for (const [k, v] of Object.entries(SN.nat)) { NATIONS_DB[k].players = v.players; NATIONS_DB[k].str = v.str; }
+    if (id === "future") { const d = ERAS.future.clubs || {}, F = n => eraFutName(n);
+      for (const k of Object.keys(SN.pdb)) PLAYER_DB[k].clubs = SN.pdb[k].map(c => ({ ...c, players: c.players.map(p => { const q = p.slice(); q[0] = F(p[0]); return q; }) }));
+      for (const k of Object.keys(SN.lg)) LEAGUES[k].teams.forEach(t => { const c = PLAYER_DB[k] && PLAYER_DB[k].clubs.find(x => x.name === t.name);
+        t.stars = c ? _eraTeam(c).stars : t.stars.map(F); t.str = Math.max(55, Math.min(90, t.str + (d[t.name] || 0))); });
+      for (const [k, v] of Object.entries(SN.nat)) NATIONS_DB[k].players = v.players.map(p => { const q = p.slice(); q[0] = F(p[0]); return q; }); }
+  } else { const D = eraDbData(id);
+    for (const k of Object.keys(SN.lg)) { const E = D.lg[k]; if (!E) continue; LEAGUES[k].name = E.name; LEAGUES[k].teams.splice(0, LEAGUES[k].teams.length, ...E.clubs.map(_eraTeam)); if (PLAYER_DB[k]) PLAYER_DB[k].clubs = E.clubs; }
+    PLAYER_DB.XPL = { name: "Europe", country: "Europe", clubs: D.pool.filter(c => c.players.length) };
+    const inL = new Set(Object.values(D.lg).flatMap(L => L.clubs.map(c => c.name))), no = new Set((ERADB_NOPOOL[id] || "").split(","));
+    const pool = D.pool.filter(c => !inL.has(c.name)).map(_eraTeam).map(t => ({ name: t.name, str: t.str, stars: [] }));
+    for (const t of SN.pool) { if (pool.length >= SN.pool.length) break; if (!inL.has(t.name) && !no.has(t.name) && !pool.some(x => x.name === t.name)) pool.push({ name: t.name, str: Math.min(t.str, 68), stars: [] }); }
+    EURO_POOL.splice(0, EURO_POOL.length, ...pool);
+    if (!D.natRows) { ERADB_ON = id; _eraDbClear(); D.natRows = _eraNatRows(id, D); }
+    for (const [k, v] of Object.entries(D.natRows)) { NATIONS_DB[k].players = v.players; NATIONS_DB[k].str = v.str; } }
+  ERADB_ON = id; _eraDbClear(); }
+const eraDbActive = () => ERADB_ON !== "present" && ERADB_ON === eraId();
+function eraDbReal(n) { const D = ERADB_ON !== "present" && ERADB_ON !== "future" ? eraDbData(ERADB_ON) : null; return !!(D && D.real.has(n)); }
+// generated names: era first names; never a present-day real name
+const _namePoolEraDb = namePool;
+namePool = function (nation) { const P = _namePoolEraDb.apply(this, arguments); if (!eraDbActive()) return P; const id = ERADB_ON;
+  if (id === "future") return { m: ERADB_FUT_FIRST.concat(P.m), f: P.f };
+  const F = ERADB_FIRST[id], reg = regionOf(nation || (typeof S !== "undefined" && S.nationality) || "England"); return F && F[reg] ? { m: F[reg].split(","), f: P.f } : P; };
+const _genNameEraDb = genName;
+genName = function (country, r) { let n = _genNameEraDb.apply(this, arguments); if (!eraDbActive()) return n;
+  for (let t = 0; t < 6 && ERADB_PRESENT.has(n) && !eraDbReal(n); t++) n = _genNameEraDb.apply(this, arguments); return n; };
+// p4_era's rename layer is not needed when the era has its own player base (legacy era saves keep it)
+const _dbPlayersEraDb = dbPlayers;
+dbPlayers = function () { return (eraDbActive() ? _dbPlayersEra : _dbPlayersEraDb).apply(this, arguments); };
+const _clubSquadEraDb = clubSquad;
+clubSquad = function () { return (eraDbActive() ? _clubSquadEra : _clubSquadEraDb).apply(this, arguments); };
+const _eraApplyStarsEraDb = eraApplyStars;
+eraApplyStars = function () { if (eraDbActive()) return; return _eraApplyStarsEraDb.apply(this, arguments); };
+const _eraApplyClubsEraDb = eraApplyClubs;
+eraApplyClubs = function () { if (eraDbActive()) { ERA_APPLIED = eraId(); return; } return _eraApplyClubsEraDb.apply(this, arguments); };
+// start / load / continue hooks
+const _startGameEraDb = startGame;
+startGame = function () { const el = document.getElementById("c-era"); eraDbApply(el && ERAS[el.value] ? el.value : "present");
+  const r = _startGameEraDb.apply(this, arguments); try { if (S && S.started && S.era && S.era !== "present") { S.eraDb = ERADB_V; if (typeof saveGame === "function") saveGame(); } } catch (e) {} return r; };
+const _loadCareerEraDb = loadCareer;
+loadCareer = function (id) { try { if (!BUSY) { const rec = readSaves().find(x => x.id === id), st = rec && rec.state;
+  if (rec) eraDbApply(st && st.era && st.era !== "present" && st.eraDb ? st.era : "present"); } } catch (e) {} return _loadCareerEraDb.apply(this, arguments); };
+if (typeof continueLegacy === "function") { const _continueLegacyEraDb = continueLegacy;
+  continueLegacy = function () { const r = _continueLegacyEraDb.apply(this, arguments); try { if (!S.era || S.era === "present") eraDbApply("present"); } catch (e) {} return r; }; }
 // ===== P4y: era-appropriate idols. Each era swaps the 4 idols per position; every idol borrows a present-day idol's
 // node / stat / archetype / PlayStyle set ("like"), so crown skills, templates and PlayStyle lookups keep working. =====
 const ERA_IDOLS = {
