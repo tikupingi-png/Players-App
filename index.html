@@ -462,6 +462,8 @@ body:has(#create-screen:not(.hide)) #menu-btn, body.creating #menu-btn { display
   <select id="c-nat"></select>
   <div class="lbl">Hometown</div>
   <select id="c-city"></select>
+  <div class="lbl">Era</div>
+  <select id="c-era"><option value="1970s">📻 1970s</option><option value="1990s">📼 1990s</option><option value="2010s">📱 2010s</option><option value="present" selected>⚽ Present day</option><option value="future">🤖 Future</option></select>
   </div>
   <button class="create-btn" id="start-btn">Start Life</button>
 </div>
@@ -5343,11 +5345,109 @@ ageUp = async function () { if (S.ovrWob) { const b0 = S.ovrBase || S.ovr; let v
 // era shim: present-day defaults until the era picker ships (stash-era/p4_era.js overrides these)
 function eraM(n) { return +n || 0; }
 function eraYearTag(y) { return ""; }
+// ===== P4u: era picker – 1970s / 1990s / 2010s / Present day / Future =====
+// The simulation keeps running on present-day units (balance unchanged); the era sets the calendar you see, the money scale
+// shown everywhere (wages, fees, prices, sponsors, businesses all go through money()/eur()), the star names around you,
+// historically big clubs, and the flavour of event text. Old saves have no S.era -> present day.
+const ERAS = {
+  "1970s": { label: "1970s", ic: "📻", born: 1958, mult: 0.05, blurb: "Short shorts, muddy pitches, no TV millions.",
+    clubs: { Liverpool: 3, Bayern: 2, Ajax: 8, Gladbach: 12, Juventus: 3, "Nottm Forest": 12, Leeds: 12, "Man United": 4, "Man City": -10, PSG: -14, Chelsea: -6, "RB Leipzig": -14, Napoli: -4, Leverkusen: -6 },
+    stars: ["Johan Cruyff", "Franz Beckenbauer", "Gerd Müller", "Kevin Keegan", "Kenny Dalglish", "Michel Platini", "Zico", "Mario Kempes", "Karl-Heinz Rummenigge", "Johan Neeskens", "Allan Simonsen", "Oleg Blokhin", "Paolo Rossi", "Rob Rensenbrink", "Ruud Krol", "Paul Breitner", "Daniel Passarella", "Teófilo Cubillas", "Roberto Rivelino", "Grzegorz Lato", "Hans Krankl", "Dino Zoff", "Sepp Maier", "Berti Vogts", "Liam Brady"] },
+  "1990s": { label: "1990s", ic: "📼", born: 1978, mult: 0.25, blurb: "Ceefax, Walkmans and the birth of the Premier League.",
+    clubs: { "AC Milan": 8, Juventus: 6, "Man United": 9, Ajax: 7, Marseille: 6, "Man City": -10, PSG: -6, Chelsea: -3, "RB Leipzig": -14, Leverkusen: -2, Napoli: -3, Dortmund: 3 },
+    stars: ["Roberto Baggio", "Marco van Basten", "Ronaldo Nazário", "Zinedine Zidane", "George Weah", "Hristo Stoichkov", "Romário", "Paolo Maldini", "Rivaldo", "Gabriel Batistuta", "Dennis Bergkamp", "Alessandro Del Piero", "Davor Šuker", "Lothar Matthäus", "Jean-Pierre Papin", "Matthias Sammer", "Eric Cantona", "Alan Shearer", "Peter Schmeichel", "Raúl", "David Beckham", "Michael Owen", "Luís Figo", "Pavel Nedvěd", "Andriy Shevchenko"] },
+  "2010s": { label: "2010s", ic: "📱", born: 1996, mult: 0.6, blurb: "Tiki-taka, Messi vs Ronaldo and the smartphone era.",
+    clubs: { Barcelona: 3, "Real Madrid": 1, "Man United": 4, Chelsea: 3, Juventus: 4, Dortmund: 2, Arsenal: -2, Napoli: -1, "Atlético Madrid": 2 },
+    stars: ["Lionel Messi", "Cristiano Ronaldo", "Neymar", "Luka Modrić", "Andrés Iniesta", "Xavi", "Robert Lewandowski", "Luis Suárez", "Antoine Griezmann", "Mohamed Salah", "Virgil van Dijk", "Kevin De Bruyne", "Eden Hazard", "Gareth Bale", "Zlatan Ibrahimović", "Manuel Neuer", "Sergio Ramos", "Karim Benzema", "Arjen Robben", "Franck Ribéry", "Thomas Müller", "Sadio Mané", "Harry Kane", "Kylian Mbappé", "Wesley Sneijder"] },
+  present: { label: "Present day", ic: "⚽", born: null, mult: 1, blurb: "Today's game, today's stars.", clubs: {}, stars: [] },
+  future: { label: "Future", ic: "🤖", born: 2044, mult: 1.8, blurb: "AI coaches, holo-broadcasts and trillion-euro leagues.",
+    clubs: { "Man City": 2, PSG: 2, Newcastle: 6, "RB Leipzig": 4, Como: 8, "Aston Villa": 3 },
+    stars: ["Nova Adeyemi", "Rio Takahashi", "Axel Mbeki", "Ezra Lindqvist", "Kenji Moreau", "Tariq Al-Sayed", "Mateo Ivanov", "Idris Cole", "Santi Varga", "Luca Nakamura", "Malik Okafor", "Theo Brandt", "Yusuf Demir-Kane", "Emil Sørensen", "Dante Oyelaran", "Ravi Kapoor", "Niko Petrakis", "Elio Fontaine", "Kai Okonkwo-Lind", "Jonah Achterberg"] }
+};
+let ERA_PENDING = null;
+function eraId() { const e = (typeof S !== "undefined" && S && S.era) || ERA_PENDING || "present"; return ERAS[e] ? e : "present"; }
+function eraCfg() { return ERAS[eraId()]; }
+function eraM(n) { return (+n || 0) * eraCfg().mult; }
+function eraOff() { const c = eraCfg(); return c.born ? c.born - ((typeof S !== "undefined" && S && S.birthYear) || 2026) : 0; }
+function eraYearTag(y) { if (eraId() === "present") return ""; const a = y + eraOff(); return ` · ${a}/${String(a + 1).slice(-2)}`; }
+// historically big clubs: strength tweaks (re-applied on start/load; base values remembered)
+let ERA_APPLIED = null;
+function eraApplyClubs() { const id = eraId(); if (ERA_APPLIED === id) return; const d = ERAS[id].clubs;
+  for (const L of Object.values(LEAGUES)) for (const t of L.teams) { if (t.baseStr == null) t.baseStr = t.str; t.str = Math.max(55, Math.min(90, t.baseStr + (d[t.name] || 0))); }
+  eraClearCaches(); ERA_APPLIED = id; }
+// era rosters: in any era other than present day, EVERY real-world player is renamed, so no present-day name leaks into a
+// 1970s or future career. The best (OVR 84+) get the era's legend names (assigned once, saved in S.eraLeg so they stay put),
+// everyone else gets a stable generated name (country-flavoured for past eras, invented for the future).
+const FUT_FIRST = ["Zed", "Kai", "Nova", "Orin", "Juno", "Rex", "Vex", "Ayo", "Lior", "Taro", "Ezo", "Quin", "Sol", "Ryn", "Ilo", "Dax", "Mika", "Tavi", "Ozan", "Kiro", "Arlo", "Nyx", "Cyrus", "Eon", "Lumo", "Pax", "Zuri", "Ezra", "Sable", "Teo"];
+const FUT_A = ["Vor", "Kel", "Zan", "Tor", "Mir", "Ax", "Quel", "Dra", "Ny", "Sor", "Val", "Ek", "Ory", "Lun", "Pax", "Rho", "Cal", "Ty", "Ves", "Om"];
+const FUT_B = ["ani", "ek", "ov", "ström", "ara", "uzo", "ix", "eon", "adi", "enko", "ola", "ar", "ius", "emba", "ado", "yn", "ova", "essi", "aro", "ul"];
+function eraGenName(orig, country) { const id = eraId(), h = hashStr("eran" + id + orig);
+  if (id === "future") return `${FUT_FIRST[h % FUT_FIRST.length]} ${FUT_A[(h >>> 5) % FUT_A.length]}${FUT_B[(h >>> 11) % FUT_B.length]}`;
+  return genName(COUNTRIES[country] ? country : "England", rng("eran" + id + orig)); }
+function eraName(orig, country, ovr) { const id = eraId(); if (id === "present" || !orig) return orig;
+  const st = (typeof S !== "undefined" && S) || {}, L = st.eraLeg || (st.eraLeg = {}); if (L[orig]) return L[orig];
+  if ((ovr || 0) >= 87) { const used = new Set(Object.values(L)), nm = ERAS[id].stars.find(n => !used.has(n)); if (nm) return (L[orig] = nm); }
+  return country === null ? orig : eraGenName(orig, country); }
+function eraClearCaches() { try { if (typeof _sqCache === "object") for (const k in _sqCache) delete _sqCache[k]; if (typeof _bdCache === "object") for (const k in _bdCache) delete _bdCache[k]; } catch (e) {} }
+const _dbPlayersEra = dbPlayers;
+dbPlayers = function (club) { const d = _dbPlayersEra.apply(this, arguments); if (eraId() === "present" || !d || !d.list.length) return d;
+  const L = leagueOf(club), c = L ? L.country : "England";
+  return Object.assign({}, d, { list: d.list.map(p => Object.assign({}, p, { name: eraGenName(p.name, p.nat || c) })) }); };
+// legends: the world's best (squad OVR 87+) wear the era's legend names; assigned on first sight and kept in the save (S.eraLeg)
+const _clubSquadEra = clubSquad;
+clubSquad = function () { const x = _clubSquadEra.apply(this, arguments); if (eraId() === "present" || !Array.isArray(x)) return x;
+  return x.map(p => p && p.real && !p.me && (p.ovr || 0) >= 87 ? Object.assign({}, p, { name: eraName(p.name, null, p.ovr) }) : p); };
+function eraApplyStars() { const id = eraId();
+  for (const L of Object.values(LEAGUES)) for (const t of L.teams) { if (!t.baseStars) t.baseStars = (t.stars || []).slice(); t.stars = id === "present" ? t.baseStars.slice() : t.baseStars.map(n => eraGenName(n, L.country)); } }
+// flavour: era-appropriate wording in events and decisions
+const ERA_TXT = {
+  "1970s": [[/social media/gi, "the newspapers"], [/[Ii]nfluencers/g, "Celebrities"], [/followers/g, "fans"], [/viral/gi, "the talk of the town"], [/streaming/gi, "TV"], [/smartphone|phone/gi, "telephone"], [/online/gi, "in the papers"], [/podcast/gi, "radio show"], [/[Ii]nstagram|TikTok|YouTube/g, "the tabloids"]],
+  "1990s": [[/social media/gi, "the tabloids"], [/[Ii]nfluencers/g, "Pop stars"], [/followers/g, "fans"], [/viral/gi, "all over Ceefax"], [/streaming/gi, "satellite TV"], [/smartphone/gi, "mobile phone"], [/podcast/gi, "radio phone-in"], [/[Ii]nstagram|TikTok|YouTube/g, "the tabloids"]],
+  future: [[/social media/gi, "the neural feed"], [/[Ii]nfluencers/g, "Holo-influencers"], [/newspapers?/gi, "news feeds"], [/\bTV\b/g, "holo-broadcast"], [/streaming/gi, "neural streaming"]]
+};
+function eraText(s) { const R = ERA_TXT[eraId()]; if (!R || typeof s !== "string") return s; return R.reduce((a, [re, to]) => a.replace(re, to), s); }
+const _addEventEra = addEvent;
+addEvent = function (title, text) { return _addEventEra(eraText(title), eraText(text)); };
+const _showDecisionEra = showDecision;
+showDecision = function (title, text, options, opts = {}) { if (eraId() !== "present") { title = eraText(title); text = eraText(text); if (opts && opts.html) opts = Object.assign({}, opts, { html: eraText(opts.html) }); } return _showDecisionEra(title, text, options, opts); };
+// era moments: one small flavour event in some seasons
+const ERA_EVENTS = {
+  "1970s": [["📻 Radio interview", "A local radio station wants five minutes with you after training. Your mum records it on a cassette."], ["🚌 Team bus", "The team bus broke down on the motorway. The squad pushed it to the next service station."], ["🍺 Old-school pre-season", "Pre-season is laps of the car park and a pint after. The manager calls it character building."], ["📰 Back-page photo", "You made the back page of the Sunday paper in a terrible perm."]],
+  "1990s": [["📼 VHS highlights", "Your best goals were put on a VHS tape that is selling in petrol stations."], ["📟 Pager beeps", "Your agent pages you at 2am about a boot deal."], ["🎮 Video game cover", "You appear in a football video game with a very blocky face."], ["📺 Satellite TV money", "The new satellite TV deal means your club is suddenly flush with cash."]],
+  "2010s": [["📱 Viral clip", "A clip of your skill move goes viral. Your phone won't stop buzzing."], ["🤳 Selfie queue", "Fans queue for selfies after training for over an hour."], ["📊 Data analyst", "The club's new data analyst shows you your expected-goals map."]],
+  future: [["🤖 AI coach", "The club's AI coach rebuilt your training plan overnight from 40,000 data points."], ["🛰️ Holo-broadcast", "Your last match was watched by 2 billion people as a live hologram."], ["🧬 Recovery pod", "You spent the night in a cryo-recovery pod. You feel brand new."], ["🕶️ VR fan meet", "You met 50,000 fans at once in a virtual stadium."]]
+};
+const _ageUpEra = ageUp;
+ageUp = async function () { const a = S.age; const r = await _ageUpEra.apply(this, arguments);
+  try { const L = ERA_EVENTS[eraId()]; if (L && S.started && S.age > a && S.age >= 6 && rng("eraev" + S.name + S.age)() < 0.3) { const e = L[hashStr("eraevp" + S.name + S.age) % L.length]; _addEventEra(e[0], e[1]); } } catch (e) {}
+  return r; };
+// create screen + start/load hooks
+const _startGameEra = startGame;
+startGame = function () { const el = document.getElementById("c-era"); ERA_PENDING = el && ERAS[el.value] ? el.value : "present"; ERA_APPLIED = null; eraApplyClubs();
+  const r = _startGameEra.apply(this, arguments); try { if (S && S.started && !S.era) { S.era = ERA_PENDING; const c = ERAS[S.era];
+    if (S.era !== "present") { eraApplyStars(); eraClearCaches(); if (S.father && S.father.real) { const o = S.father.name, n = eraGenName(o, S.father.nation || "England"); S.father.name = n; (S.people || []).forEach(p => { if (p.name === o) p.name = n; }); }
+      _addEventEra(`${c.ic} Born into the ${c.label}`, `It's ${yearOf(S.age) + eraOff()}. ${c.blurb}`); if (typeof saveGame === "function") saveGame(); if (typeof updateHeader === "function") updateHeader(); } } } catch (e) {}
+  ERA_PENDING = null; return r; };
+const _loadCareerEra = loadCareer;
+loadCareer = function (id) { const r = _loadCareerEra.apply(this, arguments); try { eraApplyClubs(); eraApplyStars(); eraClearCaches(); } catch (e) {} return r; };
 // ===== P4v: weapon AWAKENING – full-screen golden-eyes moment in the first match after the signature weapon is unlocked =====
 // Once per career (S.weaponAwakened) and once more when the weapon hits max level (S.weaponMaxAwakened).
 // Tries Lum's external clip (assets/weapon-unlock/…), falls back to a pure-CSS eyes animation. Never blocks: tap to skip, hard 6s timeout.
 (function () {
-  const VID = "assets/weapon-unlock/weapon-unlock-gold.mp4", POSTER = "assets/weapon-unlock/weapon-unlock-gold-poster.webp";
+  const WA_DIR = "assets/weapon-unlock/";
+  // iris colour by weapon type (Lum's 5 silent clips); rare weapons, max-level mastery and anything unclear use gold (Tiku: golden irises)
+  const WA_COL = { shoot: "red", finish: "red", finishing: "red", pace: "blue", agility: "blue", dribble: "blue", control: "blue", technique: "blue",
+    vision: "purple", adapt: "purple", tactics: "purple", teamwork: "purple", passing: "purple", movement: "purple", defending: "green", physical: "green", aerial: "green", stamina: "green" };
+  function waColour(name, maxed) { try { if (maxed) return "gold"; const w = (window.KING_KW || []).find(x => x[0] === name); if (!w || w[5]) return "gold"; return WA_COL[w[3]] || "gold"; } catch (e) { return "gold"; } }
+  window.waColour = waColour;
+  // SFX: separate MP3, only with sound switched ON (off by default, 🔇/🔊 toggle on the overlay, saved in localStorage) and only after the first tap (iOS audio unlock)
+  let sfx = null, audioOk = false;
+  const soundOn = () => { try { return localStorage.getItem("fl-sound") === "1"; } catch (e) { return false; } };
+  function sfxEl() { if (!sfx && typeof Audio === "function") { try { sfx = new Audio(WA_DIR + "weapon-unlock-sfx.mp3"); sfx.preload = "auto"; } catch (e) { sfx = null; } } return sfx; }
+  try { const unlock = () => { audioOk = true; document.removeEventListener("pointerdown", unlock, true); document.removeEventListener("touchend", unlock, true); };
+    document.addEventListener("pointerdown", unlock, true); document.addEventListener("touchend", unlock, true); } catch (e) {}
+  function sfxPlay(at) { try { if (!soundOn() || !audioOk) return; const a = sfxEl(); if (!a) return; a.currentTime = Math.max(0, at || 0); const p = a.play(); if (p && p.catch) p.catch(() => {}); } catch (e) {} }
+  function sfxStop() { try { sfx && sfx.pause(); } catch (e) {} }
   function css() { if (document.getElementById("wa-css")) return; const s = document.createElement("style"); s.id = "wa-css";
     s.textContent = "#wa-ov{position:fixed;inset:0;z-index:99999;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;animation:waFade .25s ease-out}" +
       "#wa-ov video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}" +
@@ -5368,17 +5468,18 @@ function eraYearTag(y) { return ""; }
       "@keyframes waFlash{0%,58%{opacity:0}68%{opacity:1}100%{opacity:.25}}@keyframes waFade{from{opacity:0}to{opacity:1}}";
     (document.head || document.documentElement).appendChild(s); }
   window.weaponAwakening = function (name, maxed) {
-    return new Promise(res => { let done = false, ov = null; const finish = () => { if (done) return; done = true; try { ov && ov.remove(); } catch (e) {} res(); };
+    return new Promise(res => { let done = false, ov = null, vRef = null; const col = waColour(name, maxed), VID = WA_DIR + "weapon-unlock-" + col + ".mp4", POSTER = WA_DIR + "weapon-unlock-" + col + "-poster.webp";
+      const finish = () => { if (done) return; done = true; sfxStop(); try { ov && ov.remove(); } catch (e) {} res(); };
       try { css(); ov = document.createElement("div"); ov.id = "wa-ov";
         const cap = `<div class="wa-cap"><small>${maxed ? "WEAPON MASTERED" : "WEAPON AWAKENED"}</small><b>${esc(name || "Signature weapon")}</b></div>`;
         const eyes = `<div class="wa-flash"></div><div class="wa-eyes"><div class="wa-eye"><div class="wa-iris"></div><div class="wa-lid t"></div><div class="wa-lid b"></div></div><div class="wa-eye"><div class="wa-iris"></div><div class="wa-lid t"></div><div class="wa-lid b"></div></div></div>`;
-        const skip = '<div class="wa-skip">tap to skip</div>';
-        const cssOnly = () => { if (done) return; ov.innerHTML = eyes + cap + skip; setTimeout(finish, 2900); };
-        ov.onclick = finish; document.body.appendChild(ov); setTimeout(finish, 6000);
+        const skip = '<div class="wa-skip">tap to skip</div><div class="wa-snd" style="position:absolute;top:14px;right:14px;z-index:3;font-size:20px;padding:6px;cursor:pointer">' + (soundOn() ? '🔊' : '🔇') + '</div>';
+        const HUE = { red: -42, blue: 175, purple: 235, green: 75 }; const cssOnly = () => { if (done) return; ov.innerHTML = (HUE[col] != null ? eyes.replace('class="wa-eyes"', 'class="wa-eyes" style="filter:hue-rotate(' + HUE[col] + 'deg)"') : eyes) + cap + skip; sfxPlay(0); setTimeout(finish, 2900); };
+        ov.onclick = e => { const t = e && e.target; if (t && t.classList && t.classList.contains("wa-snd")) { e.stopPropagation(); audioOk = true; const on = !soundOn(); try { localStorage.setItem("fl-sound", on ? "1" : "0"); } catch (x) {} t.textContent = on ? "🔊" : "🔇"; if (on && vRef && !vRef.paused) sfxPlay(vRef.currentTime); else if (!on) sfxStop(); return; } finish(); }; document.body.appendChild(ov); setTimeout(finish, 6000);
         const v = document.createElement("video"); const ok = typeof v.canPlayType === "function" && v.canPlayType("video/mp4");
         if (!ok) cssOnly();
         else { v.muted = true; v.setAttribute("muted", ""); v.playsInline = true; v.setAttribute("playsinline", ""); v.autoplay = true; v.poster = POSTER; v.preload = "auto";
-          let started = false; v.onerror = cssOnly; v.onended = finish; v.onplaying = () => { started = true; };
+          let started = false; vRef = v; v.onerror = cssOnly; v.onended = () => setTimeout(finish, 600); v.onplaying = () => { if (!started) sfxPlay(v.currentTime); started = true; };
           v.src = VID; ov.innerHTML = cap.replace('class="wa-cap"', 'class="wa-cap" style="position:absolute;bottom:12vh;left:0;right:0"') + skip; ov.insertBefore(v, ov.firstChild);
           try { const p = v.play(); if (p && p.catch) p.catch(() => { if (!started) { v.remove(); cssOnly(); } }); } catch (e) { v.remove(); cssOnly(); }
           setTimeout(() => { if (!started && !done) { try { v.remove(); } catch (e) {} cssOnly(); } }, 1500); }
@@ -5395,6 +5496,35 @@ function eraYearTag(y) { return ""; }
       } } catch (e) {}
     return _playGameWA.apply(this, arguments); };
 })();
+// ===== P4w: idol picker with Back / All idols / Confirm – nothing is saved until Confirm =====
+chooseIdol = async function () {
+  let pos = S.position || "ST", state = "list", pick = null, done = false, from = "list";
+  const recFor = p => { const list = ICONS[p] || ICONS.ST; return S.streetLegend && S.streetLegend.pos === p ? S.streetLegend.name : S.firstMoment && list.some(i => i.name === S.firstMoment.star) ? S.firstMoment.star : null; };
+  const posOf = i => Object.keys(ICONS).find(k => (ICONS[k] || []).includes(i)) || pos;
+  while (!done) {
+    if (state === "list") { const list = ICONS[pos] || ICONS.ST, rec = recFor(pos);
+      await showDecision("⭐ Choose Your Idol", `There's one ${POS_NAME[pos].toLowerCase()} you want to be. Your idol becomes your template: crown skill, stat boost, extra growth until 24 and the PlayStyles in your skill tree.${rec ? ` ⭐ ${rec} is recommended${S.streetLegend ? " – they say you play like him" : ""} (bonus if chosen).` : ""} Tap one to see the details – nothing is final until you confirm.`,
+        list.map(i => ({ label: `${i.name}${i.name === rec ? " ⭐" : ""} — ${i.style}`, rec: i.name === rec, effect: () => { pick = i; from = "list"; state = "confirm"; } }))
+          .concat([{ label: "🌍 All idols (every position)", effect: () => { state = "all"; } }, { label: "⬅ Back to positions", effect: () => { state = "pos"; } }]), { grid: true }); }
+    else if (state === "pos") { const cur = pos;
+      await showDecision("📋 Choose Your Position", "Pick the position whose idols you want to see.",
+        Object.entries(POSITIONS).map(([k, v]) => ({ label: v.label + (k === cur ? " ✓" : ""), rec: k === cur, effect: () => { pos = k; state = "list"; } })).concat([{ label: "⬅ Back", effect: () => { state = "list"; } }])); }
+    else if (state === "all") { let f = null;
+      await showDecision("🌍 All idols", "Filter by position:", Object.keys(ICONS).filter(k => POSITIONS[k]).map(k => ({ label: `${POS_NAME[k]} (${k})`, rec: k === pos, effect: () => { f = k; } }))
+        .concat([{ label: "📜 Show all positions", effect: () => { f = "*"; } }, { label: "⬅ Back", effect: () => { f = null; state = "list"; } }]), { grid: true });
+      if (f) { const keys = f === "*" ? Object.keys(ICONS).filter(k => POSITIONS[k]) : [f]; let back = false;
+        await showDecision(f === "*" ? "🌍 All idols" : `🌍 ${POS_NAME[f]} idols`, "Tap an idol to see the details.",
+          keys.flatMap(k => (ICONS[k] || []).map(i => ({ label: `${k} · ${i.name} — ${i.style}`, effect: () => { pick = i; from = "all"; state = "confirm"; } })))
+            .concat([{ label: "⬅ Back", effect: () => { back = true; } }]), { grid: true });
+        if (back) state = "all"; } }
+    else if (state === "confirm") { const i = pick, ip = posOf(i), rec = i.name === recFor(ip), ps = (typeof idolPS === "function" ? idolPS(i) : []).map(k => (PS_LIB[k] || {}).label || k);
+      const html = `<div class="nice-card" style="border-color:#ffd600;text-align:left"><div style="font-size:20px;font-weight:900">${esc(i.name)}${rec ? " ⭐" : ""}</div><div style="color:var(--muted);font-size:12px">${esc(POSITIONS[ip] ? POSITIONS[ip].label : ip)} • ${esc(i.style)}</div>
+        <ul style="margin:8px 0 0 18px;font-size:13px;line-height:1.5"><li>👑 Crown skill: <b>${esc(i.node)}</b> (+8% on matching moments)</li><li>📈 OVR +${i.ovr || 0}${rec ? " (+2 recommended bonus)" : ""}, ${esc(i.stat)} +5</li><li>🌱 Extra growth until 24</li>${ps.length ? `<li>🎴 PlayStyles: ${ps.map(esc).join(", ")}</li>` : ""}</ul>
+        ${ip !== pos || ip !== S.position ? `<p style="margin-top:8px;font-size:12px;color:#ffd600">Confirming also makes you a ${esc(POS_NAME[ip] || ip)}.</p>` : ""}</div>`;
+      await showDecision("⭐ Confirm your idol", "", [{ label: `✅ Confirm ${i.name}`, rec: true, effect: () => { done = true; } }, { label: "⬅ Back", effect: () => { state = from; } }], { html });
+      if (done) { if (S.position !== ip) { S.position = ip; addEvent("📋 Position Chosen", `You decide you're a ${POS_NAME[ip].toLowerCase()} after all.`); } setIdol(i, rec); } }
+  }
+};
 // ===== INIT =====
 let CREATE_AV = randomAvatar();
 function fillCities() { const n = document.getElementById("c-nat").value; document.getElementById("c-city").innerHTML = COUNTRIES[n].cities.map(c => `<option>${esc(c)}</option>`).join("") + `<option value="Random">🎲 Random</option>`; }
@@ -5477,7 +5607,7 @@ var oldOpen=openScreen;openScreen=function(id){if(id==='weapons')return render()
 var oldTap=stripTap;stripTap=function(id){if(id==='weapons')return render();return oldTap(id);};
 var oldHeader=updateHeader;updateHeader=function(){oldHeader();var el=document.getElementById('strip');if(el&&S.started&&!el.querySelector('[data-king-weapons]')){var b=document.createElement('button');b.className='strip-tile';b.dataset.kingWeapons='1';b.textContent='⚡ Weapons';b.onclick=render;el.appendChild(b);}};
 var oldStart=startGame;startGame=function(){oldStart();ensure();updateHeader();};var oldLoad=loadCareer;loadCareer=function(id){oldLoad(id);ensure();updateHeader();};
-var oldChance=chance;chance=function(base,node){var p=oldChance(base,node);if(base>=100)return p;ensure();var bonuses={vision:['vision','spatial','read'],finishing:['shoot','finish'],dribbling:['drib','control'],shooting:['shoot','finish'],pace:['pace','speed'],passing:['pass'],defending:['defend','tackle'],physical:['physical','strength'],aerial:['aerial','header'],stamina:['stamina'],agility:['agility','reflex'],adapt:['adapt','tactic'],movement:['movement','position'],teamwork:['team','pass'],control:['control','trap'],technique:['technique','drib']};var extra=0;S.weaponState.owned.forEach(function(n){var w=KW.find(function(x){return x[0]===n;});var tags=bonuses[w[3]]||[];if(!node||tags.some(function(t){return String(node).toLowerCase().indexOf(t)>=0;}))extra=Math.max(extra,Math.min(.10,level(n)*.018));});if(has('Metavision'))extra+=.015;if(has('Predator Eye')&&/shoot|finish/i.test(String(node||'')))extra+=.025;return Math.min(.95,p+extra);};
+var oldChance=chance;chance=function(base,node){var p=oldChance(base,node);if(base>=100)return p;ensure();var bonuses={vision:['pass','cross','position'],finishing:['finish','finesse','power','acrobatic'],shooting:['finish','finesse','power','acrobatic'],shoot:['finish','finesse','power','acrobatic'],finish:['finish','finesse','position','acrobatic'],dribbling:['drib','trick','rapid'],dribble:['drib','trick','rapid'],pace:['rapid','rush'],passing:['pass','cross'],defending:['tackl','jockey','block'],physical:['power','tackl','block'],aerial:['head','acrobatic'],stamina:['rush','jockey','position'],agility:['reflex','acrobatic','rapid'],adapt:['position','pass','tackl'],tactics:['pass','position','cross'],movement:['position','rapid'],teamwork:['pass','cross'],control:['drib','trick','pass'],technique:['finesse','drib','trick']};var extra=0;S.weaponState.owned.forEach(function(n){var w=KW.find(function(x){return x[0]===n;});var tags=bonuses[w[3]]||[];if(!node||tags.some(function(t){return String(node).toLowerCase().indexOf(t)>=0;}))extra=Math.max(extra,Math.min(.10,level(n)*.018));});if(has('Metavision'))extra+=.015;if(has('Predator Eye')&&/shoot|finish|finesse|power|acrobatic/i.test(String(node||'')))extra+=.025;return Math.min(.95,p+extra);};
 var oldCal=renderCalendar;renderCalendar=function(){oldCal();var c=document.getElementById('overlay-content'),sea=S.season;if(!c||!sea||sea.done)return;var ds=sea.games.filter(function(g){return !g.res&&!g.cancelled&&g.day!=null;}).map(function(g){return g.day;});if(!ds.length)return;var opts=ds.map(function(d){return '<option value="'+d+'">'+esc(dateStr(d))+'</option>';}).join('');c.insertAdjacentHTML('beforeend','<div class="nice-card"><h3>🗓️ Simulate Until This Date</h3><p style="color:var(--muted)">Important fixtures interrupt simulation so you can make your match decisions.</p><select id="king-sim-day" style="width:100%;padding:10px;background:var(--panel);color:var(--text)">'+opts+'</select><button class="create-btn" style="width:100%" onclick="window.kingSimUntil()">Simulate Until This Date</button></div>');};
 window.kingSimUntil=async function(){if(BUSY||!seasonActive())return;var target=Number(document.getElementById('king-sim-day').value);document.getElementById('overlay').classList.remove('show');setBusy(true);try{var g=nextGame();while(g&&g.day!=null&&g.day<=target){await awardsBefore(g,false);if(g.isKey){setBusy(false);await playGame(g,false);setBusy(true);}else await playGame(g,true);g=nextGame();}if(!nextGame()){await awardsBefore(null,false);await finishSeason(false);}}finally{setBusy(false);updateHeader();renderStats();}};
 var oldGod=toggleGodMode;toggleGodMode=function(){S.godMode=!S.godMode;if(S.godMode)S.godEver=true;addEvent('God Mode',S.godMode?'Enabled':'Disabled');if(S.godMode)godEditor();else openAvatarEditor();updateHeader();};
