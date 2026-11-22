@@ -475,7 +475,7 @@ body:has(#create-screen:not(.hide)) #menu-btn, body.creating #menu-btn { display
 <div id="tl-wrap"><div id="timeline"></div><button id="tl-new" onclick="tlToBottom(true)">New ↓</button></div>
 
 <footer>
-  <div id="age-wrap"><button id="age-btn">AGE<br>+1</button><button id="sim-btn" style="display:none" onclick="simRestOfSeason()">⏩ Sim<br>season</button></div>
+  <div id="age-wrap"><button id="age-btn">AGE<br>+1</button></div>
   <div id="tabs">
     <button class="tab active" data-s="home"><span class="icon">🏠</span>Home</button>
     <button class="tab" data-s="agent"><span class="icon">🤝</span>Agent</button>
@@ -2335,7 +2335,7 @@ function openScreen(id) {
   if (id === "activities") return renderActivities();
   const c = setOv("More");
   c.innerHTML = card("🎯 Activities", `<p style="color:var(--muted);margin-bottom:8px">Things to do this year.</p>${activitiesHtml()}`, "border-color:var(--accent4)") +
-    card("🎬 Actions", `<button class="create-btn" style="width:100%;margin-top:0;background:var(--accent4);color:#fff" onclick="openAvatarEditor()">🎨 Change Avatar</button>${seasonActive() ? `<button class="act-btn" style="margin-top:8px" onclick="simRestOfSeason()">⏩ Simulate rest of season</button>` : ""}`) +
+    card("🎬 Actions", `<button class="create-btn" style="width:100%;margin-top:0;background:var(--accent4);color:#fff" onclick="openAvatarEditor()">🎨 Change Avatar</button>`) +
     card(`📖 Backstory: ${esc(backstoryName())}`, `<p style="color:var(--muted)">${esc(S.backstoryText || "")}</p><p style="margin-top:6px;font-size:12px;color:var(--muted)">Discovery route: ${S.route === "street" ? "🏚️ Street football" : "📺 TV match"}${S.age < 4 ? " • happens at age 4" : ""}</p>`) +
     card("☰ Saves", `<p style="color:var(--muted)">Your career saves automatically. Open the ☰ menu (top left) to switch careers or start a new one.</p>`);
 }
