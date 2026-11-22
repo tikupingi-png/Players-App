@@ -415,7 +415,7 @@ body:has(#create-screen:not(.hide)) #menu-btn, body.creating #menu-btn { display
 .pm-team { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 3px; font-size: 13px; }
 .pm-team b { line-height: 1.15; }
 .pm-vs { flex: none; align-self: center; font-weight: 900; font-size: 13px; color: var(--muted, #8b95a5); }
-.pm-badge { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; color: #fff; text-shadow: 0 1px 2px #000c; border: 2px solid #ffffff33; }
+.pm-badge { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; color: #fff; text-shadow: 0 0 3px #000, 0 0 2px #000, 0 1px 2px #000; border: 2px solid #ffffff33; }
 .pm-mut { font-size: 11px; color: var(--muted, #8b95a5); }
 .pm-f { display: inline-block; width: 16px; height: 16px; line-height: 16px; border-radius: 4px; font-size: 10px; font-weight: 900; margin: 0 1px; color: #000; }
 .pm-W { background: #00e676; } .pm-D { background: #b0bec5; } .pm-L { background: #ff5252; color: #fff; }
@@ -5135,7 +5135,7 @@ selectChance = function () { const c = _selectChanceBT(); if (S.club && !(BT_G &
 
 // ---- 2) Ballon d'Or: same base as the AI stars (OVR + position + club table + luck) plus a position-fair season score ----
 const BD_POS = { ST: 4, CF: 4, LW: 3, RW: 3, CAM: 2, CM: 1, CDM: 0, CB: -2, LB: -3, RB: -3, GK: -4 };
-const BD_K = { ga: 1, tro: 1, rat: 1 };
+const BD_K = { ga: 0.7, tro: 0.6, rat: 1, luck: 0.5, off: -3 }; // calibrated in batchtest (OVR 90 strong seasons ≈ 40% wins / 80% top 3, OVR 80 ≈ 0 wins)
 function bdParts(row) { const P = S.position, att = ["ST", "CF", "LW", "RW"].includes(P), mid = ["CAM", "CM", "CDM"].includes(P), gk = P === "GK";
   const ga = gk ? (row.cs || 0) * 0.35 : att ? row.goals * 0.3 + row.assists * 0.2 : mid ? row.goals * 0.45 + row.assists * 0.3 : row.goals * 0.8 + row.assists * 0.5 + (row.cs || 0) * 0.15;
   const tro = (row.trophies || []).reduce((a, t) => a + (/Champions League/.test(t.name) ? 5 : t.icon === "🏆" ? 4 : 2), 0);
@@ -5143,7 +5143,7 @@ function bdParts(row) { const P = S.position, att = ["ST", "CF", "LW", "RW"].inc
   return { ga: Math.min(ga, 14), tro, rat: (row.avg - 6.3) * 8, base: S.ovr + (BD_POS[P] || 0) + tableBonus(row.club, Y) * 0.8 + top, luck: rng("bdme" + S.name + Y)() * 6,
     extra: (row.awards || []).length * 0.8 + (S.intlBoost || 0) * 1.2 + (typeof legendExtra === "function" ? legendExtra() : 0) }; }
 myBdScore = function (row) { if (!row || !S.pro || row.apps < 12) return null; const p = bdParts(row);
-  return p.base + p.luck + p.ga * BD_K.ga + p.tro * BD_K.tro + p.rat * BD_K.rat + p.extra; };
+  return p.base + p.luck * BD_K.luck + 3 * (1 - BD_K.luck) + BD_K.off + p.ga * BD_K.ga + p.tro * BD_K.tro + p.rat * BD_K.rat + p.extra; };
 
 // ---- 4) Skill points: appearances, good games, goals/assists, MOTM, extra training / gym ----
 const SP_RATE = { app: 0.05, appYouth: 0.03, good: 0.05, motm: 0.15, goal: 0.04, cap: 2.5, train: 0.25 };
@@ -5204,6 +5204,42 @@ playGame = async function (g, sim) { BT_G = g; let set = false;
       let own; Object.defineProperty(g, "preNote", { configurable: true, enumerable: false, get() { if (own !== undefined) return own; try { return (g.h || g.a) ? preMatchCard(g) : ""; } catch (e) { return ""; } }, set(v) { own = v; } }); set = true; }
     await _playGameBT(g, sim); } finally { if (set) delete g.preNote; BT_G = null; }
   if (g.comp !== "intl" && !g.intl) matchPoints(g); };
+
+// ---- 5) Everything scales with OVR: club interest band, loans, agents, sponsors / media ----
+// target club strength = OVR, stretched upward for young high-potential players; interest peaks around the target
+function ovrTarget() { return S.ovr + (S.age < 23 ? Math.min(5, Math.max(0, S.potential - S.ovr) * 0.35) : 0); }
+baseInterest = function (t) { const d = t.str - ovrTarget(), rep = S.agent ? S.agent.rep : 30;
+  let v = 86 - (d > 0 ? d * 7 : Math.max(0, -d - 3) * 5) + (S.form - 50) * 0.3 + (rep - 50) * 0.2 - Math.max(0, S.age - 30) * 6 + (rng("need" + t.name + S.position + curYear())() * 20 - 10);
+  return clamp(Math.round(v), 0, 95); };
+// loans go to a club just above your level (str OVR+1…+7) instead of any weaker club
+loanRound = async function () {
+  const last = S.seasons[S.seasons.length - 1]; if (!S.pro || S.age > 21 || S.loan) return false;
+  if (!(S.ovr < clubLvl(S.proClub.name) - 3 || (last && last.apps < 12)) || Math.random() > 0.6) return false;
+  const cur = teamObj(S.proClub.name).str, pool = allClubs().filter(x => x.str < cur - 2 && x.str >= S.ovr + 1 && x.name !== S.club);
+  const near = pool.filter(x => x.str <= S.ovr + 7), t = pick(near.length ? near : pool); if (!t) return false;
+  const o = makeOffer(t, { kind: "loan", note: `${S.proClub.name} want you to get minutes on loan.` }); return (await presentOffer(o)) === "accepted"; };
+// agents: the super agent is on the table from OVR 78 (or the old potential rules); low OVR players only get the family friend / agency
+const _superEligibleBT = superEligible;
+superEligible = function () { return S.ovr >= 78 || _superEligibleBT(); };
+// a super agent comes calling once your OVR reaches 84 while you're with a smaller agent
+YEAR_HOOKS.push(async () => { if (!S.pro || S.retired || !S.agent || S.agent.type === "super" || S.ovr < 84 || S.superPitchAge != null) return;
+  S.superPitchAge = S.age; const A = newAgent("super");
+  await showDecision("💎 A super agent calls", "", [{ label: `Sign with ${A.name} (${A.fee}%)`, effect: () => { const old = S.agent.name; S.agent = A; addEvent("💎 Super agent", `You leave ${old} for ${A.name}, who represents the biggest names in the game.`); } },
+    { label: `Stay with ${S.agent.name}`, rec: true, effect: () => { if (typeof agentTrust === "function") agentTrust(8); addEvent("🤝 Loyal", `You turn down ${A.name} and stay with ${S.agent.name}.`); } }],
+    { html: `<p>At OVR ${S.ovr} you're on the radar of the biggest agencies. <b>${esc(A.name)}</b> (super agent, rep ${A.rep}) wants to represent you: bigger clubs, better terms, ${A.fee}% fee.</p>` }); });
+// sponsors and media: who approaches you depends on OVR
+const SPONSOR_TIERS = [ // [min OVR, tier, media, € per year range]
+  [87, "a global mega-brand", "global TV and the world's press", 4e6, 9e6], [80, "a global sportswear brand", "international media", 1.2e6, 3.5e6],
+  [72, "a national brand", "national TV", 2.5e5, 8e5], [62, "a regional company", "the regional paper", 4e4, 1.5e5], [0, "a local business", "the local paper", 5e3, 2.5e4]];
+function sponsorTier() { return SPONSOR_TIERS.find(x => S.ovr >= x[0]); }
+YEAR_HOOKS.push(async () => { if (!S.pro || S.retired || S.age < 17 || S.sponsorAge === S.age || Math.random() > 0.5) return; S.sponsorAge = S.age;
+  const T = sponsorTier(), amt = Math.round((T[3] + Math.random() * (T[4] - T[3])) / 1000) * 1000;
+  await showDecision("📣 Sponsor approach", "", [{ label: `Sign (+${eur(amt)})`, rec: true, effect: () => { S.money += amt; S.fame = (S.fame || 0) + (S.ovr >= 80 ? 2 : 1); addEvent("📣 Sponsorship", `You sign a one-year deal with ${T[1]} worth ${eur(amt)}. ${T[2][0].toUpperCase() + T[2].slice(1)} cover it.`); } },
+    { label: "Not interested", effect: () => {} }], { html: `<p><b>${T[1][0].toUpperCase() + T[1].slice(1)}</b> wants you as the face of a campaign: <b>${eur(amt)}</b> for one year.</p><p style="font-size:12px;color:var(--muted);margin-top:6px">At OVR ${S.ovr}, ${esc(T[2])} follow your career.</p>` });
+  S.news.unshift(`📰 ${T[2][0].toUpperCase() + T[2].slice(1)}: ${S.name} linked with a deal with ${T[1]}.`); });
+// from OVR 85 the huge clubs (str 84+) come through the elite pass (gold card, bidding wars), not the ordinary offer round
+const _candidateClubsBT = candidateClubs;
+candidateClubs = function (n, filt) { if (S.ovr >= ELITE_OVR) { const f = filt; filt = t => !isHugeClub(t) && (!f || f(t)); } return _candidateClubsBT(n, filt); };
 // ===== INIT =====
 let CREATE_AV = randomAvatar();
 function fillCities() { const n = document.getElementById("c-nat").value; document.getElementById("c-city").innerHTML = COUNTRIES[n].cities.map(c => `<option>${esc(c)}</option>`).join("") + `<option value="Random">🎲 Random</option>`; }
