@@ -1413,7 +1413,7 @@ function startGame() {
   const fam = { dad: `${uF("m")} ${S.surname}`, mom: `${uF("f")} ${S.surname}`, uncle: `${uF("m")} ${S.surname}`, sib: `${uF("m")} ${S.surname}`, city: S.city };
   S.family = fam; S.backstoryText = B.text(fam);
   const m = B.mods;
-  S.potential = clamp(68 + R(0, 22) + (m.potential || 0), 60, 97);
+  S.potential = 91 + Math.floor(Math.random() * 9);
   S.ovr = 2 + (m.ovr || 0);
   for (const k of ["looks", "health", "smarts", "happiness"]) S[k] = clamp(S[k] + R(-8, 8) + (m[k] || 0));
   S.money = m.money || 0;
@@ -3120,19 +3120,19 @@ function birthExtras() {
     S.legendSon = lg.name;
   } else S.father = genFather();
   const f = S.father, t = f.tier;
-  S.ovr = Math.min(S.potential, S.ovr + TIER_OVR[t]); S.potential = clamp(S.potential + TIER_POT[t], 60, 99); S.ovr = Math.min(S.ovr, S.potential);
+  S.ovr = Math.min(S.potential, S.ovr + TIER_OVR[t]); S.ovr = Math.min(S.ovr, S.potential);
   if (f.real) S.money += 250000;
   S.backstoryText = `${fatherIntro(f)} ${S.backstoryText}`;
   const ev = S.events.find(e => e.title.startsWith("📖 Backstory")); if (ev) ev.text = S.backstoryText;
   const ab = S.events.find(e => e.title === "👶 Born"); if (ab) ab.text = `You were born in ${S.city === S.nationality ? S.city : S.city + ", " + S.nationality}. Your name is ${S.name}.`;
-  addEvent("🧬 Football runs in the family", `Father: ${LEGACY_TIERS[t]}. +${TIER_OVR[t]} starting overall, +${TIER_POT[t]} potential.`);
+  addEvent("🧬 Football runs in the family", `Father: ${LEGACY_TIERS[t]}. +${TIER_OVR[t]} starting overall.`);
   if (f.real) S.pendingRare = true;
 }
 YEAR_HOOKS.push(async () => {
   if (S.pendingRare) { S.pendingRare = false; await rarePopup(); }
 });
 async function rarePopup() { const f = S.father; if (!f || !f.real) return;
-  await showDecision(`⭐ RARE: Son of ${f.name}`, "", [{ label: "The world is watching" }], { html: `<p style="text-align:center;font-size:40px">⭐</p><p>You were born as the child of <b>${esc(f.name)}</b> – ${esc(f.clubs.join(", "))}${f.bdor ? `, ${f.bdor}× Ballon d'Or` : ""}.</p><p style="margin-top:6px;color:var(--muted)">Photographers outside the hospital. Expectations: enormous. GOAT-tier start: +8 overall, +5 potential.</p>` }); }
+  await showDecision(`⭐ RARE: Son of ${f.name}`, "", [{ label: "The world is watching" }], { html: `<p style="text-align:center;font-size:40px">⭐</p><p>You were born as the child of <b>${esc(f.name)}</b> – ${esc(f.clubs.join(", "))}${f.bdor ? `, ${f.bdor}× Ballon d'Or` : ""}.</p><p style="margin-top:6px;color:var(--muted)">Photographers outside the hospital. Expectations: enormous. GOAT-tier start: +8 overall.</p>` }); }
 // ---- Train with Dad / Dad's advice / media comparisons ----
 const dadEx = () => S.father && S.father.alive !== false && S.people.some(p => p.role === "Father");
 ACTIVITIES.push(["dad", "👨‍👦", "Train with Dad", 4, 2, "Learn from a former pro."]);
@@ -3270,7 +3270,7 @@ function continueLegacy(i) {
   S.father = h.nephew ? { ...sum, name: sum.name, uncle: true } : sum; S.legendSon = null;
   const B = BACKSTORIES.dynasty, fam = { dad: h.nephew ? `${natFirst("m")} ${S.surname}` : sum.name, mom: partnerP ? partnerP.name : `${natFirst("f")} ${S.surname}`, uncle: sum.name, sib: "", city: S.city };
   S.family = fam; const m = B.mods, t = sum.tier;
-  S.potential = clamp(68 + R(0, 22) + (m.potential || 0) + TIER_POT[t], 60, 98); S.ovr = Math.min(S.potential, 2 + (m.ovr || 0) + TIER_OVR[t]);
+  S.potential = 91 + Math.floor(Math.random() * 9); S.ovr = Math.min(S.potential, 2 + (m.ovr || 0) + TIER_OVR[t]);
   for (const k of ["health", "smarts", "happiness"]) S[k] = clamp(S[k] + R(-8, 8) + (m[k] || 0)); S.looks = rollLooks(60, m.looks); S.bornStunning = S.looks === 100;
   S.money = Math.round((prev.money || 0) * 0.2) + (m.money || 0);
   const P = (name, role, cat, age, closeness, note) => S.people.push({ id: "p" + S.people.length, name, role, cat, age, closeness, note: note || "" });
@@ -3283,7 +3283,7 @@ function continueLegacy(i) {
   S.started = true; TL_COUNT = -1;
   addEvent("👶 Born", `You were born in ${S.city === S.nationality ? S.city : S.city + ", " + S.nationality}. Your name is ${S.name}.`);
   addEvent(`📖 Backstory: ${label}`, S.backstoryText);
-  addEvent("🌳 The dynasty continues", `Generation ${sum.gen + 1}. Football runs in the family: +${TIER_OVR[t]} starting overall, +${TIER_POT[t]} potential (father: ${LEGACY_TIERS[t]}).`);
+  addEvent("🌳 The dynasty continues", `Generation ${sum.gen + 1}. Football runs in the family: +${TIER_OVR[t]} starting overall (father: ${LEGACY_TIERS[t]}).`);
   updateHeader(); renderStats(); renderTimeline(); renderSaveList();
 }
 // More tab: retire button + legacy shortcut
