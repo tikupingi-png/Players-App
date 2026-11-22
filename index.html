@@ -2200,10 +2200,10 @@ async function finishSeason(silent) {
   const earned = Math.round((S.skillPoints - s.ptsStart) * 100) / 100;
   const n = tab.length, note = pos === 1 ? "🥇 Champions!" : pos <= 4 && pro ? "European places" : pos > n - 3 && pro ? "⬇️ Relegation zone" : pos <= 3 ? "🥉 Podium finish" : "Mid-table";
   const review = { age: sea.age, club: me, league: lgName, pos, note, table: tab.map(r => ({ team: r.team, p: r.p, gd: r.gf - r.ga, pts: r.pts })), apps: s.apps, goals: s.goals, assists: s.assists, avg: +avg.toFixed(2), cs: s.cs, earned, trophies, awards, cupRun, euroRun, cup: cupName(), euro: eg.length ? COMPS[eg[0].ec].name : null };
-  const row = { year: sea.year, age: sea.age, club: me, apps: s.apps, goals: s.goals, assists: s.assists, cs: s.cs, avg: +avg.toFixed(2), trophies: trophies.map(t => t.name), awards, review };
+  const row = { year: sea.year, age: sea.age, club: me, apps: s.apps, goals: s.goals, assists: s.assists, cs: s.cs, avg: +avg.toFixed(2), motm: s.motm || 0, ovr: S.ovr, trophies: trophies.map(t => t.name), awards, review };
   S.seasons.push(row);
   S.awards = (S.awards || []).concat(awards.map(a => `${a} (Age ${sea.age})`));
-  addEvent(`📊 ${seasonLabel(sea.year)} finished`, `${me}: ${ordinal(pos)} place. ${s.apps} apps, ${s.goals} goals, ${s.assists} assists, avg ${avg.toFixed(2)}.${trophies.length ? " 🏆 " + trophies.map(t => t.name).join(", ") : ""}${awards.length ? " • " + awards.join(", ") : ""}`);
+  addEvent(`📊 ${seasonLabel(sea.year)} finished`, `${me}: ${ordinal(pos)} place. ${s.apps} apps, ${s.goals} goals, ${s.assists} assists, avg ${avg.toFixed(2)}, OVR ${S.ovr}.${trophies.length ? " 🏆 " + trophies.map(t => t.name).join(", ") : ""}${awards.length ? " • " + awards.join(", ") : ""}`);
   if (pro && s.goals) S.news.unshift(`${S.name} ends the Age ${sea.age} season with ${s.goals} goals for ${me}.`);
   if (!silent) await showSeasonReview(review, true);
 }
@@ -3523,7 +3523,7 @@ async function negotiate(o) {
 // ---------------- executing moves ----------------
 function midSeasonSwitch(oldClub) {
   const old = S.season; if (!old || old.done || old.age !== S.age) return; const s = old.st, avg = s.ratings.length ? s.ratings.reduce((a, b) => a + b, 0) / s.ratings.length : 0;
-  S.seasons.push({ year: old.year, age: old.age, club: old.club, apps: s.apps, goals: s.goals, assists: s.assists, cs: s.cs, avg: +avg.toFixed(2), trophies: [], awards: [], half: true, loan: !!S.loanWas });
+  S.seasons.push({ year: old.year, age: old.age, club: old.club, apps: s.apps, goals: s.goals, assists: s.assists, cs: s.cs, avg: +avg.toFixed(2), ovr: S.ovr, trophies: [], awards: [], half: true, loan: !!S.loanWas });
   const day = (nextGame() || { day: 139 }).day; S.season = buildSeason(); S.season.joinedDay = day;
   S.season.games.forEach(g => { if (g.day < day || g.comp !== "league") { g.cancelled = true; g.skipped = true; } });
   addEvent("🔁 Mid-season move", `Your ${old.club} spell this season: ${s.apps} apps, ${s.goals} goals. You're cup-tied for the rest of the season.`);
@@ -5247,6 +5247,76 @@ YEAR_HOOKS.push(async () => { if (!S.pro || S.retired || S.age < 17 || S.sponsor
 // from OVR 85 the huge clubs (str 84+) come through the elite pass (gold card, bidding wars), not the ordinary offer round
 const _candidateClubsBT = candidateClubs;
 candidateClubs = function (n, filt) { if (S.ovr >= ELITE_OVR) { const f = filt; filt = t => !isHugeClub(t) && (!f || f(t)); } return _candidateClubsBT(n, filt); };
+// ===== P4t: competitive Ballon d'Or – a real yearly ranking vs ~30 rival stars =====
+// Season performance (position-fair G/A, ratings, MOTM), trophies (league / UCL / international), OVR, season-to-season
+// noise and a voter-fatigue penalty for last year's winner. Placings: podium 1–3, "Nth place" up to 30, else "outside top 30".
+const BD2 = { off: -4.25, ga: 0.55, tro: 0.55, rat: 0.8, motm: 0.25, comp: 1, sd: 2.8, fat1: 5, fat2: 1.5, k1: 1.5, k2: -0.6 }; // fitted on recorded batchtest seasons (targets: OVR 90 ≈ 25–40% wins, 85–88 mostly top 10–30)
+function bdGauss(seed) { const r = rng(seed); return (r() + r() + r() + r() - 2) * 1.73; } // ~N(0,1)
+function bdTro(row) { const LG = Object.values(LEAGUES).map(L => L.name); return (row.trophies || []).reduce((a, t) => { const n = typeof t === "string" ? t : (t && t.name) || "";
+  return a + (/Champions League/.test(n) ? 5 : LG.includes(n) ? 4 : /Europa|Conference|Libertadores|Club World/.test(n) ? 2.5 : 2); }, 0); }
+function bdWonYear(Y) { const r = S.bdor && S.bdor[Y]; return !!(r && r.myRank === 1); }
+const BD_COMP = { ST: 0, CF: 0, LW: 0.5, RW: 0.5, CAM: 2, CM: 3.5, CDM: 4.5, CB: 5.5, LB: 5, RB: 5, GK: 5.5 }; // defenders/mids score fewer G/A: position-fair top-up
+myBdScore = function (row) { if (!row || !S.pro || row.apps < 12) return null; const p = bdParts(row), Y = (row.year || 0) + 1;
+  const motm = row.motm || 0, rat = Math.max(-8, Math.min(8, (row.avg - 6.2) * 12));
+  const perf = p.ga * BD2.ga + bdTro(row) * BD2.tro + rat * BD2.rat + Math.min(motm, 12) * BD2.motm + p.extra + (BD_COMP[S.position] || 0) * BD2.comp;
+  const fat = bdWonYear(Y - 1) ? BD2.fat1 + (bdWonYear(Y - 2) ? BD2.fat2 : 0) : 0;
+  return p.base - BD2.k1 * Math.min(Math.max(90 - S.ovr, 0), 3) - BD2.k2 * Math.max(0, 87 - S.ovr) + BD2.off + perf + bdGauss("bdn" + S.name + Y) * BD2.sd - fat; };
+// rival field: the strongest ~60 players in the world (top 30 = nominees), each with their own yearly form swing
+bdRanking = function (Y) {
+  const row = S.seasons.filter(s => s.year === Y - 1 && s.review).pop(), ms = myBdScore(row);
+  const L = bdCandidates(Y).slice(0, 60).map(x => ({ ...x, score: x.score + bdGauss("bda" + x.name + Y) * 1.2 }));
+  if (ms !== null) L.push({ name: S.name, club: row.club, pos: S.position, age: S.age - 1, ovr: S.ovr, score: ms, me: true });
+  return L.sort((a, b) => b.score - a.score);
+};
+function bdPlaceTxt(n) { return !n ? "outside the top 30" : n === 1 ? "🥇 Winner" : n === 2 ? "🥈 2nd place" : n === 3 ? "🥉 3rd place" : `${ordinal(n)} place`; }
+function bdTally() { const t = { wins: 0, podiums: 0, top10: 0, top30: 0, best: null }; Object.values(S.bdor || {}).forEach(r => { const n = r.myRank; if (!r.cer || !n) return;
+  if (n === 1) t.wins++; if (n <= 3) t.podiums++; if (n <= 10) t.top10++; if (n <= 30) t.top30++; if (!t.best || n < t.best) t.best = n; }); return t; }
+function bdPodiumHtml(R) { const p = R.slice(0, 3), nm = x => esc(x.me ? S.name : x.name), col = x => x.me ? "color:#ffd600;font-weight:900" : "";
+  const blk = (x, h, m) => `<div style="flex:1;text-align:center"><div style="font-size:11px;${col(x)}">${nm(x)}</div><div style="font-size:10px;color:var(--muted)">${esc(x.club)}</div><div style="height:${h}px;margin-top:3px;border-radius:6px 6px 0 0;background:${x.me ? "#ffd600" : "#2a3550"};color:${x.me ? "#000" : "#fff"};font-weight:900;display:flex;align-items:flex-start;justify-content:center;padding-top:4px">${m}</div></div>`;
+  return `<div style="display:flex;align-items:flex-end;gap:6px;margin:8px 0">${blk(p[1], 44, "2")}${blk(p[0], 62, "1")}${blk(p[2], 32, "3")}</div>`; }
+async function awardsBefore(g, sim) {
+  const sea = S.season; if (!sea || !S.club) return;
+  const Y = sea.year, d = g ? g.day : 999; S.bdor = S.bdor || {}; const rec = S.bdor[Y] || (S.bdor[Y] = {});
+  if (!rec.nom && d >= DAY_NOMINEES) {
+    rec.nom = true; const R30 = bdRanking(Y).slice(0, 30), mine = R30.findIndex(x => x.me);
+    if (mine >= 0) { rec.nominated = true;
+      await showDecision("🏆 Ballon d'Or Nominee!", "", [{ label: "What an honour" }], { html: `<p>You are one of the <b>30 nominees</b> for the Ballon d'Or, based on last season.</p><p style="margin-top:6px;color:var(--muted);font-size:13px">Other nominees include ${R30.filter(x => !x.me).slice(0, 6).map(x => esc(x.name)).join(", ")}…</p><p style="margin-top:6px">The ceremony is on <b>1 November</b>.</p>` });
+      addEvent("🏆 Ballon d'Or nominee", "You were named among the 30 Ballon d'Or nominees."); S.happiness = clamp(S.happiness + 5); }
+    S.news.unshift(`Ballon d'Or: the 30 nominees are out – ${R30.slice(0, 4).map(x => x.me ? S.name : x.name).join(", ")} lead the list.`);
+  }
+  if (!rec.cer && d >= DAY_CEREMONY) {
+    rec.cer = true; const R = bdRanking(Y), top = R.slice(0, 10), pos = R.findIndex(x => x.me) + 1, mine = pos && pos <= 30 ? pos : 0, K = kopaRanking(Y)[0], Ya = yashinRanking(Y)[0];
+    rec.winner = top[0].me ? S.name : top[0].name; rec.myRank = mine || null; rec.eligible = pos > 0; rec.age = S.age;
+    const li = top.slice(3).map((x, i) => `<div class="hl" style="font-size:12px;${x.me ? "color:#ffd600;font-weight:800" : ""}">${i + 4}. ${esc(x.me ? S.name : x.name)} <span style="color:var(--muted)">(${esc(x.club)})</span></div>`).join("");
+    const extra = `<div class="md-h" style="margin-top:8px">Also tonight</div><div class="hl" style="font-size:12px">🌱 Kopa Trophy (U21): <b>${esc(K ? (K.me ? S.name : K.name) : "–")}</b></div><div class="hl" style="font-size:12px">🧤 Yashin Trophy (GK): <b>${esc(Ya ? (Ya.me ? S.name : Ya.name) : "–")}</b></div>`;
+    const you = pos ? `<div style="text-align:center;margin:8px 0;padding:8px;border-radius:10px;border:2px solid ${mine && mine <= 3 ? "#ffd600" : mine && mine <= 10 ? "#4fc3f7" : "#555"}"><div style="font-size:11px;color:var(--muted)">YOUR PLACING</div><div style="font-size:22px;font-weight:900">${mine ? bdPlaceTxt(mine) : "Outside top 30"}</div></div>` : "";
+    await showDecision("🏆 Ballon d'Or – 1 November", "", [{ label: "OK" }], { html: `<p style="text-align:center">Paris, Théâtre du Châtelet. The winner is…</p><p style="text-align:center;font-size:20px;font-weight:900;margin:6px 0">${esc(rec.winner)}</p>${bdPodiumHtml(R)}${you}<div class="md-h">4th–10th</div>${li}${extra}` });
+    S.news.unshift(`${rec.winner} wins the Ballon d'Or! ${pos ? `${S.name}: ${mine ? bdPlaceTxt(mine).replace(/^\S+ /, "") : "outside the top 30"}. ` : ""}Kopa Trophy: ${K ? (K.me ? S.name : K.name) : "–"}; Yashin Trophy: ${Ya ? (Ya.me ? S.name : Ya.name) : "–"}.`);
+    if (mine === 1) { bdWin("🏆 Ballon d'Or", Y); milestone("ballondor" + Y, "Ballon d'Or winner.");
+      await showDecision("🎉 BALLON D'OR WINNER!", "", [{ label: "🏆 Lift the Golden Ball" }], { html: `<div style="text-align:center;font-size:64px">🏆</div><p style="text-align:center">You are the best player in the world. Your family is crying in the front row, your teammates are on their feet.</p><p style="text-align:center;color:#ffd600;font-weight:800;margin-top:6px">Legacy updated: Ballon d'Or × ${(S.bdTrophies || []).filter(t => t.type.includes("Ballon")).length}</p>` });
+      addEvent("🏆 BALLON D'OR", `You won the Ballon d'Or at age ${S.age}!`); S.happiness = clamp(S.happiness + 15); }
+    else if (mine && mine <= 3) { S.awards = (S.awards || []).concat([`${mine === 2 ? "🥈" : "🥉"} Ballon d'Or ${ordinal(mine)} (Age ${S.age})`]);
+      addEvent(`${mine === 2 ? "🥈" : "🥉"} Ballon d'Or podium`, `So close! You finished ${ordinal(mine)} in the Ballon d'Or vote behind ${rec.winner}.`); S.happiness = clamp(S.happiness + 6); }
+    else if (mine) addEvent("🏆 Ballon d'Or", `You finished ${ordinal(mine)} in the Ballon d'Or vote.`);
+    else if (pos) addEvent("🏆 Ballon d'Or", `${rec.winner} won the Ballon d'Or. You were outside the top 30.`);
+    if (K && K.me) { bdWin("🌱 Kopa Trophy", Y); addEvent("🌱 Kopa Trophy", "Best young player in the world."); }
+    if (Ya && Ya.me) { bdWin("🧤 Yashin Trophy", Y); addEvent("🧤 Yashin Trophy", "Best goalkeeper in the world."); }
+  }
+}
+// season summary: the Ballon d'Or held during that season
+const _reviewHtmlBD = reviewHtml;
+reviewHtml = function (v) { let h = _reviewHtmlBD(v); try { const row = S.seasons.find(x => x.review === v), r = row && S.bdor && S.bdor[row.year];
+  if (r && r.cer && r.eligible !== false && (r.myRank || r.eligible)) h += `<div class="nice-card" style="border-color:#ffd600"><b>🏆 Ballon d'Or (1 Nov)</b><div class="hl">${r.myRank ? bdPlaceTxt(r.myRank) : "Outside the top 30"} • winner ${esc(r.winner || "–")}</div></div>`; } catch (e) {} return h; };
+// Legacy: yearly record + career tally
+const _legacyHtmlBD = legacyHtml;
+legacyHtml = function (final) { let h = _legacyHtmlBD(final); const rows = Object.entries(S.bdor || {}).filter(([, r]) => r.cer && (r.myRank || r.eligible)).sort((a, b) => a[0] - b[0]);
+  if (!rows.length) return h; const t = bdTally();
+  return h + card("🏆 Ballon d'Or record", `<p>Wins <b>${t.wins}</b> • Podiums <b>${t.podiums}</b> • Top 10 <b>${t.top10}</b> • Top 30 <b>${t.top30}</b>${t.best ? ` • Best <b>${ordinal(t.best)}</b>` : ""}</p>` +
+    rows.map(([Y, r]) => `<div class="hl" style="font-size:12px;${r.myRank && r.myRank <= 3 ? "color:#ffd600;font-weight:800" : ""}">${r.age ? `Age ${r.age}: ` : `${seasonLabel(+Y)}: `}${r.myRank ? bdPlaceTxt(r.myRank) : "outside top 30"}</div>`).join("")); };
+// Kopa Trophy: only players aged 21 or under (in the voting season and at the ceremony)
+kopaRanking = function (Y) { const row = S.seasons.filter(s => s.year === Y - 1 && s.review).pop(), ms = myBdScore(row);
+  const L = bdCandidates(Y).filter(p => p.age <= 21).slice(0, 20).map(x => ({ ...x }));
+  if (ms !== null && row.age <= 21 && S.age <= 21) L.push({ name: S.name, club: row.club, score: ms + 2, me: true }); return L.sort((a, b) => b.score - a.score); };
 // ===== INIT =====
 let CREATE_AV = randomAvatar();
 function fillCities() { const n = document.getElementById("c-nat").value; document.getElementById("c-city").innerHTML = COUNTRIES[n].cities.map(c => `<option>${esc(c)}</option>`).join("") + `<option value="Random">🎲 Random</option>`; }
@@ -5349,4 +5419,24 @@ function worldWeapon(p){var KW=window.KING_KW||[];if(!p||typeof p!=='object'||!K
 if(typeof clubSquad==='function'){var oldClubSquad=clubSquad;clubSquad=function(){var x=oldClubSquad.apply(this,arguments);try{return Array.isArray(x)?x.map(worldWeapon):x;}catch(e){return x;}};}
 if(typeof nationalSquad==='function'){var oldNationalSquad=nationalSquad;nationalSquad=function(){var x=oldNationalSquad.apply(this,arguments);try{return Array.isArray(x)?x.map(worldWeapon):x;}catch(e){return x;}};}
 })();
+// ===== P4t: signature weapons progress through play (on top of the KING NOTES weapons) =====
+// Before: weapons only moved if you spent skill points by hand (3 to unlock, lv+1 to upgrade), so most careers ended with 1 weapon at level 1.
+// Now every pro match feeds weapon XP (scaled by OVR): the signature weapon levels up on its own, and new position-fitting weapons
+// are discovered at career milestones. Spending skill points by hand still works and stacks.
+const WXP = { app: 1, good: 1, motm: 2, ga: 0.5, lv: [0, 0, 80, 230, 480, 850], disc: [[250, 70], [600, 80], [1000, 86]] }; // disc: [career XP, min OVR]
+function wState() { const w = S.weaponState; if (!w || !w.signature) return null; w.xp = w.xp || {}; w.careerXp = w.careerXp || 0; return w; }
+function wLevelUp(w, n) { const lv = Number(w.levels[n] || 0), x = w.xp[n] || 0; let nl = lv; while (nl < 5 && x >= WXP.lv[nl + 1]) nl++;
+  if (nl > lv) { w.levels[n] = nl; if (w.branches && w.branches[n]) w.branches[n].level = nl; addEvent("🗡️ Weapon levelled up", `${n} reached level ${nl} through your performances.`); } }
+function weaponXP(g) { try { const r = g && g.res, w = wState(); if (!r || !r.played || !S.pro || !w) return;
+  const k = Math.max(0.3, Math.min(1.3, (S.ovr - 60) / 22));
+  const v = (WXP.app + (r.rating >= 7.5 ? WXP.good : 0) + (r.rating >= 8.5 ? WXP.motm : 0) + ((r.goals || 0) + (r.assists || 0)) * WXP.ga) * k;
+  w.careerXp = +(w.careerXp + v).toFixed(2);
+  w.owned.forEach(n => { w.xp[n] = +((w.xp[n] || 0) + (n === w.signature ? v : v * 0.6)).toFixed(2); wLevelUp(w, n); });
+  const KW = window.KING_KW || [], nOwn = w.owned.length, d = WXP.disc[nOwn - 1];
+  if (d && w.careerXp >= d[0] && S.ovr >= d[1]) { const pos = S.position || "ST", pool = KW.filter(x => !x[5] && x[4].split(" ").includes(pos) && !w.owned.includes(x[0]));
+    if (pool.length) { const pick = pool[hashStr("wdisc" + S.name + nOwn) % pool.length][0]; w.owned.push(pick); w.levels[pick] = 1; w.xp[pick] = 0; if (w.branches && w.branches[pick]) w.branches[pick].level = 1;
+      addEvent("🗡️ New weapon discovered", `Your game has grown: you unlocked ${pick} (weapon ${nOwn + 1}).`); S.news.unshift(`${S.name} is showing a new weapon: ${pick}.`); } }
+  } catch (e) {} }
+const _matchPointsW = matchPoints;
+matchPoints = function (g) { const v = _matchPointsW(g); weaponXP(g); return v; };
 </script></body></html>
