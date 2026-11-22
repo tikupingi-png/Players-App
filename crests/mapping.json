@@ -1,0 +1,2529 @@
+{
+  "aldosivi": {
+    "name": "Aldosivi",
+    "file": "aldosivi.webp",
+    "source_url": "https://en.wikipedia.org/wiki/Club_Atl%C3%A9tico_Aldosivi",
+    "kind": "real",
+    "league": "Liga Profesional",
+    "country": "Argentina"
+  },
+  "argentinos-juniors": {
+    "name": "Argentinos Juniors",
+    "file": "argentinos-juniors.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Argentinos_Juniors",
+    "kind": "real",
+    "league": "Liga Profesional",
+    "country": "Argentina"
+  },
+  "atletico-tucuman": {
+    "name": "Atlético Tucumán",
+    "file": "atletico-tucuman.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Atl%C3%A9tico_Tucum%C3%A1n",
+    "kind": "real",
+    "league": "Liga Profesional",
+    "country": "Argentina"
+  },
+  "banfield": {
+    "name": "Banfield",
+    "file": "banfield.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Club_Atl%C3%A9tico_Banfield",
+    "kind": "real",
+    "league": "Liga Profesional",
+    "country": "Argentina"
+  },
+  "barracas-central": {
+    "name": "Barracas Central",
+    "file": "barracas-central.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Barracas_Central",
+    "kind": "real",
+    "league": "Liga Profesional",
+    "country": "Argentina"
+  },
+  "belgrano": {
+    "name": "Belgrano",
+    "file": "belgrano.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Club_Atl%C3%A9tico_Belgrano",
+    "kind": "real",
+    "league": "Liga Profesional",
+    "country": "Argentina"
+  },
+  "boca-juniors": {
+    "name": "Boca Juniors",
+    "file": "boca-juniors.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Boca_Juniors",
+    "kind": "real",
+    "league": "Liga Profesional",
+    "country": "Argentina"
+  },
+  "central-cordoba": {
+    "name": "Central Córdoba",
+    "file": "central-cordoba.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Central_C%C3%B3rdoba_de_Santiago_del_Estero",
+    "kind": "real",
+    "league": "Liga Profesional",
+    "country": "Argentina"
+  },
+  "defensa-y-justicia": {
+    "name": "Defensa y Justicia",
+    "file": "defensa-y-justicia.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Defensa_y_Justicia",
+    "kind": "real",
+    "league": "Liga Profesional",
+    "country": "Argentina"
+  },
+  "deportivo-riestra": {
+    "name": "Deportivo Riestra",
+    "file": "deportivo-riestra.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Deportivo_Riestra",
+    "kind": "real",
+    "league": "Liga Profesional",
+    "country": "Argentina"
+  },
+  "estudiantes": {
+    "name": "Estudiantes",
+    "file": "estudiantes.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Estudiantes_de_La_Plata",
+    "kind": "real",
+    "league": "Liga Profesional",
+    "country": "Argentina"
+  },
+  "estudiantes-rc": {
+    "name": "Estudiantes RC",
+    "file": "estudiantes-rc.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Estudiantes_de_R%C3%ADo_Cuarto",
+    "kind": "real",
+    "league": "Liga Profesional",
+    "country": "Argentina"
+  },
+  "gimnasia-la-plata": {
+    "name": "Gimnasia La Plata",
+    "file": "gimnasia-la-plata.webp",
+    "source_url": "https://en.wikipedia.org/wiki/Club_de_Gimnasia_y_Esgrima_La_Plata",
+    "kind": "real",
+    "league": "Liga Profesional",
+    "country": "Argentina"
+  },
+  "gimnasia-mendoza": {
+    "name": "Gimnasia Mendoza",
+    "file": "gimnasia-mendoza.webp",
+    "source_url": "https://en.wikipedia.org/wiki/Gimnasia_y_Esgrima_de_Mendoza",
+    "kind": "real",
+    "league": "Liga Profesional",
+    "country": "Argentina"
+  },
+  "godoy-cruz": {
+    "name": "Godoy Cruz",
+    "file": "godoy-cruz.webp",
+    "source_url": "https://en.wikipedia.org/wiki/Godoy_Cruz_Antonio_Tomba",
+    "kind": "real",
+    "league": "Liga Profesional",
+    "country": "Argentina"
+  },
+  "huracan": {
+    "name": "Huracán",
+    "file": "huracan.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Club_Atl%C3%A9tico_Hurac%C3%A1n",
+    "kind": "real",
+    "league": "Liga Profesional",
+    "country": "Argentina"
+  },
+  "independiente": {
+    "name": "Independiente",
+    "file": "independiente.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Club_Atl%C3%A9tico_Independiente",
+    "kind": "real",
+    "league": "Liga Profesional",
+    "country": "Argentina"
+  },
+  "independiente-rivadavia": {
+    "name": "Independiente Rivadavia",
+    "file": "independiente-rivadavia.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Independiente_Rivadavia",
+    "kind": "real",
+    "league": "Liga Profesional",
+    "country": "Argentina"
+  },
+  "instituto": {
+    "name": "Instituto",
+    "file": "instituto.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Instituto_Atl%C3%A9tico_Central_C%C3%B3rdoba",
+    "kind": "real",
+    "league": "Liga Profesional",
+    "country": "Argentina"
+  },
+  "lanus": {
+    "name": "Lanús",
+    "file": "lanus.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Club_Atl%C3%A9tico_Lan%C3%BAs",
+    "kind": "real",
+    "league": "Liga Profesional",
+    "country": "Argentina"
+  },
+  "platense": {
+    "name": "Platense",
+    "file": "platense.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Club_Atl%C3%A9tico_Platense",
+    "kind": "real",
+    "league": "Liga Profesional",
+    "country": "Argentina"
+  },
+  "racing-club": {
+    "name": "Racing Club",
+    "file": "racing-club.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Racing_Club_de_Avellaneda",
+    "kind": "real",
+    "league": "Liga Profesional",
+    "country": "Argentina"
+  },
+  "river-plate": {
+    "name": "River Plate",
+    "file": "river-plate.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Club_Atl%C3%A9tico_River_Plate",
+    "kind": "real",
+    "league": "Liga Profesional",
+    "country": "Argentina"
+  },
+  "rosario-central": {
+    "name": "Rosario Central",
+    "file": "rosario-central.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Rosario_Central",
+    "kind": "real",
+    "league": "Liga Profesional",
+    "country": "Argentina"
+  },
+  "san-lorenzo": {
+    "name": "San Lorenzo",
+    "file": "san-lorenzo.webp",
+    "source_url": "https://en.wikipedia.org/wiki/San_Lorenzo_de_Almagro",
+    "kind": "real",
+    "league": "Liga Profesional",
+    "country": "Argentina"
+  },
+  "sarmiento": {
+    "name": "Sarmiento",
+    "file": "sarmiento.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Club_Atl%C3%A9tico_Sarmiento",
+    "kind": "real",
+    "league": "Liga Profesional",
+    "country": "Argentina"
+  },
+  "talleres": {
+    "name": "Talleres",
+    "file": "talleres.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Talleres_de_C%C3%B3rdoba",
+    "kind": "real",
+    "league": "Liga Profesional",
+    "country": "Argentina"
+  },
+  "tigre": {
+    "name": "Tigre",
+    "file": "tigre.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Club_Atl%C3%A9tico_Tigre",
+    "kind": "real",
+    "league": "Liga Profesional",
+    "country": "Argentina"
+  },
+  "union": {
+    "name": "Unión",
+    "file": "union.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Uni%C3%B3n_de_Santa_Fe",
+    "kind": "real",
+    "league": "Liga Profesional",
+    "country": "Argentina"
+  },
+  "velez-sarsfield": {
+    "name": "Vélez Sarsfield",
+    "file": "velez-sarsfield.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Club_Atl%C3%A9tico_V%C3%A9lez_Sarsfield",
+    "kind": "real",
+    "league": "Liga Profesional",
+    "country": "Argentina"
+  },
+  "anderlecht": {
+    "name": "Anderlecht",
+    "file": "anderlecht.webp",
+    "source_url": "https://en.wikipedia.org/wiki/RSC_Anderlecht",
+    "kind": "real",
+    "league": "Pro League",
+    "country": "Belgium"
+  },
+  "antwerp": {
+    "name": "Antwerp",
+    "file": "antwerp.webp",
+    "source_url": "https://en.wikipedia.org/wiki/Royal_Antwerp_FC",
+    "kind": "real",
+    "league": "Pro League",
+    "country": "Belgium"
+  },
+  "beveren": {
+    "name": "Beveren",
+    "file": "beveren.webp",
+    "source_url": "https://en.wikipedia.org/wiki/SK_Beveren",
+    "kind": "real",
+    "league": "Pro League",
+    "country": "Belgium"
+  },
+  "cercle-brugge": {
+    "name": "Cercle Brugge",
+    "file": "cercle-brugge.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Cercle_Brugge_KSV",
+    "kind": "real",
+    "league": "Pro League",
+    "country": "Belgium"
+  },
+  "charleroi": {
+    "name": "Charleroi",
+    "file": "charleroi.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Royal_Charleroi_SC",
+    "kind": "real",
+    "league": "Pro League",
+    "country": "Belgium"
+  },
+  "club-brugge": {
+    "name": "Club Brugge",
+    "file": "club-brugge.webp",
+    "source_url": "https://en.wikipedia.org/wiki/Club_Brugge_KV",
+    "kind": "real",
+    "league": "Pro League",
+    "country": "Belgium"
+  },
+  "dender": {
+    "name": "Dender",
+    "file": "dender.svg",
+    "source_url": "https://en.wikipedia.org/wiki/FCV_Dender_EH",
+    "kind": "real",
+    "league": "Belgian Pro League",
+    "country": "Belgium"
+  },
+  "genk": {
+    "name": "Genk",
+    "file": "genk.svg",
+    "source_url": "https://en.wikipedia.org/wiki/KRC_Genk",
+    "kind": "real",
+    "league": "Pro League",
+    "country": "Belgium"
+  },
+  "gent": {
+    "name": "Gent",
+    "file": "gent.svg",
+    "source_url": "https://en.wikipedia.org/wiki/KAA_Gent",
+    "kind": "real",
+    "league": "Pro League",
+    "country": "Belgium"
+  },
+  "kortrijk": {
+    "name": "Kortrijk",
+    "file": "kortrijk.webp",
+    "source_url": "https://en.wikipedia.org/wiki/KV_Kortrijk",
+    "kind": "real",
+    "league": "Pro League",
+    "country": "Belgium"
+  },
+  "la-louviere": {
+    "name": "La Louvière",
+    "file": "la-louviere.svg",
+    "source_url": "https://en.wikipedia.org/wiki/RAAL_La_Louvi%C3%A8re",
+    "kind": "real",
+    "league": "Pro League",
+    "country": "Belgium"
+  },
+  "lommel-sk": {
+    "name": "Lommel SK",
+    "file": "lommel-sk.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Lommel_SK",
+    "kind": "real",
+    "league": "Pro League",
+    "country": "Belgium"
+  },
+  "mechelen": {
+    "name": "Mechelen",
+    "file": "mechelen.svg",
+    "source_url": "https://en.wikipedia.org/wiki/KV_Mechelen",
+    "kind": "real",
+    "league": "Pro League",
+    "country": "Belgium"
+  },
+  "oh-leuven": {
+    "name": "OH Leuven",
+    "file": "oh-leuven.webp",
+    "source_url": "https://en.wikipedia.org/wiki/Oud-Heverlee_Leuven",
+    "kind": "real",
+    "league": "Pro League",
+    "country": "Belgium"
+  },
+  "raal-la-louviere": {
+    "name": "RAAL La Louvière",
+    "file": "raal-la-louviere.svg",
+    "source_url": "https://en.wikipedia.org/wiki/RAAL_La_Louvi%C3%A8re",
+    "kind": "real",
+    "league": "Belgian Pro League",
+    "country": "Belgium"
+  },
+  "sint-truiden": {
+    "name": "Sint-Truiden",
+    "file": "sint-truiden.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Sint-Truidense_VV",
+    "kind": "real",
+    "league": "Pro League",
+    "country": "Belgium"
+  },
+  "standard-liege": {
+    "name": "Standard Liège",
+    "file": "standard-liege.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Standard_Li%C3%A8ge",
+    "kind": "real",
+    "league": "Pro League",
+    "country": "Belgium"
+  },
+  "union-sg": {
+    "name": "Union SG",
+    "file": "union-sg.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Royale_Union_Saint-Gilloise",
+    "kind": "real",
+    "league": "Pro League",
+    "country": "Belgium"
+  },
+  "westerlo": {
+    "name": "Westerlo",
+    "file": "westerlo.webp",
+    "source_url": "https://en.wikipedia.org/wiki/KVC_Westerlo",
+    "kind": "real",
+    "league": "Pro League",
+    "country": "Belgium"
+  },
+  "zulte-waregem": {
+    "name": "Zulte Waregem",
+    "file": "zulte-waregem.webp",
+    "source_url": "https://en.wikipedia.org/wiki/SV_Zulte_Waregem",
+    "kind": "real",
+    "league": "Pro League",
+    "country": "Belgium"
+  },
+  "athletico-paranaense": {
+    "name": "Athletico Paranaense",
+    "file": "athletico-paranaense.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Club_Athletico_Paranaense",
+    "kind": "real",
+    "league": "Brasileirão",
+    "country": "Brazil"
+  },
+  "atletico-mineiro": {
+    "name": "Atlético Mineiro",
+    "file": "atletico-mineiro.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Clube_Atl%C3%A9tico_Mineiro",
+    "kind": "real",
+    "league": "Brasileirão",
+    "country": "Brazil"
+  },
+  "bahia": {
+    "name": "Bahia",
+    "file": "bahia.webp",
+    "source_url": "https://en.wikipedia.org/wiki/Esporte_Clube_Bahia",
+    "kind": "real",
+    "league": "Brasileirão",
+    "country": "Brazil"
+  },
+  "botafogo": {
+    "name": "Botafogo",
+    "file": "botafogo.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Botafogo_FR",
+    "kind": "real",
+    "league": "Brasileirão",
+    "country": "Brazil"
+  },
+  "ceara": {
+    "name": "Ceará",
+    "file": "ceara.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Cear%C3%A1_Sporting_Club",
+    "kind": "real",
+    "league": "Brasileirão",
+    "country": "Brazil"
+  },
+  "chapecoense": {
+    "name": "Chapecoense",
+    "file": "chapecoense.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Associa%C3%A7%C3%A3o_Chapecoense_de_Futebol",
+    "kind": "real",
+    "league": "Brasileirão",
+    "country": "Brazil"
+  },
+  "corinthians": {
+    "name": "Corinthians",
+    "file": "corinthians.webp",
+    "source_url": "https://en.wikipedia.org/wiki/SC_Corinthians_Paulista",
+    "kind": "real",
+    "league": "Brasileirão",
+    "country": "Brazil"
+  },
+  "coritiba": {
+    "name": "Coritiba",
+    "file": "coritiba.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Coritiba_Foot_Ball_Club",
+    "kind": "real",
+    "league": "Brasileirão",
+    "country": "Brazil"
+  },
+  "cruzeiro": {
+    "name": "Cruzeiro",
+    "file": "cruzeiro.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Cruzeiro_EC",
+    "kind": "real",
+    "league": "Brasileirão",
+    "country": "Brazil"
+  },
+  "flamengo": {
+    "name": "Flamengo",
+    "file": "flamengo.svg",
+    "source_url": "https://en.wikipedia.org/wiki/CR_Flamengo",
+    "kind": "real",
+    "league": "Brasileirão",
+    "country": "Brazil"
+  },
+  "fluminense": {
+    "name": "Fluminense",
+    "file": "fluminense.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Fluminense_FC",
+    "kind": "real",
+    "league": "Brasileirão",
+    "country": "Brazil"
+  },
+  "fortaleza": {
+    "name": "Fortaleza",
+    "file": "fortaleza.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Fortaleza_Esporte_Clube",
+    "kind": "real",
+    "league": "Brasileirão",
+    "country": "Brazil"
+  },
+  "gremio": {
+    "name": "Grêmio",
+    "file": "gremio.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Gr%C3%AAmio_FBPA",
+    "kind": "real",
+    "league": "Brasileirão",
+    "country": "Brazil"
+  },
+  "internacional": {
+    "name": "Internacional",
+    "file": "internacional.svg",
+    "source_url": "https://en.wikipedia.org/wiki/SC_Internacional",
+    "kind": "real",
+    "league": "Brasileirão",
+    "country": "Brazil"
+  },
+  "juventude": {
+    "name": "Juventude",
+    "file": "juventude.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Esporte_Clube_Juventude",
+    "kind": "real",
+    "league": "Brasileirão",
+    "country": "Brazil"
+  },
+  "mirassol": {
+    "name": "Mirassol",
+    "file": "mirassol.webp",
+    "source_url": "https://en.wikipedia.org/wiki/Mirassol_Futebol_Clube",
+    "kind": "real",
+    "league": "Brasileirão",
+    "country": "Brazil"
+  },
+  "palmeiras": {
+    "name": "Palmeiras",
+    "file": "palmeiras.svg",
+    "source_url": "https://en.wikipedia.org/wiki/SE_Palmeiras",
+    "kind": "real",
+    "league": "Brasileirão",
+    "country": "Brazil"
+  },
+  "red-bull-bragantino": {
+    "name": "Red Bull Bragantino",
+    "file": "red-bull-bragantino.webp",
+    "source_url": "https://en.wikipedia.org/wiki/Red_Bull_Bragantino",
+    "kind": "real",
+    "league": "Brasileirão",
+    "country": "Brazil"
+  },
+  "remo": {
+    "name": "Remo",
+    "file": "remo.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Clube_do_Remo",
+    "kind": "real",
+    "league": "Brasileirão",
+    "country": "Brazil"
+  },
+  "santos": {
+    "name": "Santos",
+    "file": "santos.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Santos_FC",
+    "kind": "real",
+    "league": "Brasileirão",
+    "country": "Brazil"
+  },
+  "sport-recife": {
+    "name": "Sport Recife",
+    "file": "sport-recife.webp",
+    "source_url": "https://en.wikipedia.org/wiki/Sport_Club_do_Recife",
+    "kind": "real",
+    "league": "Brasileirão",
+    "country": "Brazil",
+    "bytes": 10150
+  },
+  "sao-paulo": {
+    "name": "São Paulo",
+    "file": "sao-paulo.svg",
+    "source_url": "https://en.wikipedia.org/wiki/S%C3%A3o_Paulo_FC",
+    "kind": "real",
+    "league": "Brasileirão",
+    "country": "Brazil"
+  },
+  "vasco-da-gama": {
+    "name": "Vasco da Gama",
+    "file": "vasco-da-gama.svg",
+    "source_url": "https://en.wikipedia.org/wiki/CR_Vasco_da_Gama",
+    "kind": "real",
+    "league": "Brasileirão",
+    "country": "Brazil"
+  },
+  "vitoria": {
+    "name": "Vitória",
+    "file": "vitoria.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Esporte_Clube_Vit%C3%B3ria",
+    "kind": "real",
+    "league": "Brasileirão",
+    "country": "Brazil"
+  },
+  "arsenal": {
+    "name": "Arsenal",
+    "file": "arsenal.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Arsenal_F.C.",
+    "kind": "real",
+    "league": "Premier League",
+    "country": "England"
+  },
+  "aston-villa": {
+    "name": "Aston Villa",
+    "file": "aston-villa.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Aston_Villa_F.C.",
+    "kind": "real",
+    "league": "Premier League",
+    "country": "England"
+  },
+  "bournemouth": {
+    "name": "Bournemouth",
+    "file": "bournemouth.webp",
+    "source_url": "https://en.wikipedia.org/wiki/AFC_Bournemouth",
+    "kind": "real",
+    "league": "Premier League",
+    "country": "England"
+  },
+  "brentford": {
+    "name": "Brentford",
+    "file": "brentford.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Brentford_F.C.",
+    "kind": "real",
+    "league": "Premier League",
+    "country": "England"
+  },
+  "brighton": {
+    "name": "Brighton",
+    "file": "brighton.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Brighton_%26_Hove_Albion_F.C.",
+    "kind": "real",
+    "league": "Premier League",
+    "country": "England"
+  },
+  "burnley": {
+    "name": "Burnley",
+    "file": "burnley.webp",
+    "source_url": "https://en.wikipedia.org/wiki/Burnley_F.C.",
+    "kind": "real",
+    "league": "Premier League",
+    "country": "England"
+  },
+  "chelsea": {
+    "name": "Chelsea",
+    "file": "chelsea.webp",
+    "source_url": "https://en.wikipedia.org/wiki/Chelsea_F.C.",
+    "kind": "real",
+    "league": "Premier League",
+    "country": "England"
+  },
+  "coventry-city": {
+    "name": "Coventry City",
+    "file": "coventry-city.webp",
+    "source_url": "https://en.wikipedia.org/wiki/Coventry_City_F.C.",
+    "kind": "real",
+    "league": "Premier League",
+    "country": "England"
+  },
+  "crystal-palace": {
+    "name": "Crystal Palace",
+    "file": "crystal-palace.webp",
+    "source_url": "https://en.wikipedia.org/wiki/Crystal_Palace_F.C.",
+    "kind": "real",
+    "league": "Premier League",
+    "country": "England"
+  },
+  "everton": {
+    "name": "Everton",
+    "file": "everton.webp",
+    "source_url": "https://en.wikipedia.org/wiki/Everton_F.C.",
+    "kind": "real",
+    "league": "Premier League",
+    "country": "England"
+  },
+  "fulham": {
+    "name": "Fulham",
+    "file": "fulham.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Fulham_F.C.",
+    "kind": "real",
+    "league": "Premier League",
+    "country": "England"
+  },
+  "hull-city": {
+    "name": "Hull City",
+    "file": "hull-city.webp",
+    "source_url": "https://en.wikipedia.org/wiki/Hull_City_A.F.C.",
+    "kind": "real",
+    "league": "Premier League",
+    "country": "England"
+  },
+  "ipswich-town": {
+    "name": "Ipswich Town",
+    "file": "ipswich-town.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Ipswich_Town_F.C.",
+    "kind": "real",
+    "league": "Premier League",
+    "country": "England"
+  },
+  "leeds": {
+    "name": "Leeds",
+    "file": "leeds.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Leeds_United_F.C.",
+    "kind": "real",
+    "league": "Premier League",
+    "country": "England"
+  },
+  "liverpool": {
+    "name": "Liverpool",
+    "file": "liverpool.webp",
+    "source_url": "https://en.wikipedia.org/wiki/Liverpool_F.C.",
+    "kind": "real",
+    "league": "Premier League",
+    "country": "England"
+  },
+  "man-city": {
+    "name": "Man City",
+    "file": "man-city.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Manchester_City_F.C.",
+    "kind": "real",
+    "league": "Premier League",
+    "country": "England"
+  },
+  "man-united": {
+    "name": "Man United",
+    "file": "man-united.webp",
+    "source_url": "https://en.wikipedia.org/wiki/Manchester_United_F.C.",
+    "kind": "real",
+    "league": "Premier League",
+    "country": "England"
+  },
+  "newcastle": {
+    "name": "Newcastle",
+    "file": "newcastle.webp",
+    "source_url": "https://en.wikipedia.org/wiki/Newcastle_United_F.C.",
+    "kind": "real",
+    "league": "Premier League",
+    "country": "England"
+  },
+  "nottm-forest": {
+    "name": "Nottm Forest",
+    "file": "nottm-forest.webp",
+    "source_url": "https://en.wikipedia.org/wiki/Nottingham_Forest_F.C.",
+    "kind": "real",
+    "league": "Premier League",
+    "country": "England"
+  },
+  "sunderland": {
+    "name": "Sunderland",
+    "file": "sunderland.webp",
+    "source_url": "https://en.wikipedia.org/wiki/Sunderland_A.F.C.",
+    "kind": "real",
+    "league": "Premier League",
+    "country": "England"
+  },
+  "tottenham": {
+    "name": "Tottenham",
+    "file": "tottenham.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Tottenham_Hotspur_F.C.",
+    "kind": "real",
+    "league": "Premier League",
+    "country": "England"
+  },
+  "west-ham": {
+    "name": "West Ham",
+    "file": "west-ham.svg",
+    "source_url": "https://en.wikipedia.org/wiki/West_Ham_United_F.C.",
+    "kind": "real",
+    "league": "Premier League",
+    "country": "England"
+  },
+  "wolves": {
+    "name": "Wolves",
+    "file": "wolves.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Wolverhampton_Wanderers_F.C.",
+    "kind": "real",
+    "league": "Premier League",
+    "country": "England"
+  },
+  "alaves": {
+    "name": "Alavés",
+    "file": "alaves.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Deportivo_Alav%C3%A9s",
+    "kind": "real",
+    "league": "LaLiga",
+    "country": "Spain"
+  },
+  "athletic-club": {
+    "name": "Athletic Club",
+    "file": "athletic-club.webp",
+    "source_url": "https://en.wikipedia.org/wiki/Athletic_Bilbao",
+    "kind": "real",
+    "league": "LaLiga",
+    "country": "Spain"
+  },
+  "atletico-madrid": {
+    "name": "Atlético Madrid",
+    "file": "atletico-madrid.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Atl%C3%A9tico_Madrid",
+    "kind": "real",
+    "league": "LaLiga",
+    "country": "Spain"
+  },
+  "barcelona": {
+    "name": "Barcelona",
+    "file": "barcelona.svg",
+    "source_url": "https://en.wikipedia.org/wiki/FC_Barcelona",
+    "kind": "real",
+    "league": "LaLiga",
+    "country": "Spain"
+  },
+  "celta-vigo": {
+    "name": "Celta Vigo",
+    "file": "celta-vigo.webp",
+    "source_url": "https://en.wikipedia.org/wiki/RC_Celta_de_Vigo",
+    "kind": "real",
+    "league": "LaLiga",
+    "country": "Spain"
+  },
+  "deportivo-a-coruna": {
+    "name": "Deportivo A Coruña",
+    "file": "deportivo-a-coruna.webp",
+    "source_url": "https://en.wikipedia.org/wiki/Deportivo_de_A_Coru%C3%B1a",
+    "kind": "real",
+    "league": "LaLiga",
+    "country": "Spain"
+  },
+  "elche": {
+    "name": "Elche",
+    "file": "elche.webp",
+    "source_url": "https://en.wikipedia.org/wiki/Elche_CF",
+    "kind": "real",
+    "league": "LaLiga",
+    "country": "Spain"
+  },
+  "espanyol": {
+    "name": "Espanyol",
+    "file": "espanyol.svg",
+    "source_url": "https://en.wikipedia.org/wiki/RCD_Espanyol",
+    "kind": "real",
+    "league": "LaLiga",
+    "country": "Spain"
+  },
+  "getafe": {
+    "name": "Getafe",
+    "file": "getafe.webp",
+    "source_url": "https://en.wikipedia.org/wiki/Getafe_CF",
+    "kind": "real",
+    "league": "LaLiga",
+    "country": "Spain",
+    "bytes": 10406
+  },
+  "girona": {
+    "name": "Girona",
+    "file": "girona.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Girona_FC",
+    "kind": "real",
+    "league": "LaLiga",
+    "country": "Spain"
+  },
+  "levante": {
+    "name": "Levante",
+    "file": "levante.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Levante_UD",
+    "kind": "real",
+    "league": "LaLiga",
+    "country": "Spain"
+  },
+  "mallorca": {
+    "name": "Mallorca",
+    "file": "mallorca.webp",
+    "source_url": "https://en.wikipedia.org/wiki/RCD_Mallorca",
+    "kind": "real",
+    "league": "LaLiga",
+    "country": "Spain"
+  },
+  "malaga": {
+    "name": "Málaga",
+    "file": "malaga.webp",
+    "source_url": "https://en.wikipedia.org/wiki/M%C3%A1laga_CF",
+    "kind": "real",
+    "league": "LaLiga",
+    "country": "Spain"
+  },
+  "osasuna": {
+    "name": "Osasuna",
+    "file": "osasuna.svg",
+    "source_url": "https://en.wikipedia.org/wiki/CA_Osasuna",
+    "kind": "real",
+    "league": "LaLiga",
+    "country": "Spain",
+    "bytes": 10702
+  },
+  "racing-santander": {
+    "name": "Racing Santander",
+    "file": "racing-santander.webp",
+    "source_url": "https://en.wikipedia.org/wiki/Racing_de_Santander",
+    "kind": "real",
+    "league": "LaLiga",
+    "country": "Spain"
+  },
+  "rayo-vallecano": {
+    "name": "Rayo Vallecano",
+    "file": "rayo-vallecano.webp",
+    "source_url": "https://en.wikipedia.org/wiki/Rayo_Vallecano",
+    "kind": "real",
+    "league": "LaLiga",
+    "country": "Spain"
+  },
+  "real-betis": {
+    "name": "Real Betis",
+    "file": "real-betis.webp",
+    "source_url": "https://en.wikipedia.org/wiki/Real_Betis",
+    "kind": "real",
+    "league": "LaLiga",
+    "country": "Spain"
+  },
+  "real-madrid": {
+    "name": "Real Madrid",
+    "file": "real-madrid.webp",
+    "source_url": "https://en.wikipedia.org/wiki/Real_Madrid_CF",
+    "kind": "real",
+    "league": "LaLiga",
+    "country": "Spain"
+  },
+  "real-oviedo": {
+    "name": "Real Oviedo",
+    "file": "real-oviedo.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Real_Oviedo",
+    "kind": "real",
+    "league": "LaLiga",
+    "country": "Spain",
+    "bytes": 13223
+  },
+  "real-sociedad": {
+    "name": "Real Sociedad",
+    "file": "real-sociedad.webp",
+    "source_url": "https://en.wikipedia.org/wiki/Real_Sociedad",
+    "kind": "real",
+    "league": "LaLiga",
+    "country": "Spain"
+  },
+  "sevilla": {
+    "name": "Sevilla",
+    "file": "sevilla.webp",
+    "source_url": "https://en.wikipedia.org/wiki/Sevilla_FC",
+    "kind": "real",
+    "league": "LaLiga",
+    "country": "Spain"
+  },
+  "valencia": {
+    "name": "Valencia",
+    "file": "valencia.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Valencia_CF",
+    "kind": "real",
+    "league": "LaLiga",
+    "country": "Spain"
+  },
+  "villarreal": {
+    "name": "Villarreal",
+    "file": "villarreal.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Villarreal_CF",
+    "kind": "real",
+    "league": "LaLiga",
+    "country": "Spain"
+  },
+  "aek-athens": {
+    "name": "AEK Athens",
+    "file": "aek-athens.svg",
+    "source_url": "https://en.wikipedia.org/wiki/AEK_Athens_F.C.",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Greece"
+  },
+  "apoel": {
+    "name": "APOEL",
+    "file": "apoel.svg",
+    "source_url": "https://en.wikipedia.org/wiki/APOEL_FC",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Cyprus"
+  },
+  "aberdeen": {
+    "name": "Aberdeen",
+    "file": "aberdeen.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Aberdeen_F.C.",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Scotland"
+  },
+  "aris-limassol": {
+    "name": "Aris Limassol",
+    "file": "aris-limassol.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Aris_Limassol_FC",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Cyprus"
+  },
+  "astana": {
+    "name": "Astana",
+    "file": "astana.svg",
+    "source_url": "https://en.wikipedia.org/wiki/FC_Astana",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Kazakhstan"
+  },
+  "basel": {
+    "name": "Basel",
+    "file": "basel.webp",
+    "source_url": "https://en.wikipedia.org/wiki/FC_Basel",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Switzerland"
+  },
+  "basaksehir": {
+    "name": "Başakşehir",
+    "file": "basaksehir.webp",
+    "source_url": "https://en.wikipedia.org/wiki/%C4%B0stanbul_Ba%C5%9Fak%C5%9Fehir_F.K.",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Turkey"
+  },
+  "besiktas": {
+    "name": "Beşiktaş",
+    "file": "besiktas.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Be%C5%9Fikta%C5%9F_J.K.",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Turkey"
+  },
+  "bod-glimt": {
+    "name": "Bodø/Glimt",
+    "file": "bod-glimt.svg",
+    "source_url": "https://en.wikipedia.org/wiki/FK_Bod%C3%B8/Glimt",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Norway"
+  },
+  "celje": {
+    "name": "Celje",
+    "file": "celje.svg",
+    "source_url": "https://en.wikipedia.org/wiki/NK_Celje",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Slovenia"
+  },
+  "celtic": {
+    "name": "Celtic",
+    "file": "celtic.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Celtic_F.C.",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Scotland"
+  },
+  "dinamo-minsk": {
+    "name": "Dinamo Minsk",
+    "file": "dinamo-minsk.svg",
+    "source_url": "https://en.wikipedia.org/wiki/FC_Dinamo_Minsk",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Belarus"
+  },
+  "dinamo-zagreb": {
+    "name": "Dinamo Zagreb",
+    "file": "dinamo-zagreb.svg",
+    "source_url": "https://en.wikipedia.org/wiki/GNK_Dinamo_Zagreb",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Croatia"
+  },
+  "dynamo-kyiv": {
+    "name": "Dynamo Kyiv",
+    "file": "dynamo-kyiv.svg",
+    "source_url": "https://en.wikipedia.org/wiki/FC_Dynamo_Kyiv",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Ukraine"
+  },
+  "fc-copenhagen": {
+    "name": "FC Copenhagen",
+    "file": "fc-copenhagen.svg",
+    "source_url": "https://en.wikipedia.org/wiki/F.C._Copenhagen",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Denmark"
+  },
+  "fcsb": {
+    "name": "FCSB",
+    "file": "fcsb.svg",
+    "source_url": "https://en.wikipedia.org/wiki/FCSB",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Romania"
+  },
+  "fenerbahce": {
+    "name": "Fenerbahçe",
+    "file": "fenerbahce.webp",
+    "source_url": "https://en.wikipedia.org/wiki/Fenerbah%C3%A7e_S.K._%28football%29",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Turkey"
+  },
+  "ferencvaros": {
+    "name": "Ferencváros",
+    "file": "ferencvaros.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Ferencv%C3%A1rosi_TC",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Hungary"
+  },
+  "galatasaray": {
+    "name": "Galatasaray",
+    "file": "galatasaray.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Galatasaray_S.K._%28football%29",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Turkey"
+  },
+  "hjk": {
+    "name": "HJK",
+    "file": "hjk.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Helsingin_Jalkapalloklubi",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Finland"
+  },
+  "hajduk-split": {
+    "name": "Hajduk Split",
+    "file": "hajduk-split.svg",
+    "source_url": "https://en.wikipedia.org/wiki/HNK_Hajduk_Split",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Croatia"
+  },
+  "hearts": {
+    "name": "Hearts",
+    "file": "hearts.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Heart_of_Midlothian_F.C.",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Scotland"
+  },
+  "ki-klaksvik": {
+    "name": "KÍ Klaksvík",
+    "file": "ki-klaksvik.webp",
+    "source_url": "https://en.wikipedia.org/wiki/Klaksv%C3%ADkar_%C3%8Dtr%C3%B3ttarfelag",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Faroe Islands",
+    "bytes": 5632
+  },
+  "lask": {
+    "name": "LASK",
+    "file": "lask.svg",
+    "source_url": "https://en.wikipedia.org/wiki/LASK",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Austria"
+  },
+  "lech-poznan": {
+    "name": "Lech Poznań",
+    "file": "lech-poznan.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Lech_Pozna%C5%84",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Poland"
+  },
+  "legia-warsaw": {
+    "name": "Legia Warsaw",
+    "file": "legia-warsaw.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Legia_Warsaw",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Poland"
+  },
+  "lincoln-red-imps": {
+    "name": "Lincoln Red Imps",
+    "file": "lincoln-red-imps.webp",
+    "source_url": "https://en.wikipedia.org/wiki/Lincoln_Red_Imps_F.C.",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Gibraltar"
+  },
+  "ludogorets": {
+    "name": "Ludogorets",
+    "file": "ludogorets.webp",
+    "source_url": "https://en.wikipedia.org/wiki/PFC_Ludogorets_Razgrad",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Bulgaria"
+  },
+  "maccabi-tel-aviv": {
+    "name": "Maccabi Tel Aviv",
+    "file": "maccabi-tel-aviv.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Maccabi_Tel_Aviv_F.C.",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Israel"
+  },
+  "malmo": {
+    "name": "Malmö",
+    "file": "malmo.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Malm%C3%B6_FF",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Sweden"
+  },
+  "midtjylland": {
+    "name": "Midtjylland",
+    "file": "midtjylland.svg",
+    "source_url": "https://en.wikipedia.org/wiki/FC_Midtjylland",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Denmark"
+  },
+  "molde": {
+    "name": "Molde",
+    "file": "molde.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Molde_FK",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Norway"
+  },
+  "olimpija": {
+    "name": "Olimpija",
+    "file": "olimpija.svg",
+    "source_url": "https://en.wikipedia.org/wiki/NK_Olimpija_Ljubljana",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Slovenia"
+  },
+  "olympiacos": {
+    "name": "Olympiacos",
+    "file": "olympiacos.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Olympiacos_F.C.",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Greece"
+  },
+  "omonia": {
+    "name": "Omonia",
+    "file": "omonia.webp",
+    "source_url": "https://en.wikipedia.org/wiki/AC_Omonia",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Cyprus"
+  },
+  "paok": {
+    "name": "PAOK",
+    "file": "paok.svg",
+    "source_url": "https://en.wikipedia.org/wiki/PAOK_FC",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Greece"
+  },
+  "panathinaikos": {
+    "name": "Panathinaikos",
+    "file": "panathinaikos.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Panathinaikos_F.C.",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Greece"
+  },
+  "partizan": {
+    "name": "Partizan",
+    "file": "partizan.svg",
+    "source_url": "https://en.wikipedia.org/wiki/FK_Partizan",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Serbia"
+  },
+  "qarabag": {
+    "name": "Qarabağ",
+    "file": "qarabag.webp",
+    "source_url": "https://en.wikipedia.org/wiki/Qaraba%C4%9F_FK",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Azerbaijan"
+  },
+  "rb-salzburg": {
+    "name": "RB Salzburg",
+    "file": "rb-salzburg.webp",
+    "source_url": "https://en.wikipedia.org/wiki/FC_Red_Bull_Salzburg",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Austria"
+  },
+  "rangers": {
+    "name": "Rangers",
+    "file": "rangers.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Rangers_F.C.",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Scotland"
+  },
+  "rapid-vienna": {
+    "name": "Rapid Vienna",
+    "file": "rapid-vienna.svg",
+    "source_url": "https://en.wikipedia.org/wiki/SK_Rapid_Wien",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Austria"
+  },
+  "red-star-belgrade": {
+    "name": "Red Star Belgrade",
+    "file": "red-star-belgrade.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Red_Star_Belgrade",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Serbia"
+  },
+  "rijeka": {
+    "name": "Rijeka",
+    "file": "rijeka.webp",
+    "source_url": "https://en.wikipedia.org/wiki/HNK_Rijeka",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Croatia"
+  },
+  "shakhtar-donetsk": {
+    "name": "Shakhtar Donetsk",
+    "file": "shakhtar-donetsk.svg",
+    "source_url": "https://en.wikipedia.org/wiki/FC_Shakhtar_Donetsk",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Ukraine"
+  },
+  "shamrock-rovers": {
+    "name": "Shamrock Rovers",
+    "file": "shamrock-rovers.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Shamrock_Rovers_F.C.",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Ireland"
+  },
+  "sheriff": {
+    "name": "Sheriff",
+    "file": "sheriff.webp",
+    "source_url": "https://en.wikipedia.org/wiki/FC_Sheriff_Tiraspol",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Moldova"
+  },
+  "slavia-prague": {
+    "name": "Slavia Prague",
+    "file": "slavia-prague.svg",
+    "source_url": "https://en.wikipedia.org/wiki/SK_Slavia_Prague",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Czech Republic"
+  },
+  "slovan-bratislava": {
+    "name": "Slovan Bratislava",
+    "file": "slovan-bratislava.svg",
+    "source_url": "https://en.wikipedia.org/wiki/%C5%A0K_Slovan_Bratislava",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Slovakia"
+  },
+  "sparta-prague": {
+    "name": "Sparta Prague",
+    "file": "sparta-prague.svg",
+    "source_url": "https://en.wikipedia.org/wiki/AC_Sparta_Prague",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Czech Republic"
+  },
+  "sturm-graz": {
+    "name": "Sturm Graz",
+    "file": "sturm-graz.svg",
+    "source_url": "https://en.wikipedia.org/wiki/SK_Sturm_Graz",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Austria"
+  },
+  "trabzonspor": {
+    "name": "Trabzonspor",
+    "file": "trabzonspor.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Trabzonspor",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Turkey"
+  },
+  "viktoria-plzen": {
+    "name": "Viktoria Plzeň",
+    "file": "viktoria-plzen.svg",
+    "source_url": "https://en.wikipedia.org/wiki/FC_Viktoria_Plze%C5%88",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Czech Republic"
+  },
+  "vojvodina": {
+    "name": "Vojvodina",
+    "file": "vojvodina.svg",
+    "source_url": "https://en.wikipedia.org/wiki/FK_Vojvodina",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Serbia"
+  },
+  "young-boys": {
+    "name": "Young Boys",
+    "file": "young-boys.svg",
+    "source_url": "https://en.wikipedia.org/wiki/BSC_Young_Boys",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Switzerland"
+  },
+  "zrinjski": {
+    "name": "Zrinjski",
+    "file": "zrinjski.webp",
+    "source_url": "https://en.wikipedia.org/wiki/H%C5%A0K_Zrinjski_Mostar",
+    "kind": "real",
+    "league": "European pool",
+    "country": "Bosnia and Herzegovina"
+  },
+  "angers": {
+    "name": "Angers",
+    "file": "angers.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Angers_SCO",
+    "kind": "real",
+    "league": "Ligue 1",
+    "country": "France"
+  },
+  "auxerre": {
+    "name": "Auxerre",
+    "file": "auxerre.svg",
+    "source_url": "https://en.wikipedia.org/wiki/AJ_Auxerre",
+    "kind": "real",
+    "league": "Ligue 1",
+    "country": "France"
+  },
+  "brest": {
+    "name": "Brest",
+    "file": "brest.webp",
+    "source_url": "https://en.wikipedia.org/wiki/Stade_Brestois_29",
+    "kind": "real",
+    "league": "Ligue 1",
+    "country": "France"
+  },
+  "le-havre": {
+    "name": "Le Havre",
+    "file": "le-havre.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Le_Havre_AC",
+    "kind": "real",
+    "league": "Ligue 1",
+    "country": "France",
+    "bytes": 11008
+  },
+  "le-mans": {
+    "name": "Le Mans",
+    "file": "le-mans.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Le_Mans_FC",
+    "kind": "real",
+    "league": "Ligue 1",
+    "country": "France"
+  },
+  "lens": {
+    "name": "Lens",
+    "file": "lens.webp",
+    "source_url": "https://en.wikipedia.org/wiki/RC_Lens",
+    "kind": "real",
+    "league": "Ligue 1",
+    "country": "France",
+    "bytes": 7712
+  },
+  "lille": {
+    "name": "Lille",
+    "file": "lille.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Lille_OSC",
+    "kind": "real",
+    "league": "Ligue 1",
+    "country": "France"
+  },
+  "lorient": {
+    "name": "Lorient",
+    "file": "lorient.webp",
+    "source_url": "https://en.wikipedia.org/wiki/FC_Lorient",
+    "kind": "real",
+    "league": "Ligue 1",
+    "country": "France"
+  },
+  "lyon": {
+    "name": "Lyon",
+    "file": "lyon.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Olympique_Lyonnais",
+    "kind": "real",
+    "league": "Ligue 1",
+    "country": "France"
+  },
+  "marseille": {
+    "name": "Marseille",
+    "file": "marseille.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Olympique_de_Marseille",
+    "kind": "real",
+    "league": "Ligue 1",
+    "country": "France"
+  },
+  "metz": {
+    "name": "Metz",
+    "file": "metz.svg",
+    "source_url": "https://en.wikipedia.org/wiki/FC_Metz",
+    "kind": "real",
+    "league": "Ligue 1",
+    "country": "France"
+  },
+  "monaco": {
+    "name": "Monaco",
+    "file": "monaco.svg",
+    "source_url": "https://en.wikipedia.org/wiki/AS_Monaco_FC",
+    "kind": "real",
+    "league": "Ligue 1",
+    "country": "France"
+  },
+  "nantes": {
+    "name": "Nantes",
+    "file": "nantes.svg",
+    "source_url": "https://en.wikipedia.org/wiki/FC_Nantes",
+    "kind": "real",
+    "league": "Ligue 1",
+    "country": "France"
+  },
+  "nice": {
+    "name": "Nice",
+    "file": "nice.webp",
+    "source_url": "https://en.wikipedia.org/wiki/OGC_Nice",
+    "kind": "real",
+    "league": "Ligue 1",
+    "country": "France"
+  },
+  "psg": {
+    "name": "PSG",
+    "file": "psg.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Paris_Saint-Germain_FC",
+    "kind": "real",
+    "league": "Ligue 1",
+    "country": "France"
+  },
+  "paris-fc": {
+    "name": "Paris FC",
+    "file": "paris-fc.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Paris_FC",
+    "kind": "real",
+    "league": "Ligue 1",
+    "country": "France"
+  },
+  "rennes": {
+    "name": "Rennes",
+    "file": "rennes.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Stade_Rennais_FC",
+    "kind": "real",
+    "league": "Ligue 1",
+    "country": "France",
+    "bytes": 17451
+  },
+  "strasbourg": {
+    "name": "Strasbourg",
+    "file": "strasbourg.svg",
+    "source_url": "https://en.wikipedia.org/wiki/RC_Strasbourg_Alsace",
+    "kind": "real",
+    "league": "Ligue 1",
+    "country": "France"
+  },
+  "toulouse": {
+    "name": "Toulouse",
+    "file": "toulouse.webp",
+    "source_url": "https://en.wikipedia.org/wiki/Toulouse_FC",
+    "kind": "real",
+    "league": "Ligue 1",
+    "country": "France"
+  },
+  "troyes": {
+    "name": "Troyes",
+    "file": "troyes.webp",
+    "source_url": "https://en.wikipedia.org/wiki/ES_Troyes_AC",
+    "kind": "real",
+    "league": "Ligue 1",
+    "country": "France"
+  },
+  "augsburg": {
+    "name": "Augsburg",
+    "file": "augsburg.webp",
+    "source_url": "https://en.wikipedia.org/wiki/FC_Augsburg",
+    "kind": "real",
+    "league": "Bundesliga",
+    "country": "Germany"
+  },
+  "bayern": {
+    "name": "Bayern",
+    "file": "bayern.svg",
+    "source_url": "https://en.wikipedia.org/wiki/FC_Bayern_Munich",
+    "kind": "real",
+    "league": "Bundesliga",
+    "country": "Germany"
+  },
+  "dortmund": {
+    "name": "Dortmund",
+    "file": "dortmund.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Borussia_Dortmund",
+    "kind": "real",
+    "league": "Bundesliga",
+    "country": "Germany"
+  },
+  "eintracht-frankfurt": {
+    "name": "Eintracht Frankfurt",
+    "file": "eintracht-frankfurt.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Eintracht_Frankfurt",
+    "kind": "real",
+    "league": "Bundesliga",
+    "country": "Germany"
+  },
+  "elversberg": {
+    "name": "Elversberg",
+    "file": "elversberg.svg",
+    "source_url": "https://en.wikipedia.org/wiki/SV_Elversberg",
+    "kind": "real",
+    "league": "Bundesliga",
+    "country": "Germany"
+  },
+  "fc-koln": {
+    "name": "FC Köln",
+    "file": "fc-koln.svg",
+    "source_url": "https://en.wikipedia.org/wiki/1._FC_K%C3%B6ln",
+    "kind": "real",
+    "league": "Bundesliga",
+    "country": "Germany"
+  },
+  "freiburg": {
+    "name": "Freiburg",
+    "file": "freiburg.svg",
+    "source_url": "https://en.wikipedia.org/wiki/SC_Freiburg",
+    "kind": "real",
+    "league": "Bundesliga",
+    "country": "Germany"
+  },
+  "gladbach": {
+    "name": "Gladbach",
+    "file": "gladbach.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Borussia_M%C3%B6nchengladbach",
+    "kind": "real",
+    "league": "Bundesliga",
+    "country": "Germany"
+  },
+  "hamburger-sv": {
+    "name": "Hamburger SV",
+    "file": "hamburger-sv.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Hamburger_SV",
+    "kind": "real",
+    "league": "Bundesliga",
+    "country": "Germany"
+  },
+  "heidenheim": {
+    "name": "Heidenheim",
+    "file": "heidenheim.svg",
+    "source_url": "https://en.wikipedia.org/wiki/1._FC_Heidenheim",
+    "kind": "real",
+    "league": "Bundesliga",
+    "country": "Germany"
+  },
+  "hoffenheim": {
+    "name": "Hoffenheim",
+    "file": "hoffenheim.svg",
+    "source_url": "https://en.wikipedia.org/wiki/TSG_1899_Hoffenheim",
+    "kind": "real",
+    "league": "Bundesliga",
+    "country": "Germany"
+  },
+  "leverkusen": {
+    "name": "Leverkusen",
+    "file": "leverkusen.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Bayer_04_Leverkusen",
+    "kind": "real",
+    "league": "Bundesliga",
+    "country": "Germany"
+  },
+  "mainz": {
+    "name": "Mainz",
+    "file": "mainz.svg",
+    "source_url": "https://en.wikipedia.org/wiki/1._FSV_Mainz_05",
+    "kind": "real",
+    "league": "Bundesliga",
+    "country": "Germany"
+  },
+  "paderborn": {
+    "name": "Paderborn",
+    "file": "paderborn.svg",
+    "source_url": "https://en.wikipedia.org/wiki/SC_Paderborn_07",
+    "kind": "real",
+    "league": "Bundesliga",
+    "country": "Germany"
+  },
+  "rb-leipzig": {
+    "name": "RB Leipzig",
+    "file": "rb-leipzig.svg",
+    "source_url": "https://en.wikipedia.org/wiki/RB_Leipzig",
+    "kind": "real",
+    "league": "Bundesliga",
+    "country": "Germany"
+  },
+  "schalke-04": {
+    "name": "Schalke 04",
+    "file": "schalke-04.svg",
+    "source_url": "https://en.wikipedia.org/wiki/FC_Schalke_04",
+    "kind": "real",
+    "league": "Bundesliga",
+    "country": "Germany"
+  },
+  "st-pauli": {
+    "name": "St. Pauli",
+    "file": "st-pauli.svg",
+    "source_url": "https://en.wikipedia.org/wiki/FC_St._Pauli",
+    "kind": "real",
+    "league": "Bundesliga",
+    "country": "Germany"
+  },
+  "stuttgart": {
+    "name": "Stuttgart",
+    "file": "stuttgart.svg",
+    "source_url": "https://en.wikipedia.org/wiki/VfB_Stuttgart",
+    "kind": "real",
+    "league": "Bundesliga",
+    "country": "Germany"
+  },
+  "union-berlin": {
+    "name": "Union Berlin",
+    "file": "union-berlin.svg",
+    "source_url": "https://en.wikipedia.org/wiki/1._FC_Union_Berlin",
+    "kind": "real",
+    "league": "Bundesliga",
+    "country": "Germany"
+  },
+  "werder-bremen": {
+    "name": "Werder Bremen",
+    "file": "werder-bremen.svg",
+    "source_url": "https://en.wikipedia.org/wiki/SV_Werder_Bremen",
+    "kind": "real",
+    "league": "Bundesliga",
+    "country": "Germany"
+  },
+  "wolfsburg": {
+    "name": "Wolfsburg",
+    "file": "wolfsburg.svg",
+    "source_url": "https://en.wikipedia.org/wiki/VfL_Wolfsburg",
+    "kind": "real",
+    "league": "Bundesliga",
+    "country": "Germany"
+  },
+  "ac-milan": {
+    "name": "AC Milan",
+    "file": "ac-milan.svg",
+    "source_url": "https://en.wikipedia.org/wiki/AC_Milan",
+    "kind": "real",
+    "league": "Serie A",
+    "country": "Italy"
+  },
+  "atalanta": {
+    "name": "Atalanta",
+    "file": "atalanta.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Atalanta_BC",
+    "kind": "real",
+    "league": "Serie A",
+    "country": "Italy"
+  },
+  "bologna": {
+    "name": "Bologna",
+    "file": "bologna.webp",
+    "source_url": "https://en.wikipedia.org/wiki/Bologna_FC_1909",
+    "kind": "real",
+    "league": "Serie A",
+    "country": "Italy"
+  },
+  "cagliari": {
+    "name": "Cagliari",
+    "file": "cagliari.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Cagliari_Calcio",
+    "kind": "real",
+    "league": "Serie A",
+    "country": "Italy"
+  },
+  "como": {
+    "name": "Como",
+    "file": "como.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Como_1907",
+    "kind": "real",
+    "league": "Serie A",
+    "country": "Italy"
+  },
+  "cremonese": {
+    "name": "Cremonese",
+    "file": "cremonese.svg",
+    "source_url": "https://en.wikipedia.org/wiki/US_Cremonese",
+    "kind": "real",
+    "league": "Serie A",
+    "country": "Italy"
+  },
+  "fiorentina": {
+    "name": "Fiorentina",
+    "file": "fiorentina.svg",
+    "source_url": "https://en.wikipedia.org/wiki/ACF_Fiorentina",
+    "kind": "real",
+    "league": "Serie A",
+    "country": "Italy"
+  },
+  "frosinone": {
+    "name": "Frosinone",
+    "file": "frosinone.webp",
+    "source_url": "https://en.wikipedia.org/wiki/Frosinone_Calcio",
+    "kind": "real",
+    "league": "Serie A",
+    "country": "Italy"
+  },
+  "genoa": {
+    "name": "Genoa",
+    "file": "genoa.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Genoa_CFC",
+    "kind": "real",
+    "league": "Serie A",
+    "country": "Italy",
+    "bytes": 7803
+  },
+  "hellas-verona": {
+    "name": "Hellas Verona",
+    "file": "hellas-verona.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Hellas_Verona_FC",
+    "kind": "real",
+    "league": "Serie A",
+    "country": "Italy",
+    "bytes": 16654
+  },
+  "inter": {
+    "name": "Inter",
+    "file": "inter.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Inter_Milan",
+    "kind": "real",
+    "league": "Serie A",
+    "country": "Italy"
+  },
+  "juventus": {
+    "name": "Juventus",
+    "file": "juventus.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Juventus_FC",
+    "kind": "real",
+    "league": "Serie A",
+    "country": "Italy"
+  },
+  "lazio": {
+    "name": "Lazio",
+    "file": "lazio.webp",
+    "source_url": "https://en.wikipedia.org/wiki/SS_Lazio",
+    "kind": "real",
+    "league": "Serie A",
+    "country": "Italy",
+    "bytes": 4626
+  },
+  "lecce": {
+    "name": "Lecce",
+    "file": "lecce.webp",
+    "source_url": "https://en.wikipedia.org/wiki/US_Lecce",
+    "kind": "real",
+    "league": "Serie A",
+    "country": "Italy",
+    "bytes": 8016
+  },
+  "monza": {
+    "name": "Monza",
+    "file": "monza.svg",
+    "source_url": "https://en.wikipedia.org/wiki/AC_Monza",
+    "kind": "real",
+    "league": "Serie A",
+    "country": "Italy"
+  },
+  "napoli": {
+    "name": "Napoli",
+    "file": "napoli.svg",
+    "source_url": "https://en.wikipedia.org/wiki/SSC_Napoli",
+    "kind": "real",
+    "league": "Serie A",
+    "country": "Italy"
+  },
+  "parma": {
+    "name": "Parma",
+    "file": "parma.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Parma_Calcio_1913",
+    "kind": "real",
+    "league": "Serie A",
+    "country": "Italy"
+  },
+  "pisa": {
+    "name": "Pisa",
+    "file": "pisa.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Pisa_SC",
+    "kind": "real",
+    "league": "Serie A",
+    "country": "Italy"
+  },
+  "roma": {
+    "name": "Roma",
+    "file": "roma.webp",
+    "source_url": "https://en.wikipedia.org/wiki/AS_Roma",
+    "kind": "real",
+    "league": "Serie A",
+    "country": "Italy"
+  },
+  "sassuolo": {
+    "name": "Sassuolo",
+    "file": "sassuolo.svg",
+    "source_url": "https://en.wikipedia.org/wiki/US_Sassuolo_Calcio",
+    "kind": "real",
+    "league": "Serie A",
+    "country": "Italy",
+    "bytes": 9524
+  },
+  "torino": {
+    "name": "Torino",
+    "file": "torino.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Torino_FC",
+    "kind": "real",
+    "league": "Serie A",
+    "country": "Italy",
+    "bytes": 22769
+  },
+  "udinese": {
+    "name": "Udinese",
+    "file": "udinese.webp",
+    "source_url": "https://en.wikipedia.org/wiki/Udinese_Calcio",
+    "kind": "real",
+    "league": "Serie A",
+    "country": "Italy",
+    "bytes": 11756
+  },
+  "venezia": {
+    "name": "Venezia",
+    "file": "venezia.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Venezia_FC",
+    "kind": "real",
+    "league": "Serie A",
+    "country": "Italy"
+  },
+  "ado-den-haag": {
+    "name": "ADO Den Haag",
+    "file": "ado-den-haag.svg",
+    "source_url": "https://en.wikipedia.org/wiki/ADO_Den_Haag",
+    "kind": "real",
+    "league": "Eredivisie",
+    "country": "Netherlands"
+  },
+  "az": {
+    "name": "AZ",
+    "file": "az.svg",
+    "source_url": "https://en.wikipedia.org/wiki/AZ_Alkmaar",
+    "kind": "real",
+    "league": "Eredivisie",
+    "country": "Netherlands"
+  },
+  "ajax": {
+    "name": "Ajax",
+    "file": "ajax.webp",
+    "source_url": "https://en.wikipedia.org/wiki/AFC_Ajax",
+    "kind": "real",
+    "league": "Eredivisie",
+    "country": "Netherlands"
+  },
+  "cambuur": {
+    "name": "Cambuur",
+    "file": "cambuur.svg",
+    "source_url": "https://en.wikipedia.org/wiki/SC_Cambuur",
+    "kind": "real",
+    "league": "Eredivisie",
+    "country": "Netherlands"
+  },
+  "excelsior": {
+    "name": "Excelsior",
+    "file": "excelsior.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Excelsior_Rotterdam",
+    "kind": "real",
+    "league": "Eredivisie",
+    "country": "Netherlands"
+  },
+  "feyenoord": {
+    "name": "Feyenoord",
+    "file": "feyenoord.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Feyenoord",
+    "kind": "real",
+    "league": "Eredivisie",
+    "country": "Netherlands"
+  },
+  "fortuna-sittard": {
+    "name": "Fortuna Sittard",
+    "file": "fortuna-sittard.webp",
+    "source_url": "https://en.wikipedia.org/wiki/Fortuna_Sittard",
+    "kind": "real",
+    "league": "Eredivisie",
+    "country": "Netherlands"
+  },
+  "go-ahead-eagles": {
+    "name": "Go Ahead Eagles",
+    "file": "go-ahead-eagles.webp",
+    "source_url": "https://en.wikipedia.org/wiki/Go_Ahead_Eagles",
+    "kind": "real",
+    "league": "Eredivisie",
+    "country": "Netherlands"
+  },
+  "groningen": {
+    "name": "Groningen",
+    "file": "groningen.svg",
+    "source_url": "https://en.wikipedia.org/wiki/FC_Groningen",
+    "kind": "real",
+    "league": "Eredivisie",
+    "country": "Netherlands"
+  },
+  "heerenveen": {
+    "name": "Heerenveen",
+    "file": "heerenveen.svg",
+    "source_url": "https://en.wikipedia.org/wiki/SC_Heerenveen",
+    "kind": "real",
+    "league": "Eredivisie",
+    "country": "Netherlands"
+  },
+  "heracles": {
+    "name": "Heracles",
+    "file": "heracles.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Heracles_Almelo",
+    "kind": "real",
+    "league": "Eredivisie",
+    "country": "Netherlands"
+  },
+  "nac-breda": {
+    "name": "NAC Breda",
+    "file": "nac-breda.svg",
+    "source_url": "https://en.wikipedia.org/wiki/NAC_Breda",
+    "kind": "real",
+    "league": "Eredivisie",
+    "country": "Netherlands"
+  },
+  "nec": {
+    "name": "NEC",
+    "file": "nec.svg",
+    "source_url": "https://en.wikipedia.org/wiki/NEC_Nijmegen",
+    "kind": "real",
+    "league": "Eredivisie",
+    "country": "Netherlands"
+  },
+  "pec-zwolle": {
+    "name": "PEC Zwolle",
+    "file": "pec-zwolle.svg",
+    "source_url": "https://en.wikipedia.org/wiki/PEC_Zwolle",
+    "kind": "real",
+    "league": "Eredivisie",
+    "country": "Netherlands"
+  },
+  "psv": {
+    "name": "PSV",
+    "file": "psv.svg",
+    "source_url": "https://en.wikipedia.org/wiki/PSV_Eindhoven",
+    "kind": "real",
+    "league": "Eredivisie",
+    "country": "Netherlands"
+  },
+  "sparta-rotterdam": {
+    "name": "Sparta Rotterdam",
+    "file": "sparta-rotterdam.webp",
+    "source_url": "https://en.wikipedia.org/wiki/Sparta_Rotterdam",
+    "kind": "real",
+    "league": "Eredivisie",
+    "country": "Netherlands"
+  },
+  "telstar": {
+    "name": "Telstar",
+    "file": "telstar.svg",
+    "source_url": "https://en.wikipedia.org/wiki/SC_Telstar",
+    "kind": "real",
+    "league": "Eredivisie",
+    "country": "Netherlands"
+  },
+  "twente": {
+    "name": "Twente",
+    "file": "twente.webp",
+    "source_url": "https://en.wikipedia.org/wiki/FC_Twente",
+    "kind": "real",
+    "league": "Eredivisie",
+    "country": "Netherlands"
+  },
+  "utrecht": {
+    "name": "Utrecht",
+    "file": "utrecht.svg",
+    "source_url": "https://en.wikipedia.org/wiki/FC_Utrecht",
+    "kind": "real",
+    "league": "Eredivisie",
+    "country": "Netherlands"
+  },
+  "volendam": {
+    "name": "Volendam",
+    "file": "volendam.svg",
+    "source_url": "https://en.wikipedia.org/wiki/FC_Volendam",
+    "kind": "real",
+    "league": "Eredivisie",
+    "country": "Netherlands"
+  },
+  "willem-ii": {
+    "name": "Willem II",
+    "file": "willem-ii.webp",
+    "source_url": "https://en.wikipedia.org/wiki/Willem_II_Tilburg",
+    "kind": "real",
+    "league": "Eredivisie",
+    "country": "Netherlands"
+  },
+  "avs": {
+    "name": "AVS",
+    "file": "avs.svg",
+    "source_url": "https://en.wikipedia.org/wiki/AVS_Futebol_SAD",
+    "kind": "real",
+    "league": "Liga Portugal",
+    "country": "Portugal"
+  },
+  "academico-de-viseu": {
+    "name": "Académico de Viseu",
+    "file": "academico-de-viseu.webp",
+    "source_url": "https://en.wikipedia.org/wiki/Acad%C3%A9mico_de_Viseu_F.C.",
+    "kind": "real",
+    "league": "Liga Portugal",
+    "country": "Portugal"
+  },
+  "alverca": {
+    "name": "Alverca",
+    "file": "alverca.webp",
+    "source_url": "https://en.wikipedia.org/wiki/F.C._Alverca",
+    "kind": "real",
+    "league": "Liga Portugal",
+    "country": "Portugal"
+  },
+  "arouca": {
+    "name": "Arouca",
+    "file": "arouca.webp",
+    "source_url": "https://en.wikipedia.org/wiki/F.C._Arouca",
+    "kind": "real",
+    "league": "Liga Portugal",
+    "country": "Portugal"
+  },
+  "benfica": {
+    "name": "Benfica",
+    "file": "benfica.webp",
+    "source_url": "https://en.wikipedia.org/wiki/S.L._Benfica",
+    "kind": "real",
+    "league": "Liga Portugal",
+    "country": "Portugal"
+  },
+  "braga": {
+    "name": "Braga",
+    "file": "braga.webp",
+    "source_url": "https://en.wikipedia.org/wiki/S.C._Braga",
+    "kind": "real",
+    "league": "Liga Portugal",
+    "country": "Portugal"
+  },
+  "casa-pia": {
+    "name": "Casa Pia",
+    "file": "casa-pia.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Casa_Pia_A.C.",
+    "kind": "real",
+    "league": "Liga Portugal",
+    "country": "Portugal"
+  },
+  "estoril": {
+    "name": "Estoril",
+    "file": "estoril.svg",
+    "source_url": "https://en.wikipedia.org/wiki/G.D._Estoril_Praia",
+    "kind": "real",
+    "league": "Liga Portugal",
+    "country": "Portugal"
+  },
+  "estrela-amadora": {
+    "name": "Estrela Amadora",
+    "file": "estrela-amadora.svg",
+    "source_url": "https://en.wikipedia.org/wiki/C.F._Estrela_da_Amadora",
+    "kind": "real",
+    "league": "Liga Portugal",
+    "country": "Portugal"
+  },
+  "estrela-da-amadora": {
+    "name": "Estrela da Amadora",
+    "file": "estrela-da-amadora.svg",
+    "source_url": "https://en.wikipedia.org/wiki/C.F._Estrela_da_Amadora",
+    "kind": "real",
+    "league": "Liga Portugal",
+    "country": "Portugal"
+  },
+  "fc-porto": {
+    "name": "FC Porto",
+    "file": "fc-porto.webp",
+    "source_url": "https://en.wikipedia.org/wiki/FC_Porto",
+    "kind": "real",
+    "league": "Liga Portugal",
+    "country": "Portugal"
+  },
+  "famalicao": {
+    "name": "Famalicão",
+    "file": "famalicao.webp",
+    "source_url": "https://en.wikipedia.org/wiki/F.C._Famalic%C3%A3o",
+    "kind": "real",
+    "league": "Liga Portugal",
+    "country": "Portugal"
+  },
+  "gil-vicente": {
+    "name": "Gil Vicente",
+    "file": "gil-vicente.webp",
+    "source_url": "https://en.wikipedia.org/wiki/Gil_Vicente_F.C.",
+    "kind": "real",
+    "league": "Liga Portugal",
+    "country": "Portugal"
+  },
+  "maritimo": {
+    "name": "Marítimo",
+    "file": "maritimo.webp",
+    "source_url": "https://en.wikipedia.org/wiki/C.S._Mar%C3%ADtimo",
+    "kind": "real",
+    "league": "Liga Portugal",
+    "country": "Portugal"
+  },
+  "moreirense": {
+    "name": "Moreirense",
+    "file": "moreirense.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Moreirense_F.C.",
+    "kind": "real",
+    "league": "Liga Portugal",
+    "country": "Portugal"
+  },
+  "nacional": {
+    "name": "Nacional",
+    "file": "nacional.webp",
+    "source_url": "https://en.wikipedia.org/wiki/C.D._Nacional",
+    "kind": "real",
+    "league": "Liga Portugal",
+    "country": "Portugal"
+  },
+  "rio-ave": {
+    "name": "Rio Ave",
+    "file": "rio-ave.webp",
+    "source_url": "https://en.wikipedia.org/wiki/Rio_Ave_F.C.",
+    "kind": "real",
+    "league": "Liga Portugal",
+    "country": "Portugal"
+  },
+  "santa-clara": {
+    "name": "Santa Clara",
+    "file": "santa-clara.svg",
+    "source_url": "https://en.wikipedia.org/wiki/C.D._Santa_Clara",
+    "kind": "real",
+    "league": "Liga Portugal",
+    "country": "Portugal"
+  },
+  "sporting-cp": {
+    "name": "Sporting CP",
+    "file": "sporting-cp.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Sporting_CP",
+    "kind": "real",
+    "league": "Liga Portugal",
+    "country": "Portugal"
+  },
+  "tondela": {
+    "name": "Tondela",
+    "file": "tondela.svg",
+    "source_url": "https://en.wikipedia.org/wiki/C.D._Tondela",
+    "kind": "real",
+    "league": "Liga Portugal",
+    "country": "Portugal"
+  },
+  "vitoria-sc": {
+    "name": "Vitória SC",
+    "file": "vitoria-sc.webp",
+    "source_url": "https://en.wikipedia.org/wiki/Vit%C3%B3ria_S.C.",
+    "kind": "real",
+    "league": "Liga Portugal",
+    "country": "Portugal"
+  },
+  "atlanta-united": {
+    "name": "Atlanta United",
+    "file": "atlanta-united.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Atlanta_United_FC",
+    "kind": "real",
+    "league": "MLS",
+    "country": "USA"
+  },
+  "austin-fc": {
+    "name": "Austin FC",
+    "file": "austin-fc.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Austin_FC",
+    "kind": "real",
+    "league": "MLS",
+    "country": "USA"
+  },
+  "cf-montreal": {
+    "name": "CF Montréal",
+    "file": "cf-montreal.webp",
+    "source_url": "https://en.wikipedia.org/wiki/CF_Montr%C3%A9al",
+    "kind": "real",
+    "league": "MLS",
+    "country": "USA"
+  },
+  "charlotte-fc": {
+    "name": "Charlotte FC",
+    "file": "charlotte-fc.webp",
+    "source_url": "https://en.wikipedia.org/wiki/Charlotte_FC",
+    "kind": "real",
+    "league": "MLS",
+    "country": "USA"
+  },
+  "chicago-fire": {
+    "name": "Chicago Fire",
+    "file": "chicago-fire.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Chicago_Fire_FC",
+    "kind": "real",
+    "league": "MLS",
+    "country": "USA"
+  },
+  "colorado-rapids": {
+    "name": "Colorado Rapids",
+    "file": "colorado-rapids.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Colorado_Rapids",
+    "kind": "real",
+    "league": "MLS",
+    "country": "USA"
+  },
+  "columbus-crew": {
+    "name": "Columbus Crew",
+    "file": "columbus-crew.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Columbus_Crew",
+    "kind": "real",
+    "league": "MLS",
+    "country": "USA"
+  },
+  "dc-united": {
+    "name": "D.C. United",
+    "file": "dc-united.svg",
+    "source_url": "https://en.wikipedia.org/wiki/D.C._United",
+    "kind": "real",
+    "league": "MLS",
+    "country": "USA"
+  },
+  "fc-cincinnati": {
+    "name": "FC Cincinnati",
+    "file": "fc-cincinnati.svg",
+    "source_url": "https://en.wikipedia.org/wiki/FC_Cincinnati",
+    "kind": "real",
+    "league": "MLS",
+    "country": "USA"
+  },
+  "fc-dallas": {
+    "name": "FC Dallas",
+    "file": "fc-dallas.svg",
+    "source_url": "https://en.wikipedia.org/wiki/FC_Dallas",
+    "kind": "real",
+    "league": "MLS",
+    "country": "USA"
+  },
+  "houston-dynamo": {
+    "name": "Houston Dynamo",
+    "file": "houston-dynamo.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Houston_Dynamo_FC",
+    "kind": "real",
+    "league": "MLS",
+    "country": "USA"
+  },
+  "inter-miami": {
+    "name": "Inter Miami",
+    "file": "inter-miami.webp",
+    "source_url": "https://en.wikipedia.org/wiki/Inter_Miami_CF",
+    "kind": "real",
+    "league": "MLS",
+    "country": "USA"
+  },
+  "la-galaxy": {
+    "name": "LA Galaxy",
+    "file": "la-galaxy.svg",
+    "source_url": "https://en.wikipedia.org/wiki/LA_Galaxy",
+    "kind": "real",
+    "league": "MLS",
+    "country": "USA"
+  },
+  "lafc": {
+    "name": "LAFC",
+    "file": "lafc.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Los_Angeles_FC",
+    "kind": "real",
+    "league": "MLS",
+    "country": "United States"
+  },
+  "los-angeles-fc": {
+    "name": "Los Angeles FC",
+    "file": "los-angeles-fc.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Los_Angeles_FC",
+    "kind": "real",
+    "league": "MLS",
+    "country": "USA"
+  },
+  "minnesota-united": {
+    "name": "Minnesota United",
+    "file": "minnesota-united.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Minnesota_United_FC",
+    "kind": "real",
+    "league": "MLS",
+    "country": "USA"
+  },
+  "nashville-sc": {
+    "name": "Nashville SC",
+    "file": "nashville-sc.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Nashville_SC",
+    "kind": "real",
+    "league": "MLS",
+    "country": "USA"
+  },
+  "new-england-revolution": {
+    "name": "New England Revolution",
+    "file": "new-england-revolution.webp",
+    "source_url": "https://en.wikipedia.org/wiki/New_England_Revolution",
+    "kind": "real",
+    "league": "MLS",
+    "country": "USA"
+  },
+  "new-york-city-fc": {
+    "name": "New York City FC",
+    "file": "new-york-city-fc.svg",
+    "source_url": "https://en.wikipedia.org/wiki/New_York_City_FC",
+    "kind": "real",
+    "league": "MLS",
+    "country": "USA"
+  },
+  "new-york-red-bulls": {
+    "name": "New York Red Bulls",
+    "file": "new-york-red-bulls.webp",
+    "source_url": "https://en.wikipedia.org/wiki/New_York_Red_Bulls",
+    "kind": "real",
+    "league": "MLS",
+    "country": "USA"
+  },
+  "orlando-city": {
+    "name": "Orlando City",
+    "file": "orlando-city.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Orlando_City_SC",
+    "kind": "real",
+    "league": "MLS",
+    "country": "USA"
+  },
+  "philadelphia-union": {
+    "name": "Philadelphia Union",
+    "file": "philadelphia-union.webp",
+    "source_url": "https://en.wikipedia.org/wiki/Philadelphia_Union",
+    "kind": "real",
+    "league": "MLS",
+    "country": "USA"
+  },
+  "portland-timbers": {
+    "name": "Portland Timbers",
+    "file": "portland-timbers.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Portland_Timbers",
+    "kind": "real",
+    "league": "MLS",
+    "country": "USA"
+  },
+  "real-salt-lake": {
+    "name": "Real Salt Lake",
+    "file": "real-salt-lake.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Real_Salt_Lake",
+    "kind": "real",
+    "league": "MLS",
+    "country": "USA"
+  },
+  "san-diego-fc": {
+    "name": "San Diego FC",
+    "file": "san-diego-fc.svg",
+    "source_url": "https://en.wikipedia.org/wiki/San_Diego_FC",
+    "kind": "real",
+    "league": "MLS",
+    "country": "USA"
+  },
+  "san-jose-earthquakes": {
+    "name": "San Jose Earthquakes",
+    "file": "san-jose-earthquakes.svg",
+    "source_url": "https://en.wikipedia.org/wiki/San_Jose_Earthquakes",
+    "kind": "real",
+    "league": "MLS",
+    "country": "USA"
+  },
+  "seattle-sounders": {
+    "name": "Seattle Sounders",
+    "file": "seattle-sounders.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Seattle_Sounders_FC",
+    "kind": "real",
+    "league": "MLS",
+    "country": "USA"
+  },
+  "sporting-kansas-city": {
+    "name": "Sporting Kansas City",
+    "file": "sporting-kansas-city.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Sporting_Kansas_City",
+    "kind": "real",
+    "league": "MLS",
+    "country": "USA"
+  },
+  "st-louis-city": {
+    "name": "St. Louis City",
+    "file": "st-louis-city.svg",
+    "source_url": "https://en.wikipedia.org/wiki/St._Louis_City_SC",
+    "kind": "real",
+    "league": "MLS",
+    "country": "USA"
+  },
+  "toronto-fc": {
+    "name": "Toronto FC",
+    "file": "toronto-fc.webp",
+    "source_url": "https://en.wikipedia.org/wiki/Toronto_FC",
+    "kind": "real",
+    "league": "MLS",
+    "country": "USA"
+  },
+  "vancouver-whitecaps": {
+    "name": "Vancouver Whitecaps",
+    "file": "vancouver-whitecaps.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Vancouver_Whitecaps_FC",
+    "kind": "real",
+    "league": "MLS",
+    "country": "USA"
+  },
+  "newells-old-boys": {
+    "name": "Newell's Old Boys",
+    "file": "newells-old-boys.svg",
+    "source_url": "https://en.wikipedia.org/wiki/Newell%27s_Old_Boys",
+    "kind": "real",
+    "league": "Liga Profesional",
+    "country": "Argentina"
+  }
+}
