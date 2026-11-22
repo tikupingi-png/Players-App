@@ -434,6 +434,9 @@ body:has(#create-screen:not(.hide)) #menu-btn, body.creating #menu-btn { display
 .pm-fx { margin-top: 6px; font-size: 12px; } .pm-fx summary { cursor: pointer; color: var(--muted, #8b95a5); }
 .pm-card ~ p, .pm-card ~ .md-h, .pm-card ~ .hl { display: none; }
 .pm-card ~ .pm-fx .hl { display: block; }
+/* P4u era picker: same dark field as the other create selects */
+#c-era{background:#1b2230 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23fff' stroke-width='2'/%3E%3C/svg%3E") no-repeat right 12px center;color:#fff;-webkit-appearance:none;appearance:none;padding-right:34px;color-scheme:dark}
+#c-era option{background:#1b2230;color:#fff}
 </style>
 <body>
 <button id="menu-btn" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -1099,7 +1102,7 @@ function roundRobin(n, r) { // double round robin, returns rounds of [h,a] index
   return rounds.concat(rounds.map(rd => rd.map(([h, a]) => [a, h])));
 }
 const yearOf = age => (S.birthYear || 2026) + age;
-const seasonLabel = y => `Age ${y - (S.birthYear || 2026)} season`;
+const seasonLabel = y => `Age ${y - (S.birthYear || 2026)} season` + eraYearTag(y);
 const seasonShort = y => `S${y - (S.birthYear || 2026)}`;
 // club strength for a season = base strength + bonus from last season's final league position (does not stack)
 let _leagueOfName = null;
@@ -1221,6 +1224,7 @@ function seasonHeadlines(key, year) {
     `👟 Top scorer: ${playerName(best.team, 0)} (${best.team}) with ${Math.round(best.gf * 0.36)} goals`];
   return { matchdays: out.reverse(), end };
 }
+function spFmt(v) { return String(Math.round((+v || 0) * 10) / 10); } // skill points shown to one decimal
 // ===== STATE =====
 function fresh() {
   return { id: null, started: false, firstName: "Alex", surname: "", name: "Alex", nationality: "Brazil", city: "São Paulo", birthYear: 2026,
@@ -1240,7 +1244,7 @@ const R = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 function toast(msg) { const t = document.getElementById("toast"); t.textContent = msg; t.style.display = "block"; clearTimeout(toast._t); toast._t = setTimeout(() => t.style.display = "none", 2600); }
 function addEvent(title, text) { S.events.unshift({ title, text, age: S.age }); renderTimeline(); }
-function milestone(key, text) { if (S.milestones[key]) return; S.milestones[key] = S.age; S.skillPoints++; addEvent("🎁 Milestone", `${text} +1 skill point.`); }
+function milestone(key, text) { if (S.milestones[key]) return; S.milestones[key] = S.age; S.skillPoints = Math.round((S.skillPoints + 1) * 100) / 100; addEvent("🎁 Milestone", `${text} +1 skill point.`); }
 
 // ===== SKILL TREE MODEL =====
 function branchesFor(pos) {
@@ -1554,7 +1558,7 @@ function setIdol(i, recommended) {
   S.ovr = clamp(S.ovr + i.ovr + (recommended ? 2 : 0), 1, S.potential);
   S[i.stat] = clamp(S[i.stat] + 5);
   S.happiness = clamp(S.happiness + (recommended ? 10 : 5));
-  S.skillPoints += 1;
+  S.skillPoints = Math.round((S.skillPoints + 1) * 100) / 100;
   addEvent("👑 Idol & Template", `${i.name} is your idol and your template: ${i.style.toLowerCase()}. Crown skill: ${i.node}. PlayStyles: ${idolPS(i).map(k => PS_LIB[k].label).join(", ")}.${recommended ? " Just like they always said!" : ""} +1 skill point.`);
 }
 // ===== CLUB PLACEMENT (age 7) =====
@@ -1622,7 +1626,7 @@ async function proContractCheck() {
   else if (S.age >= 20) { team = all.sort((a, b) => a.str - b.str)[0]; note = "contract at the league's smallest club"; }
   if (!team) { if (S.age <= 19) addEvent("📋 No Contract Yet", `No professional offer this year. You need ${Math.max(55, atOvr(.6))} OVR by 16, or 48+ for a late offer up to 19.`); return; }
   const canDecline = S.age < 19;
-  await showDecision("✍️ Professional Contract Offer!", `${team.name} (${LEAGUES[team.league].name}) offer you a ${note}. Wage: €${wage().toLocaleString()}/yr.`,
+  await showDecision("✍️ Professional Contract Offer!", `${team.name} (${LEAGUES[team.league].name}) offer you a ${note}. Wage: €${Math.round(eraM(wage())).toLocaleString()}/yr.`,
     [{ label: `Sign for ${team.name}`, effect: () => signPro(team) }].concat(canDecline ? [{ label: "Stay in youth football one more year", effect: () => addEvent("📋 Offer Declined", `You turned down ${team.name}.`) }] : []));
 }
 function teamObjL(a) { const L = LEAGUES[a.league]; const t = L && L.teams.find(x => x.name === a.name); return t ? { ...t, league: a.league } : null; }
@@ -1712,7 +1716,7 @@ function relAct(pid, act) {
   const fade = 1 / (1 + (S.relCount[k] - 1) * 0.3), luck = Math.random();
   let d = Math.round(a[3] * fade * (0.5 + luck)), msg = `${a[1]} with ${p.name.split(" ")[0]}.`;
   if (act === "breakup") { S.people = S.people.filter(x => x.id !== pid); addEvent("💔 Break-up", `You and ${p.name} broke up.`); renderRel(); updateHeader(); return; }
-  if (act === "money") { if (luck > 0.4) { const amt = R(5, 50) * (S.backstory === "wealthy" ? 20 : 1); S.money += amt; msg += ` They gave you €${amt}.`; d = 1; } else { msg += " They said no."; d = -2; } }
+  if (act === "money") { if (luck > 0.4) { const amt = R(5, 50) * (S.backstory === "wealthy" ? 20 : 1); S.money += amt; msg += ` They gave you €${Math.max(1, Math.round(eraM(amt)))}.`; d = 1; } else { msg += " They said no."; d = -2; } }
   if (act === "gift") S.money = Math.max(0, S.money - 50);
   if (["tips", "train", "extra", "garden", "street"].includes(act) && luck > 0.5) { S.ovr = clamp(S.ovr + 1, 1, S.potential); msg += " You learned something (+1 OVR)."; }
   if (relType(p) === "coach" && S.clubInfo) { S.clubInfo.trust = clamp(S.clubInfo.trust + (act === "minutes" ? (luck > .6 ? 3 : -4) : Math.ceil(d / 2))); msg += ` Coach trust: ${S.clubInfo.trust}.`; }
@@ -2302,7 +2306,7 @@ function updateHeader() {
   document.getElementById("pname").innerHTML = esc(S.name) + (S.captain ? `<span class="cap-badge">C</span>` : "");
   document.getElementById("head-av").innerHTML = avatarSVG(S.avatar, false);
   document.getElementById("page").textContent = `Age ${S.age}${S.position ? " • " + S.position : ""} • ${S.city}`;
-  document.getElementById("pmoney").textContent = `€${(S.money || 0).toLocaleString()}`;
+  document.getElementById("pmoney").textContent = `€${Math.round(eraM(S.money || 0)).toLocaleString()}`;
   document.getElementById("club-name").textContent = S.club || "No club yet";
   document.getElementById("league-name").textContent = S.club ? (S.pro ? LEAGUES[S.proClub.league].name : `Youth • ${ageGroup()}`) : S.age >= 4 ? "Street football" : "Too young to play";
   const crest = document.getElementById("crest");
@@ -2395,7 +2399,7 @@ function renderCareer() {
   c.innerHTML = av + card(`🏟️ ${esc(S.club)} <span class="badge">${S.pro ? LEAGUES[S.proClub.league].name : ageGroup()}</span>`, `<p>${kitSwatch(clubKit(S.club).home, 22)} Home ${kitSwatch(clubKit(S.club).away, 22)} Away</p><p style="margin-top:4px">Position: <b>${S.position}</b> • ${S.pro ? "Professional" : "Youth"}${S.captain ? " • 🅲 Captain" : ""}</p>` + btns) +
     (m ? card("👔 Club Info", `<p><b>${esc(m.name)}</b>, ${m.age}<br><span style="color:var(--muted);font-size:13px">${esc(m.personality)}<br>${esc(m.style || "")}<br>${esc(m.bio || "")}</span></p><div class="lbl" style="margin-top:8px">Coach trust ${ci.trust}</div><div class="bar"><div style="width:${ci.trust}%"></div></div><button class="act-btn" style="margin-top:8px" onclick="renderSquad()">👥 Squad</button>`) : "") +
     card("📊 Career Stats", `<p>Apps <b>${S.stats.apps}</b> • Goals <b style="color:var(--accent)">${S.stats.goals}</b> • Assists <b style="color:var(--accent2)">${S.stats.assists}</b>${S.position === "GK" ? ` • Clean sheets <b>${S.stats.cleanSheets || 0}</b>` : ""}</p>${(S.awards || []).length ? `<p style="font-size:12px;margin-top:4px">${S.awards.map(esc).join(" • ")}</p>` : ""}`) +
-    card("📜 Season history", hist) + idol + card("📄 Contract", `<p>${S.pro ? `Professional • €${wage().toLocaleString()}/yr` : "Youth / Amateur"}</p>`);
+    card("📜 Season history", hist) + idol + card("📄 Contract", `<p>${S.pro ? `Professional • €${Math.round(eraM(wage())).toLocaleString()}/yr` : "Youth / Amateur"}</p>`);
 }
 // ---- Calendar tab ----
 let CAL_FILTER = "all";
@@ -2499,7 +2503,7 @@ function renderTree(fresh) {
   if (fresh) TREE_OPEN = {}; // all branches collapsed every time the tree is opened
   const pos = S.position || "ST", pt = positionTree(), ps = pt.filter(x => x.kind === "ps"), brs = branchesFor(pos);
   const mv = { id: "metavision", kind: "mv", label: "👁️ Meta Vision", tags: [] }, U = ultimate(), ult = { id: "ultimate", kind: "ult", label: "🌟 " + U.label, tags: U.tags };
-  const top = `<div class="nice-card"><h3>Skill Points: <span style="color:var(--accent)">${+(+S.skillPoints).toFixed(2)}</span></h3><p style="color:var(--muted);font-size:12px">OVR ${S.ovr}/${S.potential} (${Math.round(pct() * 100)}%) • next yearly point: ${nextPointAge()} • pro assists give 0.2 (clean sheets 0.1), max 0.8 per season until 21 and 1.6 from 22 • unlocked ${treeOwned()}/${TREE_TOTAL}</p>
+  const top = `<div class="nice-card"><h3>Skill Points: <span style="color:var(--accent)">${spFmt(S.skillPoints)}</span></h3><p style="color:var(--muted);font-size:12px">OVR ${S.ovr}/${S.potential} (${Math.round(pct() * 100)}%) • next yearly point: ${nextPointAge()} • pro assists give 0.2 (clean sheets 0.1), max 0.8 per season until 21 and 1.6 from 22 • unlocked ${treeOwned()}/${TREE_TOTAL}</p>
     <div class="top-nodes" style="margin-top:8px">${nodeHtml(ult, false, "ult" + (hasULT() ? " unlocked" : ""))}${nodeHtml(mv, false, "mv-node")}</div>
     <p style="font-size:11px;color:var(--muted)">🌟 ${esc(U.label)}: +25% on ${U.tags.join(", ")} options, one Ultimate-moment retry per match. Needs Meta Vision + 100% potential. 👁️ Meta Vision: success chances are visible in every decision (75%).</p></div>`;
   const hdr = (key, title, done, total, dot) => `<div class="br-h ${TREE_OPEN[key] ? "open" : ""}" onclick="toggleBranch('${key}')"><span class="chev">▶</span><b style="font-size:13px">${esc(title)}</b>${dot ? `<span class="dot" title="A step is affordable"></span>` : ""}<div class="mini"><div style="width:${Math.round(done / total * 100)}%"></div></div><span style="font-size:12px;color:var(--muted)">${done}/${total}</span></div>`;
@@ -2529,7 +2533,7 @@ async function transferCheck() {
   const all = Object.values(LEAGUES).filter(L => !["ARG"].includes(L.key) || S.nationality === "Argentina").flatMap(L => L.teams.map(t => ({ ...t, league: L.key }))).filter(t => t.name !== S.proClub.name && t.str > cur && t.str <= S.ovr + 6);
   if (!all.length) return;
   const team = all.sort((a, b) => b.str - a.str).slice(0, 8)[Math.floor(Math.random() * Math.min(8, all.length))];
-  await showDecision("📨 Transfer Offer!", `${team.name} (${LEAGUES[team.league].name}, strength ${team.str}) want to sign you. Wage: €${Math.round(wage() * 1.3).toLocaleString()}/yr. Stars there: ${clubSquad(team.name).filter(p => p.real).slice(0, 3).map(p => p.name).join(", ") || "—"}.`, [
+  await showDecision("📨 Transfer Offer!", `${team.name} (${LEAGUES[team.league].name}, strength ${team.str}) want to sign you. Wage: €${Math.round(eraM(wage() * 1.3)).toLocaleString()}/yr. Stars there: ${clubSquad(team.name).filter(p => p.real).slice(0, 3).map(p => p.name).join(", ") || "—"}.`, [
     { label: `Sign for ${team.name}`, effect: () => { addEvent("✈️ Transfer", `You left ${S.club} for ${team.name}.`); signPro(team); } },
     { label: `Stay at ${S.club}`, effect: () => { if (S.clubInfo) S.clubInfo.trust = clamp(S.clubInfo.trust + 5); addEvent("🤝 Loyalty", `You turned down ${team.name}.`); } }]);
 }
@@ -3282,7 +3286,7 @@ const _openScreenP4 = openScreen;
 openScreen = function (id) { if (id === "legacy") return renderLegacy(); _openScreenP4(id);
   if (id === "more") { const c = document.getElementById("overlay-content"); c.insertAdjacentHTML("afterbegin", card("🏛️ Legacy", `<button class="act-btn" onclick="renderLegacy()">🏛️ View legacy (score ${legacyScore().toLocaleString()} • ${legacyTier(legacyScore())})</button>${S.club && S.age >= 33 && !S.retired ? `<button class="act-btn" onclick="retireNow()">🏁 Retire from football</button>` : S.club && !S.retired ? `<p style="font-size:12px;color:var(--muted)">Retirement possible from age 33 (forced at 40).</p>` : ""}`)); } };
 // ===================== PASS 4e: AGENT, CONTRACTS, CLAUSE NEGOTIATION, TRANSFERS, MARKET, BUDGETS =====================
-const eur = n => { n = Math.round(n); const a = Math.abs(n); return (n < 0 ? "-" : "") + (a >= 1e6 ? "€" + (a / 1e6).toFixed(a >= 1e7 ? 0 : 1) + "m" : a >= 1e3 ? "€" + Math.round(a / 1e3) + "k" : "€" + a); };
+const eur = n => { n = Math.round(eraM(n)); const a = Math.abs(n); return (n < 0 ? "-" : "") + (a >= 1e6 ? "€" + (a / 1e6).toFixed(a >= 1e7 ? 0 : 1) + "m" : a >= 1e3 ? "€" + Math.round(a / 1e3) + "k" : "€" + a); };
 const LMULT = { ENG: 2.2, ESP: 1.5, GER: 1.4, ITA: 1.3, FRA: 1.1, POR: 0.6, NED: 0.55, BEL: 0.45, BRA: 0.5, ARG: 0.3, USA: 0.6 };
 const curYear = () => S.season ? S.season.year : yearOf(S.age);
 function marketValue(ovr, age, pot) { const af = age <= 21 ? 1.3 : age <= 24 ? 1.15 : age <= 27 ? 1 : age <= 30 ? 0.7 : age <= 32 ? 0.4 : 0.2;
@@ -4261,7 +4265,7 @@ const LUX = [
 const bizT = k => BIZ_TYPES.find(t => t.k === k), luxT = k => LUX.find(t => t.k === k);
 const rnd = (a, b) => a + Math.random() * (b - a);
 const gauss = () => { let u = 0, v = 0; while (!u) u = Math.random(); while (!v) v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
-const money = n => (n < 0 ? "-€" : "€") + Math.abs(Math.round(n)).toLocaleString("en-US");
+const money = n => { n = eraM(n); return (n < 0 ? "-€" : "€") + Math.abs(Math.round(n)).toLocaleString("en-US"); };
 const fin = n => (Number.isFinite(n) ? n : 0);
 function sponsorOf(club) { if (!club) return null; const x = SPONSORS[hashStr("spons" + club) % SPONSORS.length]; return { s: x[0], n: x[1], ic: "👕", p0: 20 + hashStr(club) % 40, vol: 0.22, dr: 0.05, wc: 0.05, sponsor: club }; }
 function stockList() { const L = STOCKS.slice(), sp = sponsorOf(S.pro ? S.club : S.biz && S.biz.lastSponsorClub); if (sp && !L.some(x => x.s === sp.s)) L.push(sp);
@@ -5250,22 +5254,34 @@ candidateClubs = function (n, filt) { if (S.ovr >= ELITE_OVR) { const f = filt; 
 // ===== P4t: competitive Ballon d'Or – a real yearly ranking vs ~30 rival stars =====
 // Season performance (position-fair G/A, ratings, MOTM), trophies (league / UCL / international), OVR, season-to-season
 // noise and a voter-fatigue penalty for last year's winner. Placings: podium 1–3, "Nth place" up to 30, else "outside top 30".
-const BD2 = { off: -4.25, ga: 0.55, tro: 0.55, rat: 0.8, motm: 0.25, comp: 1, sd: 2.8, fat1: 5, fat2: 1.5, k1: 1.5, k2: -0.6 }; // fitted on recorded batchtest seasons (targets: OVR 90 ≈ 25–40% wins, 85–88 mostly top 10–30)
+const BD2 = { ga: 0.55, tro: 0.55, rat: 0.8, motm: 0.25, comp: 1, sd: 1.0, formW: 0.3, formCap: 2.5, perfMid: 7, perfSlope: 0.5, clubBase: 82, clubW: 0.4, clubMax: 1.5, fat1: 3.5, fat2: 1.5, aiSd: 2.0 }; // P4v: rank-anchored, capped form
 function bdGauss(seed) { const r = rng(seed); return (r() + r() + r() + r() - 2) * 1.73; } // ~N(0,1)
 function bdTro(row) { const LG = Object.values(LEAGUES).map(L => L.name); return (row.trophies || []).reduce((a, t) => { const n = typeof t === "string" ? t : (t && t.name) || "";
   return a + (/Champions League/.test(n) ? 5 : LG.includes(n) ? 4 : /Europa|Conference|Libertadores|Club World/.test(n) ? 2.5 : 2); }, 0); }
 function bdWonYear(Y) { const r = S.bdor && S.bdor[Y]; return !!(r && r.myRank === 1); }
 const BD_COMP = { ST: 0, CF: 0, LW: 0.5, RW: 0.5, CAM: 2, CM: 3.5, CDM: 4.5, CB: 5.5, LB: 5, RB: 5, GK: 5.5 }; // defenders/mids score fewer G/A: position-fair top-up
+// P4v: rank-anchored vote. Reputation (OVR + club prestige) sets an expected placing in this year's real rival field;
+// season form moves you around it, but the swing is capped. 90+ is always a nominee (see bdRanking).
+const BD_REP = [[93, 0.3], [92, 0.8], [91.5, 1.1], [91, 1.6], [90, 2.8], [89, 6], [88.5, 9], [88, 10], [87, 12.5], [86, 17], [85, 20], [84, 24], [83, 28], [82, 33], [81, 37], [80, 46], [79, 62], [78, 80], [70, 200]];
+function bdRepRank(rep) { if (rep >= BD_REP[0][0]) return BD_REP[0][1]; for (let i = 1; i < BD_REP.length; i++) { const [r1, k1] = BD_REP[i - 1], [r2, k2] = BD_REP[i]; if (rep >= r2) return k2 + (k1 - k2) * (rep - r2) / (r1 - r2); } return 250; }
+function bdAnchor(Y, r) { const A = bdCandidates(Y).map(x => x.score).sort((a, b) => b - a), n = A.length; if (!n) return 90;
+  if (r <= 1) return A[0] + (1 - r) * (n > 1 ? A[0] - A[1] : 1); if (r <= n) { const i = Math.floor(r) - 1, f = r - 1 - i; return A[i] - f * ((A[i + 1] ?? A[i]) - A[i]); }
+  const sl = n > 20 ? (A[n - 21] - A[n - 1]) / 20 : 0.2; return A[n - 1] - (r - n) * sl; }
 myBdScore = function (row) { if (!row || !S.pro || row.apps < 12) return null; const p = bdParts(row), Y = (row.year || 0) + 1;
-  const motm = row.motm || 0, rat = Math.max(-8, Math.min(8, (row.avg - 6.2) * 12));
+  const motm = row.motm || 0, rat = Math.max(-5, Math.min(6, (row.avg - 6.2) * 12));
   const perf = p.ga * BD2.ga + bdTro(row) * BD2.tro + rat * BD2.rat + Math.min(motm, 12) * BD2.motm + p.extra + (BD_COMP[S.position] || 0) * BD2.comp;
+  const cs = typeof teamStr === "function" ? (teamStr(row.club) || 75) : 75, rep = S.ovr + Math.max(-3, Math.min(BD2.clubMax, (cs - BD2.clubBase) * BD2.clubW));
+  const form = Math.max(-BD2.formCap, Math.min(BD2.formCap, (perf - BD2.perfMid - (S.ovr - 85) * BD2.perfSlope) * BD2.formW + bdGauss("bdn" + S.name + Y) * BD2.sd));
   const fat = bdWonYear(Y - 1) ? BD2.fat1 + (bdWonYear(Y - 2) ? BD2.fat2 : 0) : 0;
-  return p.base - BD2.k1 * Math.min(Math.max(90 - S.ovr, 0), 3) - BD2.k2 * Math.max(0, 87 - S.ovr) + BD2.off + perf + bdGauss("bdn" + S.name + Y) * BD2.sd - fat; };
+  return bdAnchor(Y, bdRepRank(rep)) + form - fat; };
 // rival field: the strongest ~60 players in the world (top 30 = nominees), each with their own yearly form swing
 bdRanking = function (Y) {
-  const row = S.seasons.filter(s => s.year === Y - 1 && s.review).pop(), ms = myBdScore(row);
-  const L = bdCandidates(Y).slice(0, 60).map(x => ({ ...x, score: x.score + bdGauss("bda" + x.name + Y) * 1.2 }));
-  if (ms !== null) L.push({ name: S.name, club: row.club, pos: S.position, age: S.age - 1, ovr: S.ovr, score: ms, me: true });
+  const row = S.seasons.filter(s => s.year === Y - 1 && s.review).pop(), ms = myBdScore(row), B = S.bdor || {};
+  const w1 = B[Y - 1] && B[Y - 1].winner, w2 = B[Y - 2] && B[Y - 2].winner;
+  const L = bdCandidates(Y).slice(0, 60).map(x => ({ ...x, score: x.score + bdGauss("bda" + x.name + Y) * BD2.aiSd - (x.name === w1 ? BD2.fat1 + (x.name === w2 ? BD2.fat2 : 0) : 0) }));
+  L.sort((a, b) => b.score - a.score);
+  if (ms !== null) { let sc = ms; if (S.ovr >= 90 && L.length >= 30 && sc <= L[29].score) sc = L[29].score + 0.01; // 90+ is always a nominee
+    L.push({ name: S.name, club: row.club, pos: S.position, age: S.age - 1, ovr: S.ovr, score: sc, me: true }); }
   return L.sort((a, b) => b.score - a.score);
 };
 function bdPlaceTxt(n) { return !n ? "outside the top 30" : n === 1 ? "🥇 Winner" : n === 2 ? "🥈 2nd place" : n === 3 ? "🥉 3rd place" : `${ordinal(n)} place`; }
@@ -5317,6 +5333,68 @@ legacyHtml = function (final) { let h = _legacyHtmlBD(final); const rows = Objec
 kopaRanking = function (Y) { const row = S.seasons.filter(s => s.year === Y - 1 && s.review).pop(), ms = myBdScore(row);
   const L = bdCandidates(Y).filter(p => p.age <= 21).slice(0, 20).map(x => ({ ...x }));
   if (ms !== null && row.age <= 21 && S.age <= 21) L.push({ name: S.name, club: row.club, score: ms + 2, me: true }); return L.sort((a, b) => b.score - a.score); };
+
+// P4v: yearly form wobble around the peak – OVR moves ±1–2 once a player sits at his potential (potential itself unchanged)
+const _ageUpBD = ageUp;
+ageUp = async function () { if (S.ovrWob) { const b0 = S.ovrBase || S.ovr; let v = S.ovr - S.ovrWob; v = Math.min(v, Math.max(b0, S.potential || 0)); v = Math.max(v, Math.min(S.ovr, b0)); S.ovr = v; S.ovrWob = 0; } const a = S.age; const r = await _ageUpBD.apply(this, arguments);
+  try { if (S.started && S.pro && S.age > a && S.age >= 21 && S.age <= 33 && S.ovr >= (S.potential || 99) - 0) { const d = [-2, -1, -1, 0, 1, 1, 2][hashStr("wob" + S.name + S.age) % 7];
+      if (d) { S.ovrBase = S.ovr; S.ovr = Math.max(1, Math.min(99, S.ovr + d)); S.ovrWob = S.ovr - S.ovrBase; if (typeof updateHeader === "function") updateHeader(); } } } catch (e) {}
+  return r; };
+// era shim: present-day defaults until the era picker ships (stash-era/p4_era.js overrides these)
+function eraM(n) { return +n || 0; }
+function eraYearTag(y) { return ""; }
+// ===== P4v: weapon AWAKENING – full-screen golden-eyes moment in the first match after the signature weapon is unlocked =====
+// Once per career (S.weaponAwakened) and once more when the weapon hits max level (S.weaponMaxAwakened).
+// Tries Lum's external clip (assets/weapon-unlock/…), falls back to a pure-CSS eyes animation. Never blocks: tap to skip, hard 6s timeout.
+(function () {
+  const VID = "assets/weapon-unlock/weapon-unlock-gold.mp4", POSTER = "assets/weapon-unlock/weapon-unlock-gold-poster.webp";
+  function css() { if (document.getElementById("wa-css")) return; const s = document.createElement("style"); s.id = "wa-css";
+    s.textContent = "#wa-ov{position:fixed;inset:0;z-index:99999;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;animation:waFade .25s ease-out}" +
+      "#wa-ov video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}" +
+      "#wa-ov .wa-eyes{display:flex;gap:9vw;position:relative;z-index:1}" +
+      ".wa-eye{position:relative;width:30vw;max-width:170px;height:13vw;max-height:74px;border-radius:50%;overflow:hidden;background:radial-gradient(ellipse at center,#fff8e0 0%,#e9dcc0 70%,#9c8a66 100%);box-shadow:0 0 40px 6px rgba(255,190,40,.0);animation:waGlow 2.5s ease-out forwards}" +
+      ".wa-iris{position:absolute;left:50%;top:50%;width:46%;padding-top:46%;transform:translate(-50%,-50%) scale(.6);border-radius:50%;background:radial-gradient(circle,#000 0 22%,#ffef9a 24%,#ffc21a 45%,#d48a00 70%,#5a3500 100%);box-shadow:0 0 18px 6px rgba(255,200,40,.9);animation:waIris 2.5s ease-out forwards}" +
+      ".wa-lid{position:absolute;left:-5%;width:110%;height:55%;background:#000;animation:waLidT 2.5s cubic-bezier(.5,0,.2,1) forwards}" +
+      ".wa-lid.b{bottom:0;animation-name:waLidB}.wa-lid.t{top:0}" +
+      "#wa-ov .wa-cap{position:relative;z-index:1;margin-top:7vh;text-align:center;color:#ffd54a;font-weight:900;letter-spacing:.06em;text-shadow:0 0 14px rgba(255,190,40,.8);opacity:0;animation:waCap 2.5s ease-out forwards}" +
+      "#wa-ov .wa-cap small{display:block;color:#fff;opacity:.75;font-size:11px;letter-spacing:.25em;margin-bottom:6px}" +
+      "#wa-ov .wa-cap b{font-size:22px}#wa-ov .wa-skip{position:absolute;bottom:18px;right:18px;z-index:2;color:#888;font-size:11px}" +
+      "#wa-ov .wa-flash{position:absolute;inset:0;background:radial-gradient(circle,rgba(255,210,80,.55),transparent 60%);opacity:0;animation:waFlash 2.5s ease-out forwards}" +
+      "@keyframes waLidT{0%,25%{transform:translateY(0)}60%{transform:translateY(-70%)}100%{transform:translateY(-100%)}}" +
+      "@keyframes waLidB{0%,25%{transform:translateY(0)}60%{transform:translateY(70%)}100%{transform:translateY(100%)}}" +
+      "@keyframes waIris{0%,45%{transform:translate(-50%,-50%) scale(.55);filter:brightness(.6)}70%{transform:translate(-50%,-50%) scale(1.05);filter:brightness(1.6)}100%{transform:translate(-50%,-50%) scale(1);filter:brightness(1.2)}}" +
+      "@keyframes waGlow{0%,50%{box-shadow:0 0 0 0 rgba(255,190,40,0)}75%{box-shadow:0 0 60px 14px rgba(255,190,40,.75)}100%{box-shadow:0 0 34px 8px rgba(255,190,40,.5)}}" +
+      "@keyframes waCap{0%,55%{opacity:0;transform:translateY(8px)}80%,100%{opacity:1;transform:none}}" +
+      "@keyframes waFlash{0%,58%{opacity:0}68%{opacity:1}100%{opacity:.25}}@keyframes waFade{from{opacity:0}to{opacity:1}}";
+    (document.head || document.documentElement).appendChild(s); }
+  window.weaponAwakening = function (name, maxed) {
+    return new Promise(res => { let done = false, ov = null; const finish = () => { if (done) return; done = true; try { ov && ov.remove(); } catch (e) {} res(); };
+      try { css(); ov = document.createElement("div"); ov.id = "wa-ov";
+        const cap = `<div class="wa-cap"><small>${maxed ? "WEAPON MASTERED" : "WEAPON AWAKENED"}</small><b>${esc(name || "Signature weapon")}</b></div>`;
+        const eyes = `<div class="wa-flash"></div><div class="wa-eyes"><div class="wa-eye"><div class="wa-iris"></div><div class="wa-lid t"></div><div class="wa-lid b"></div></div><div class="wa-eye"><div class="wa-iris"></div><div class="wa-lid t"></div><div class="wa-lid b"></div></div></div>`;
+        const skip = '<div class="wa-skip">tap to skip</div>';
+        const cssOnly = () => { if (done) return; ov.innerHTML = eyes + cap + skip; setTimeout(finish, 2900); };
+        ov.onclick = finish; document.body.appendChild(ov); setTimeout(finish, 6000);
+        const v = document.createElement("video"); const ok = typeof v.canPlayType === "function" && v.canPlayType("video/mp4");
+        if (!ok) cssOnly();
+        else { v.muted = true; v.setAttribute("muted", ""); v.playsInline = true; v.setAttribute("playsinline", ""); v.autoplay = true; v.poster = POSTER; v.preload = "auto";
+          let started = false; v.onerror = cssOnly; v.onended = finish; v.onplaying = () => { started = true; };
+          v.src = VID; ov.innerHTML = cap.replace('class="wa-cap"', 'class="wa-cap" style="position:absolute;bottom:12vh;left:0;right:0"') + skip; ov.insertBefore(v, ov.firstChild);
+          try { const p = v.play(); if (p && p.catch) p.catch(() => { if (!started) { v.remove(); cssOnly(); } }); } catch (e) { v.remove(); cssOnly(); }
+          setTimeout(() => { if (!started && !done) { try { v.remove(); } catch (e) {} cssOnly(); } }, 1500); }
+      } catch (e) { finish(); } });
+  };
+  const _playGameWA = playGame;
+  playGame = async function (g, sim) {
+    try { const w = S.weaponState;
+      if (w && w.unlocked && w.signature && S.club) {
+        if (S.weaponAwakenPending && !S.weaponAwakened) { S.weaponAwakened = true; S.weaponAwakenPending = false; S.weaponAwakenAge = S.age;
+          addEvent("👁️ Weapon awakened", `${w.signature} awakened in the match against ${g && (g.opp || g.oppName) || "your opponent"}.`); await window.weaponAwakening(w.signature, false); }
+        else if (!S.weaponAwakenPending && !S.weaponMaxAwakened && Number((w.levels || {})[w.signature] || 0) >= 5) { S.weaponMaxAwakened = true;
+          addEvent("👁️ Weapon mastered", `${w.signature} reached max level – full awakening.`); await window.weaponAwakening(w.signature, true); }
+      } } catch (e) {}
+    return _playGameWA.apply(this, arguments); };
+})();
 // ===== INIT =====
 let CREATE_AV = randomAvatar();
 function fillCities() { const n = document.getElementById("c-nat").value; document.getElementById("c-city").innerHTML = COUNTRIES[n].cities.map(c => `<option>${esc(c)}</option>`).join("") + `<option value="Random">🎲 Random</option>`; }
@@ -5349,6 +5427,7 @@ migrateOld();
   if (l.length) loadCareer(l[0].id); else { document.getElementById("create-screen").classList.remove("hide"); updateHeader(); }
 })();
 /* KING NOTES: signature weapons and career controls */
+var KING_UNLOCK_SP=3;
 (function(){
 const KW=[
 ['Metavision','Cognitive & Vision','Reads the whole pitch and predicts plays','vision','CM CDM CAM CB',1],
@@ -5388,12 +5467,12 @@ const KW=[
 ['Puppet-Controlling Soccer','Cognitive & Vision','Manipulates opponents movement to create space','tactics','CAM CM CDM']
 ];
 const esc=function(x){return String(x==null?'':x).replace(/[&<>\"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c];});};
-function ensure(){if(!S.started)return;S.weaponState=S.weaponState||{};var w=S.weaponState;w.owned=Array.isArray(w.owned)?w.owned:[];w.levels=w.levels||{};w.branches=w.branches||{};if(!w.signature){var pos=S.position||'ST',pool=KW.filter(function(x){return x[4].split(' ').indexOf(pos)>=0&&!x[5];});var seed=String(S.name||'player')+String(S.birthYear||2026);var h=0;for(var i=0;i<seed.length;i++)h=(h*31+seed.charCodeAt(i))>>>0;var rare=KW.filter(function(x){return x[5];});w.signature=(h%5000===0)?rare[h%2][0]:pool[h%pool.length][0];w.owned.push(w.signature);w.levels[w.signature]=1;}if(w.owned.indexOf(w.signature)<0)w.owned.push(w.signature);KW.forEach(function(x){if(!w.branches[x[0]])w.branches[x[0]]={level:w.levels[x[0]]||0};});}
+function ensure(){if(!S.started)return;S.weaponState=S.weaponState||{};var w=S.weaponState;w.owned=Array.isArray(w.owned)?w.owned:[];w.levels=w.levels||{};w.branches=w.branches||{};if(!w.signature){var pos=S.position||'ST',pool=KW.filter(function(x){return x[4].split(' ').indexOf(pos)>=0&&!x[5];});var seed=String(S.name||'player')+String(S.birthYear||2026);var h=0;for(var i=0;i<seed.length;i++)h=(h*31+seed.charCodeAt(i))>>>0;var rare=KW.filter(function(x){return x[5];});w.signature=(h%5000===0)?rare[h%2][0]:pool[h%pool.length][0];w.levels[w.signature]=0;w.unlocked=false;}if(w.unlocked===undefined)w.unlocked=Number(w.levels[w.signature]||0)>=1||!!(w.branches[w.signature]&&w.branches[w.signature].level>=1);var L0={};L0[w.signature]=w.unlocked?Math.max(1,Number(w.levels[w.signature]||0)):0;w.levels=L0;w.owned=w.unlocked?[w.signature]:[];if(w.xp){var X0={};X0[w.signature]=w.unlocked?(w.xp[w.signature]||0):0;w.xp=X0;}KW.forEach(function(x){w.branches[x[0]]={level:x[0]===w.signature?w.levels[w.signature]:0};});if(typeof S.skillPoints==='number')S.skillPoints=Math.round(S.skillPoints*100)/100;}
 function level(n){ensure();return Number(S.weaponState.levels[n]||S.weaponState.branches[n].level||0);}
 function has(n){ensure();return S.weaponState.owned.indexOf(n)>=0;}
-function render(){ensure();var c=setOv('Signature Weapons');backHandler=function(){openScreen('more');};var sig=S.weaponState.signature,w=KW.find(function(x){return x[0]===sig;}),lv=level(sig);var out='<div class="nice-card"><h3>Permanent signature weapon</h3><b>'+esc(sig)+(w?' · SIGNATURE':'')+'</b>';if(w)out+='<p style="color:var(--muted)">'+esc(w[2])+'</p>';out+='<p style="color:var(--muted)">One signature weapon per player. It has its own independent five-level branch.</p>';out+='<p>Branch level '+lv+'/5</p><p>Skill points: '+(S.skillPoints||0)+'</p>';if(lv<5)out+='<button class="act-btn" onclick="window.kingUpgrade(\''+esc(sig)+'\')">Upgrade · '+(lv+1)+' SP</button>';else out+='<b>MAX</b>';out+='</div>';c.innerHTML=out;}
-window.kingUnlock=function(n){ensure();return toast('One signature weapon per player');};
-window.kingUpgrade=function(n){ensure();var lv=level(n),cost=lv+1;if(!has(n)||lv>=5)return;if((S.skillPoints||0)<cost)return toast('Need '+cost+' skill points');S.skillPoints-=cost;S.weaponState.levels[n]=lv+1;S.weaponState.branches[n].level=lv+1;addEvent('Weapon branch upgraded',n+' reached level '+(lv+1));render();updateHeader();};
+function render(){ensure();var c=setOv('Signature Weapons');backHandler=function(){openScreen('more');};var sig=S.weaponState.signature,w=KW.find(function(x){return x[0]===sig;}),lv=level(sig);var out='<div class="nice-card"><h3>Permanent signature weapon</h3><b>'+esc(sig)+(w?' · SIGNATURE':'')+'</b>';if(w)out+='<p style="color:var(--muted)">'+esc(w[2])+'</p>';out+='<p style="color:var(--muted)">One signature weapon per player. It has its own independent five-level branch.</p>';var un=!!S.weaponState.unlocked;out+='<p>'+(un?'Branch level '+lv+'/5':'🔒 Locked – unlock it to awaken the weapon and open its 5-level upgrade path.')+'</p><p>Skill points: '+spFmt(S.skillPoints)+'</p>';if(!un)out+='<button class="act-btn" onclick="window.kingUnlock(\''+esc(sig)+'\')">Unlock · '+KING_UNLOCK_SP+' SP</button>';else if(lv<5)out+='<button class="act-btn" onclick="window.kingUpgrade(\''+esc(sig)+'\')">Upgrade · '+(lv+1)+' SP</button>';else out+='<b>MAX</b>';out+='</div>';c.innerHTML=out;}
+window.kingUnlock=function(n){ensure();var w=S.weaponState;if(n!==w.signature)return toast('One signature weapon per player');if(w.unlocked)return;if(Math.floor((S.skillPoints||0)+1e-9)<KING_UNLOCK_SP)return toast('Need '+KING_UNLOCK_SP+' skill points');S.skillPoints=Math.round((S.skillPoints-KING_UNLOCK_SP)*100)/100;w.unlocked=true;w.owned=[n];w.levels[n]=1;w.branches[n].level=1;S.weaponAwakenPending=true;addEvent('🗡️ Weapon unlocked',n+' unlocked. It awakens in your next match.');render();updateHeader();};
+window.kingUpgrade=function(n){ensure();var lv=level(n),cost=lv+1;if(!has(n)||lv>=5)return;if(Math.floor((S.skillPoints||0)+1e-9)<cost)return toast('Need '+cost+' skill points');S.skillPoints=Math.round((S.skillPoints-cost)*100)/100;S.weaponState.levels[n]=lv+1;S.weaponState.branches[n].level=lv+1;addEvent('Weapon branch upgraded',n+' reached level '+(lv+1));render();updateHeader();};
 var oldOpen=openScreen;openScreen=function(id){if(id==='weapons')return render();return oldOpen(id);};
 var oldTap=stripTap;stripTap=function(id){if(id==='weapons')return render();return oldTap(id);};
 var oldHeader=updateHeader;updateHeader=function(){oldHeader();var el=document.getElementById('strip');if(el&&S.started&&!el.querySelector('[data-king-weapons]')){var b=document.createElement('button');b.className='strip-tile';b.dataset.kingWeapons='1';b.textContent='⚡ Weapons';b.onclick=render;el.appendChild(b);}};
@@ -5402,8 +5481,8 @@ var oldChance=chance;chance=function(base,node){var p=oldChance(base,node);if(ba
 var oldCal=renderCalendar;renderCalendar=function(){oldCal();var c=document.getElementById('overlay-content'),sea=S.season;if(!c||!sea||sea.done)return;var ds=sea.games.filter(function(g){return !g.res&&!g.cancelled&&g.day!=null;}).map(function(g){return g.day;});if(!ds.length)return;var opts=ds.map(function(d){return '<option value="'+d+'">'+esc(dateStr(d))+'</option>';}).join('');c.insertAdjacentHTML('beforeend','<div class="nice-card"><h3>🗓️ Simulate Until This Date</h3><p style="color:var(--muted)">Important fixtures interrupt simulation so you can make your match decisions.</p><select id="king-sim-day" style="width:100%;padding:10px;background:var(--panel);color:var(--text)">'+opts+'</select><button class="create-btn" style="width:100%" onclick="window.kingSimUntil()">Simulate Until This Date</button></div>');};
 window.kingSimUntil=async function(){if(BUSY||!seasonActive())return;var target=Number(document.getElementById('king-sim-day').value);document.getElementById('overlay').classList.remove('show');setBusy(true);try{var g=nextGame();while(g&&g.day!=null&&g.day<=target){await awardsBefore(g,false);if(g.isKey){setBusy(false);await playGame(g,false);setBusy(true);}else await playGame(g,true);g=nextGame();}if(!nextGame()){await awardsBefore(null,false);await finishSeason(false);}}finally{setBusy(false);updateHeader();renderStats();}};
 var oldGod=toggleGodMode;toggleGodMode=function(){S.godMode=!S.godMode;if(S.godMode)S.godEver=true;addEvent('God Mode',S.godMode?'Enabled':'Disabled');if(S.godMode)godEditor();else openAvatarEditor();updateHeader();};
-function godEditor(){ensure();var c=setOv('God Mode');backHandler=function(){openScreen('more');};var keys=[['ovr','Overall',1,99],['potential','Potential',1,99],['money','Money (€)',0,999999999],['age','Age',0,50],['health','Health',0,100],['form','Form',0,100],['happiness','Happiness',0,100],['looks','Looks',0,100],['skillPoints','Skill points',0,999]];var h='<div class="nice-card"><h3>Player and career editor</h3>';keys.forEach(function(x){h+='<label style="display:block;margin:8px 0">'+x[1]+'<input id="kg-'+x[0]+'" type="number" min="'+x[2]+'" max="'+x[3]+'" value="'+esc(S[x[0]]||0)+'" style="width:100%;padding:9px;background:var(--panel);color:var(--text)"></label>';});h+='<label>Club <input id="kg-club" value="'+esc(S.club||'')+'"></label><label style="display:block;margin:8px 0">Signature weapon <select id="kg-weapon">'+KW.map(function(w){return '<option '+(S.weaponState.signature===w[0]?'selected':'')+'>'+esc(w[0])+'</option>';}).join('')+'</select></label><label><input type="checkbox" id="kg-cap" '+(S.potentialSurpassed?'checked':'')+'> Allow OVR to surpass potential</label><button class="create-btn" onclick="window.kingSaveGod()">Save God Mode changes</button></div>';c.innerHTML=h;}
-window.kingSaveGod=function(){['ovr','potential','money','age','health','form','happiness','looks','skillPoints'].forEach(function(k){var e=document.getElementById('kg-'+k);if(e)S[k]=Number(e.value)||0;});S.club=document.getElementById('kg-club').value||null;var n=document.getElementById('kg-weapon').value;ensure();var old=S.weaponState.signature,oldLv=Math.max(1,Number(S.weaponState.levels[old]||0)),oldXp=(S.weaponState.xp&&S.weaponState.xp[old])||0;S.weaponState.signature=n;S.weaponState.xp=S.weaponState.xp||{};if(old&&old!==n){var oi=S.weaponState.owned.indexOf(old);if(oi>=0)S.weaponState.owned.splice(oi,1);S.weaponState.levels[n]=oldLv;S.weaponState.xp[n]=oldXp;}else{S.weaponState.levels[n]=Math.max(1,Number(S.weaponState.levels[n]||0));}if(S.weaponState.owned.indexOf(n)<0)S.weaponState.owned.push(n);if(!S.weaponState.branches[n])S.weaponState.branches[n]={level:0};S.weaponState.branches[n].level=S.weaponState.levels[n];S.potentialSurpassed=document.getElementById('kg-cap').checked;if(S.potentialSurpassed&&S.ovr>S.potential)S.potential=S.ovr;addEvent('God Mode edit','Player values and signature weapon updated.');updateHeader();renderStats();godEditor();};
+function godEditor(){ensure();var c=setOv('God Mode');backHandler=function(){openScreen('more');};var keys=[['ovr','Overall',1,99],['potential','Potential',1,99],['money','Money (€)',0,999999999],['age','Age',0,50],['health','Health',0,100],['form','Form',0,100],['happiness','Happiness',0,100],['looks','Looks',0,100],['skillPoints','Skill points',0,999]];var h='<div class="nice-card"><h3>Player and career editor</h3>';keys.forEach(function(x){h+='<label style="display:block;margin:8px 0">'+x[1]+'<input id="kg-'+x[0]+'" type="number" min="'+x[2]+'" max="'+x[3]+'" value="'+esc(x[0]==='skillPoints'?spFmt(S.skillPoints):(S[x[0]]||0))+'" style="width:100%;padding:9px;background:var(--panel);color:var(--text)"></label>';});h+='<label>Club <input id="kg-club" value="'+esc(S.club||'')+'"></label><label style="display:block;margin:8px 0">Signature weapon <select id="kg-weapon">'+KW.map(function(w){return '<option '+(S.weaponState.signature===w[0]?'selected':'')+'>'+esc(w[0])+'</option>';}).join('')+'</select></label><label><input type="checkbox" id="kg-cap" '+(S.potentialSurpassed?'checked':'')+'> Allow OVR to surpass potential</label><button class="create-btn" onclick="window.kingSaveGod()">Save God Mode changes</button></div>';c.innerHTML=h;}
+window.kingSaveGod=function(){['ovr','potential','money','age','health','form','happiness','looks','skillPoints'].forEach(function(k){var e=document.getElementById('kg-'+k);if(e)S[k]=Number(e.value)||0;});S.club=document.getElementById('kg-club').value||null;var n=document.getElementById('kg-weapon').value;ensure();var old=S.weaponState.signature,oldLv=Math.max(1,Number(S.weaponState.levels[old]||0)),oldXp=(S.weaponState.xp&&S.weaponState.xp[old])||0;S.weaponState.signature=n;S.weaponState.unlocked=true;S.weaponState.xp=S.weaponState.xp||{};if(old&&old!==n){var oi=S.weaponState.owned.indexOf(old);if(oi>=0)S.weaponState.owned.splice(oi,1);S.weaponState.levels[n]=oldLv;S.weaponState.xp[n]=oldXp;}else{S.weaponState.levels[n]=Math.max(1,Number(S.weaponState.levels[n]||0));}if(S.weaponState.owned.indexOf(n)<0)S.weaponState.owned.push(n);if(!S.weaponState.branches[n])S.weaponState.branches[n]={level:0};S.weaponState.branches[n].level=S.weaponState.levels[n];S.potentialSurpassed=document.getElementById('kg-cap').checked;if(S.potentialSurpassed&&S.ovr>S.potential)S.potential=S.ovr;addEvent('God Mode edit','Player values and signature weapon updated.');updateHeader();renderStats();godEditor();};
 var oldAvatar=openAvatarEditor;openAvatarEditor=function(){if(S.started&&S.godMode)return godEditor();return oldAvatar();};
 if(S.started){ensure();updateHeader();}
 window.KING_WEAPON_COUNT=KW.length;window.KING_KW=KW;
@@ -5438,8 +5517,6 @@ function weaponXP(g) { try { const r = g && g.res, w = wState(); if (!r || !r.pl
   } catch (e) {} }
 const _matchPointsW = matchPoints;
 matchPoints = function (g) { const v = _matchPointsW(g); weaponXP(g); return v; };
-</script>
-<script>
 /* Football Life — real club crests.
  * Self-contained additive module. Insert as an inline script at the end of the document body,
  * or append as a parts file after the other parts.
@@ -5479,15 +5556,17 @@ matchPoints = function (g) { const v = _matchPointsW(g); weaponXP(g); return v; 
         ".fl-crest-fb{align-items:center;justify-content:center}" +
         "#crest:has(.fl-crest-img){background:transparent}" +
         "#crest .fl-crest{width:36px!important;height:36px!important}" +
-        ".pm-team .fl-crest{width:38px;height:38px}";
+        ".pm-team .fl-crest{width:38px;height:38px}" +
+        ".fl-crest.fl-crest-light{background:#f4f4f4;border-radius:50%;padding:12%;box-sizing:border-box;box-shadow:0 0 0 1px rgba(0,0,0,.25)}";
       (document.head || document.documentElement).appendChild(s);
     }
+    var LIGHT = {"juventus.svg":1,"feyenoord.svg":1,"tottenham.svg":1,"metz.svg":1,"hellas-verona.svg":1,"barracas-central.svg":1,"estudiantes-rc.svg":1,"athletico-paranaense.svg":1}; // dark / no-fill crests get a light round backing
     function crestHtml(name, size, fallback) {
       var file = crestFile(name);
       if (!file) return fallback;
       var sz = size || 24;
       var src = "crests/" + file;
-      return '<span class="fl-crest" style="width:' + sz + 'px;height:' + sz + 'px">' +
+      return '<span class="fl-crest' + (LIGHT[file] ? ' fl-crest-light' : '') + '" style="width:' + sz + 'px;height:' + sz + 'px">' +
         '<img class="fl-crest-img" width="' + sz + '" height="' + sz + '" alt="" src="' + src +
         '" onerror="this.style.display=\'none\';var n=this.nextElementSibling;if(n)n.style.display=\'inline-flex\'">' +
         '<span class="fl-crest-fb" style="display:none">' + fallback + '</span></span>';
@@ -5541,6 +5620,4 @@ matchPoints = function (g) { const v = _matchPointsW(g); weaponXP(g); return v; 
     window.FL_crestFile = crestFile;
   } catch (e) {}
 })();
-
-</script>
-</body></html>
+</script></body></html>
