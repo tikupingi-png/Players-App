@@ -2144,7 +2144,7 @@ async function matchSummary(g) {
     ${statRow.length ? `<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-top:8px">${statRow.map(([k, v]) => `<div style="background:var(--surface);border-radius:8px;padding:4px;text-align:center"><b>${v ?? 0}</b><div style="font-size:9px;color:var(--muted)">${k}</div></div>`).join("")}</div>` : ""}
     ${res.assists && S.pro ? `<p style="font-size:12px;color:var(--accent2);margin-top:6px">+${(res.assists * 0.2).toFixed(1)} skill point from assists (pro only; max 0.8 per season until 21, 1.6 from 22)</p>` : ""}
     ${others}<p style="margin-top:8px;font-style:italic;color:var(--muted)">${verdict}</p>${typeof scoutLine === "function" && scoutLine(g) ? `<p style="margin-top:6px;font-size:12px;color:var(--accent2)">🔭 ${esc(scoutLine(g))}</p>` : ""}`;
-  await showDecision("📋 Match Summary", "", [{ label: "OK" }].concat(g.comp !== "intl" && nextGame() && nextGame() !== g ? [{ label: "⏩ Sim rest of season", effect: () => { SIM_AFTER = true; } }] : []), { html, top: kitVs(g) });
+  await showDecision("📋 Match Summary", "", [{ label: "OK" }], { html, top: kitVs(g) });
 }
 let SIM_AFTER = false, QUICK_MATCH = false, MOMENTS_HOOK = null;
 async function nextMatchday() {
@@ -2397,7 +2397,7 @@ function renderCalendar() {
   const sea = S.season && S.season.club === myClub() && S.season.age === S.age ? S.season : (S.season || null);
   if (!sea) { c.innerHTML = card("📅 Calendar", `<p style="color:var(--muted)">Your first season starts at the next age-up after joining ${esc(S.club || "a club")}.</p>`) + pastSeasonsCard(); return; }
   const me = sea.club, g0 = sea.done ? null : nextGame();
-  const nextCard = g0 ? card("⏭️ Next match", `${kitVsTeams(g0)}<p style="text-align:center"><b>${esc(g0.h || me)}</b> vs <b>${esc(g0.a || "TBD (draw)")}</b></p><p style="text-align:center;color:var(--muted);font-size:12px">${g0.day != null ? dateStr(g0.day) + " • " : ""}${esc(g0.label)} • ${g0.comp === "league" ? "Matchday " + g0.md : esc(g0.round)} • ${g0.h ? (g0.h === me ? "Home" : "Away") : "Draw pending"}</p><button class="create-btn" style="width:100%" onclick="document.getElementById('overlay').classList.remove('show');nextMatchday()">▶ Play next match</button><button class="act-btn" style="margin-top:6px" onclick="simRestOfSeason()">⏩ Simulate rest of season</button>`, "border-color:var(--accent2)")
+  const nextCard = g0 ? card("⏭️ Next match", `${kitVsTeams(g0)}<p style="text-align:center"><b>${esc(g0.h || me)}</b> vs <b>${esc(g0.a || "TBD (draw)")}</b></p><p style="text-align:center;color:var(--muted);font-size:12px">${g0.day != null ? dateStr(g0.day) + " • " : ""}${esc(g0.label)} • ${g0.comp === "league" ? "Matchday " + g0.md : esc(g0.round)} • ${g0.h ? (g0.h === me ? "Home" : "Away") : "Draw pending"}</p><button class="create-btn" style="width:100%" onclick="document.getElementById('overlay').classList.remove('show');nextMatchday()">▶ Play next match</button>`, "border-color:var(--accent2)")
     : card("✅ Season complete", `<p>All matches played. Press <b>AGE +1</b> to start the next season.</p>${(S.seasons[S.seasons.length - 1] || {}).review ? `<button class="act-btn" onclick="openReview(${S.seasons[S.seasons.length - 1].review.age})">📖 Open season review</button>` : ""}`);
   const chips = [["all", "All"], ["league", "League"], ["cup", "Cup"], ["euro", "Europe"], ["intl", "🌍 Intl"]].map(([k, n]) => `<button class="chip2 ${CAL_FILTER === k ? "on" : ""}" onclick="CAL_FILTER='${k}';renderCalendar()">${n}</button>`).join("");
   let bdShown = false;
