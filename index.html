@@ -6839,6 +6839,231 @@ function weaponXP(g) { try { const r = g && g.res, w = wState(); if (!r || !r.pl
   } catch (e) {} }
 const _matchPointsW = matchPoints;
 matchPoints = function (g) { const v = _matchPointsW(g); weaponXP(g); return v; };
+// ===== P4 chunk D: Lum's layout rework (LAYOUT.md) – 5 tabs (Life · Career · People · Money · More), Life hero, Career sub-tabs, More sheet, People + Money overviews. Every old screen is still reachable; only the way in moved. =====
+const fmtShort = n => { n = eraM(n || 0); const a = Math.abs(n), s = n < 0 ? "-€" : "€"; return a >= 1e9 ? s + (a / 1e9).toFixed(2).replace(/\.?0+$/, "") + "bn" : a >= 1e6 ? s + (a / 1e6).toFixed(2).replace(/\.?0+$/, "") + "m" : a >= 1e4 ? s + Math.round(a / 1e3) + "k" : s + Math.round(a).toLocaleString("en-US"); };
+const LY_TABS = [["home", "🏠", "Life"], ["career", "⚽", "Career"], ["rel", "👥", "People"], ["money", "💰", "Money"], ["more", "☰", "More"]];
+const LY_SEG = [["career", "Overview"], ["calendar", "Fixtures"], ["squad", "Squad"], ["training", "Training"], ["agent", "Agent"], ["news", "News"]];
+let LY_GROUP = null, LY_CUR = null;
+const lyBlocked = () => BUSY || document.getElementById("modal").classList.contains("show");
+function lySegLock(id) { const L = tabLocks(); if (id === "squad") return !S.club ? "Join a club to see your squad" : null; return L[id] || null; }
+function lySetTab(id) { document.querySelectorAll("#tabs .tab").forEach(x => x.classList.toggle("active", x.dataset.s === id)); }
+// --- DOM: new hero header, bars under it, compact timeline, wide main action, 5-tab bar, segment row, More sheet
+(function lyDom() { const $ = id => document.getElementById(id);
+  const hdr = document.querySelector("body > header"); if (hdr && !hdr.classList.contains("ly-hero")) { hdr.classList.add("ly-hero");
+    const ring = document.createElement("div"); ring.className = "ly-avring"; ring.id = "ly-avring"; ring.appendChild($("head-av")); ring.title = "Change your look"; ring.onclick = () => { if (!lyBlocked() && S.started) openScreen("avatar"); };
+    const main = document.createElement("div"); main.className = "ly-hmain"; main.appendChild($("pname")); main.appendChild($("page"));
+    const pills = document.createElement("div"); pills.className = "ly-pills";
+    const club = document.createElement("span"); club.className = "pill ly-club"; club.appendChild($("crest")); club.appendChild(document.querySelector(".club-text")); pills.appendChild(club);
+    const ovr = document.createElement("span"); ovr.className = "pill"; ovr.id = "ly-ovr"; pills.appendChild(ovr);
+    const mo = $("pmoney"); mo.classList.add("pill", "money"); pills.appendChild(mo); main.appendChild(pills);
+    hdr.innerHTML = ""; hdr.appendChild(ring); hdr.appendChild(main); }
+  const st = $("stats"); if (st && hdr) { st.classList.add("ly-bars"); hdr.after(st); }
+  const tl = $("tl-wrap"); if (tl && !$("ly-yr")) { const h = document.createElement("div"); h.id = "ly-yr"; h.innerHTML = `<b id="ly-yr-t">This year</b><button type="button" onclick="lyLifeStory()">Life story ›</button>`; tl.prepend(h); }
+  const tabs = $("tabs"); tabs.innerHTML = LY_TABS.map(([s, ic, l]) => `<button class="tab${s === "home" ? " active" : ""}" data-s="${s}" type="button"><span class="icon">${ic}</span>${l}${s === "money" ? `<i class="ly-lock">🔒18</i>` : ""}<i class="ly-dot"></i></button>`).join("");
+  tabs.querySelectorAll(".tab").forEach(t => t.onclick = () => lyTab(t.dataset.s));
+  const seg = document.createElement("div"); seg.id = "ly-seg"; $("overlay-header").after(seg);
+  const sh = document.createElement("div"); sh.id = "ly-more"; sh.innerHTML = `<div class="ly-scrim" onclick="lyMore(false)"></div><div class="ly-sheet"><div class="ly-grab"></div><div class="ly-tiles" id="ly-tiles"></div></div>`; document.body.appendChild(sh);
+  const mb = $("menu-btn"); if (mb) mb.classList.add("ly-gone");
+})();
+function lyTab(s) { if (lyBlocked() || !S.started) return;
+  if (s === "more") { const open = !document.body.classList.contains("ly-more-open"); lyMore(open); return; }
+  lyMore(false);
+  if (s === "home") { document.getElementById("overlay").classList.remove("show"); LY_GROUP = null; lySetTab("home"); return; }
+  if (s === "career" && tabLocks().career) { toast("🔒 " + tabLocks().career); return; }
+  if (s === "money" && tabLocks().money) { toast("🔒 " + tabLocks().money); return; }
+  lySetTab(s); openScreen(s); }
+// --- More sheet: the old strip tiles, Legacy, Backstory, Careers & saves, and the full old More page
+function lyMore(open) { document.body.classList.toggle("ly-more-open", !!open);
+  if (!open) { if (!document.getElementById("overlay").classList.contains("show")) lySetTab("home"); else lySetTab(LY_CUR || "home"); return; }
+  lySetTab("more"); const left = typeof ACTIVITIES !== "undefined" ? ACTIVITIES.filter(a => S.age >= a[3] && actLeft(a) > 0).length : 0;
+  const T = [["activities", "🎯", "Activities", left ? left + " left" : ""], ["training", "🌳", "Training", !S.pro ? "🔒" : (S.skillPoints >= 1 ? "SP" : "")], ["legacy", "📜", "Legacy", ""],
+    ["search", "🔎", "Search", ""], ["avatar", "🎨", "Avatar", ""], ["backstory", "📖", "Backstory", ""]];
+  if (typeof stripTap === "function" && document.querySelector("#strip [data-king-weapons]")) T.push(["weapons", "⚔️", "Weapons", ""]);
+  T.push(["god", "⚡", "God Mode", S.godMode ? "ON" : ""]);
+  T.push(["moreall", "⚙️", "Settings & more", ""]);
+  document.getElementById("ly-tiles").innerHTML = T.map(([id, ic, n, b]) => `<button type="button" class="ly-tile" onclick="lyMoreGo('${id}')"><span class="ic">${ic}</span><span>${n}</span>${b ? `<i class="ly-badge">${b}</i>` : ""}</button>`).join("") +
+    `<button type="button" class="ly-row" onclick="lyMoreGo('saves')">☰ Careers &amp; saves</button>`; }
+function lyMoreGo(id) { if (lyBlocked()) return; lyMore(false); LY_CUR = "more";
+  if (id === "saves") { renderSaveList(); document.body.classList.add("menu-open"); lySetTab("home"); return; }
+  if (id === "backstory") { const c = setOv("Backstory"); c.innerHTML = card(`📖 Backstory: ${esc(backstoryName())}`, `<p style="color:var(--muted)">${esc(S.backstoryText || "")}</p><p style="margin-top:6px;font-size:12px;color:var(--muted)">Discovery route: ${S.route === "street" ? "🏚️ Street football" : "📺 TV match"}${S.age < 4 ? " • happens at age 4" : ""}</p>`); lySetTab("more"); return; }
+  if (id === "god") { if (S.godMode) openAvatarEditor(); else toggleGodMode(); lySetTab("more"); return; }
+  if (id === "moreall") { openScreen("more"); lySetTab("more"); return; }
+  if (id === "weapons") { stripTap("weapons"); lySetTab("more"); return; }
+  if (id === "training" && !S.pro) { toast("🔒 Training unlocks with your first professional contract"); return; }
+  openScreen(id); lySetTab(LY_GROUP === "career" ? "career" : "more"); }
+// --- Career sub-tabs (segmented row under the overlay header)
+function lySeg() { const el = document.getElementById("ly-seg"); if (!el) return; const on = LY_GROUP === "career" && document.getElementById("overlay").classList.contains("show");
+  el.style.display = on ? "" : "none"; if (!on) return;
+  const segs = LY_SEG.concat(lyNatOn() ? [["national", "National"]] : []);
+  el.innerHTML = segs.map(([id, l]) => `<button type="button" class="seg-b${id === LY_CUR ? " on" : ""}${lySegLock(id) ? " locked" : ""}" onclick="lySegGo('${id}')">${l}${lySegLock(id) ? " 🔒" : ""}</button>`).join("");
+  const a = el.querySelector(".on"); if (a && a.scrollIntoView) try { a.scrollIntoView({ block: "nearest", inline: "nearest" }); } catch (e) {} }
+function lyNatOn() { try { const I = intlState(); return !!(I && (I.caps > 0 || Object.keys(I.youth || {}).length || (I.tournaments || []).length || S.natCaptain)); } catch (e) { return false; } }
+function lySegGo(id) { if (lyBlocked()) return; if (id === "national") { LY_GROUP = "career"; LY_CUR = "national"; lySetTab("career"); renderNational(); lySeg(); return; } const L = lySegLock(id); if (L) { toast("🔒 " + L); return; } openScreen(id); }
+const _openScreenLY = openScreen;
+openScreen = function (id) { const seg = LY_SEG.some(x => x[0] === id);
+  if (id === "money") { const L = tabLocks(); if (L.money) { toast("🔒 " + L.money); return; } LY_GROUP = null; LY_CUR = "money"; lySetTab("money"); const r = lyMoneyHome(); lySeg(); return r; }
+  if (seg) { LY_GROUP = "career"; LY_CUR = id; lySetTab("career"); } else if (id !== "avatar") { LY_GROUP = null; LY_CUR = id === "rel" ? "rel" : LY_CUR; }
+  const r = _openScreenLY.apply(this, arguments); lySeg();
+  if (id === "more") document.querySelectorAll("#overlay-content p").forEach(p => { if (/Open the ☰ menu \(top left\)/.test(p.textContent)) p.textContent = "Your career saves automatically. Open More → ☰ Careers & saves to switch careers or start a new one."; });
+  return r; };
+const _setOvLY = setOv;
+setOv = function (title) { const c = _setOvLY.apply(this, arguments); c.classList.remove("ly-grid"); setTimeout(lySeg, 0); return c; };
+// overlay closed by ← (or anything else) → Life tab lights up again
+try { new MutationObserver(() => { const ov = document.getElementById("overlay"); if (!ov.classList.contains("show")) { LY_GROUP = null; LY_CUR = null; if (!document.body.classList.contains("ly-more-open")) lySetTab("home"); } lySeg(); })
+  .observe(document.getElementById("overlay"), { attributes: true, attributeFilter: ["class"] }); } catch (e) {}
+// --- Life: hero bits, coloured stat bars, "This year" (last 3) + Life story drill-in, wide main action
+const _updateHeaderLY = updateHeader;
+updateHeader = function () { _updateHeaderLY.apply(this, arguments); try {
+  const ring = document.getElementById("ly-avring"); if (ring) ring.style.setProperty("--p", (S.happiness || 0) + "%");
+  const o = document.getElementById("ly-ovr"); if (o) o.textContent = S.started ? `⭐ ${S.ovr || 0} OVR` : "";
+  const pg = document.getElementById("page"); if (pg && S.started) pg.textContent = `Age ${S.age}${S.position ? " • " + (typeof posName === "function" ? posName(S.position) : S.position) : ""} • ${S.city}`;
+  const ab = document.getElementById("age-btn"); if (ab) { const sa = seasonActive(), g = sa ? nextGame() : null, t = ab.innerHTML.replace(/<br>/g, " ");
+    if (/PLAY SEASON/.test(t)) ab.innerHTML = "▶️ PLAY SEASON";
+    else if (sa) { let vs = ""; if (g && g.h && g.a) vs = g.h === S.club ? `vs ${g.a} (H)` : g.a === S.club ? `vs ${g.h} (A)` : `${g.h} v ${g.a}`; ab.innerHTML = `⚽ NEXT MATCH${vs ? `<small>${esc(vs)}</small>` : ""}`; ab.classList.add("blue"); }
+    else { ab.innerHTML = `AGE +1 <small>→ ${S.age + 1}</small>`; ab.classList.remove("blue"); } }
+  lyBadges(); } catch (e) {} };
+function lyBadges() { const tb = q => document.querySelector(`#tabs .tab[data-s="${q}"]`), need = lyNeeds().length, p = tb("rel");
+  if (p) p.classList.toggle("dot", S.started && need > 0);
+  const cr = tb("career"); if (cr) cr.classList.toggle("dot", !!(S.started && S.agent && S.agent.offers && S.agent.offers.length)); }
+const _renderStatsLY = renderStats;
+renderStats = function () { _renderStatsLY.apply(this, arguments); document.querySelectorAll("#stats .stat").forEach(s => { const v = +((s.querySelector(".stat-val") || {}).textContent || 0), f = s.querySelector(".stat-fill");
+  if (f) f.style.background = v >= 60 ? "#00e676" : v >= 40 ? "#ffd600" : v >= 20 ? "#ff9100" : "#ff5252"; }); };
+const _renderTimelineLY = renderTimeline;
+renderTimeline = function () { const el = document.getElementById("timeline"); if (!el) return; if (!S.started || !S.events) return _renderTimelineLY.apply(this, arguments);
+  const yr = S.events.filter(e => e.age === S.age), L = (yr.length ? yr : S.events).slice(0, 3), more = yr.length - L.length;
+  const t = document.getElementById("ly-yr-t"); if (t) t.textContent = yr.length ? `This year • Age ${S.age}` : "Latest";
+  el.innerHTML = L.length ? L.map((e, i) => `<div class="event${i === 0 && TL_COUNT >= 0 && S.events.length > TL_COUNT ? " flash" : ""}"><h4>${esc(e.title)}</h4><p>${esc(e.text)}</p></div>`).join("") + (more > 0 ? `<button type="button" class="ly-more-ev" onclick="lyLifeStory()">+${more} more this year ›</button>` : "")
+    : `<div style="text-align:center;color:var(--muted);margin-top:40px">Your story starts here</div>`;
+  TL_COUNT = S.events.length; el.scrollTop = 0; const n = document.getElementById("tl-new"); if (n) n.classList.remove("show"); };
+function lyLifeStory() { if (lyBlocked() || !S.started) return; const c = setOv("Life story"); let h = "", last = null;
+  S.events.forEach(e => { if (e.age !== last) { last = e.age; h += `<div class="tl-age">Age ${e.age}</div>`; } h += `<div class="event"><h4>${esc(e.title)}</h4><p>${esc(e.text)}</p></div>`; });
+  c.innerHTML = h || `<p style="color:var(--muted)">Your story starts here.</p>`; }
+// --- People: hero + 3 KPIs + "Needs you" (max 3) + group tiles above the full list
+function lyNeeds() { return (S.people || []).filter(p => (p.lastSeen != null && S.age - p.lastSeen >= 2) || p.closeness < 40); }
+const _renderRelLY = renderRel;
+renderRel = function () { _renderRelLY.apply(this, arguments); try { const c = document.getElementById("overlay-content"), P = S.people || [];
+  const close = P.filter(p => p.closeness >= 70).length, drift = P.filter(p => p.closeness >= 40 && p.closeness < 70).length, rocky = P.filter(p => p.closeness < 40).length;
+  const av = p => typeof personAvHtml === "function" ? personAvHtml(p, 36) : `<div class="avatar" style="background:${relColor(p.closeness)};color:#000">${esc(p.name[0])}</div>`;
+  const need = lyNeeds().sort((a, b) => a.closeness - b.closeness).slice(0, 3);
+  const groups = [["family", "👪", "Family"], ["club", "⚽", "Club"], ["friends", "🤝", "Friends"], ["partner", "💘", "Love"]];
+  let h = `<div class="ly-phero"><div class="ly-stack">${P.slice(0, 5).map(av).join("")}</div><div><b style="font-size:20px">${P.length} ${P.length === 1 ? "person" : "people"}</b><div style="color:var(--muted);font-size:12px">in your life</div></div></div>
+    <div class="ly-kpis"><div><b>💚 ${close}</b><span>Close</span></div><div><b>🟠 ${drift}</b><span>Drifting</span></div><div><b>💔 ${rocky}</b><span>Rocky</span></div></div>`;
+  if (need.length) h += `<div class="sec-h">Needs you</div>` + need.map(p => `<div class="person-row" onclick="openPerson('${p.id}')">${av(p)}<div style="flex:1"><b>${esc(p.name)}</b><br><span style="color:var(--muted);font-size:12px">${esc(p.role)} • ${p.closeness < 40 ? "rocky" : "not seen in " + (S.age - p.lastSeen) + " years"}</span></div><button type="button" class="ly-qa">Visit ›</button></div>`).join("");
+  h += `<div class="ly-gtiles">${groups.map(([k, ic, n]) => `<button type="button" onclick="lyPeopleGo('${k}')"><span>${ic}</span>${n}<i>${P.filter(p => p.cat === k).length}</i></button>`).join("")}</div>`;
+  const wrap = document.createElement("div"); wrap.className = "ly-pov"; wrap.innerHTML = h; c.prepend(wrap);
+  const names = { family: "Family", club: "Club", friends: "Friends", partner: "Partner" }; c.querySelectorAll(".sec-h").forEach(s => { const k = Object.keys(names).find(k => names[k] === s.textContent.trim()); if (k) s.id = "ly-sec-" + k; }); } catch (e) {} };
+function lyPeopleGo(k) { const s = document.getElementById("ly-sec-" + k); if (s && s.scrollIntoView) s.scrollIntoView({ behavior: "smooth", block: "start" }); else if (k === "partner") toast("💘 Love opens at 18"); }
+const _openPersonLY = openPerson;
+openPerson = function () { const r = _openPersonLY.apply(this, arguments); const c = document.getElementById("overlay-content"); if (c && c.querySelector(".act-btn")) c.classList.add("ly-grid"); return r; };
+// --- Money: net-worth hero + chips + 3 KPIs + 6 drill-in tiles (each opens the old sub-screen; ← comes back here)
+function lyMoneyHome() { bizState(); const c = setOv("Money"), B = S.biz, n = netWorth(), prof = B.list.reduce((a, b) => a + (b.last || 0), 0), R0 = B.rich || S.richList;
+  const nw = B.nw || [], d = nw.length > 1 ? n.total - (nw[nw.length - 2].v != null ? nw[nw.length - 2].v : nw[nw.length - 2]) : null;
+  const tiles = [["biz", "🏪", "Businesses", B.list.length ? `${B.list.length} owned • ${fmtShort(prof)}/yr` : "Start one"], ["stocks", "📈", "Stocks", n.stocks ? fmtShort(n.stocks) : "No shares"], ["prop", "🏠", "Property", n.prop ? fmtShort(n.prop) : "Renting"],
+    ["lux", "💎", "Luxury", n.lux ? fmtShort(n.lux) : "Cars, watches…"], ["loans", "🏦", "Bank", n.loans ? fmtShort(n.loans) + " debt" : "No loans"], ["overview", "🏆", "Rich list", R0 ? `#${R0.rank} of ${R0.of}` : "Net worth breakdown"]];
+  c.innerHTML = `<div class="ly-mhero"><div class="lbl">Net worth</div><div class="ly-nw">${fmtShort(n.total)}</div><div class="ly-chips">${d != null && isFinite(d) ? `<span class="${d >= 0 ? "up" : "dn"}">${d >= 0 ? "▲" : "▼"} ${fmtShort(Math.abs(d))} this year</span>` : ""}${R0 ? `<span>#${R0.rank} richest</span>` : ""}<span>💶 Cash ${fmtShort(S.money)}</span></div></div>
+    <div class="ly-kpis"><div><b>${fmtShort(prof)}</b><span>Yearly profit</span></div><div><b>${fmtShort(n.prop || 0)}</b><span>Property</span></div><div><b>${fmtShort(Math.abs(n.loans || 0))}</b><span>Debt</span></div></div>
+    <div class="ly-mtiles">${tiles.map(([k, ic, l, s]) => `<button type="button" onclick="lyMoneyGo('${k}')"><span class="ic">${ic}</span><b>${l}</b><small>${s}</small></button>`).join("")}</div>`;
+  updateHeader(); }
+function lyMoneyGo(k) { if (lyBlocked()) return; renderMoney(k); backHandler = lyMoneyHome; }
+const _renderMoneyLY = renderMoney;
+renderMoney = function () { const r = _renderMoneyLY.apply(this, arguments); backHandler = lyMoneyHome; return r; };
+// --- CSS
+(function () { const s = document.createElement("style"); s.textContent = `
+#menu-btn.ly-gone{display:none!important}
+#overlay-header{padding-left:16px!important}
+#overlay{bottom:calc(56px + env(safe-area-inset-bottom,0px))!important}
+header.ly-hero{justify-content:flex-start;gap:14px;padding:calc(12px + env(safe-area-inset-top,0px)) 14px 10px;align-items:center}
+.ly-avring{--p:50%;flex:none;width:84px;height:84px;border-radius:50%;padding:4px;background:conic-gradient(#00e676 var(--p),#2a3340 0);cursor:pointer}
+.ly-avring .head-av{width:76px;height:76px;border-radius:50%;overflow:hidden;background:#171c24;display:flex;align-items:center;justify-content:center;margin:0}
+.ly-avring .head-av svg{width:100%;height:100%}
+.ly-hmain{min-width:0;flex:1}
+.ly-hmain .pname{font-size:22px;font-weight:900;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ly-hmain .page{font-size:13px;color:#8b95a5;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ly-pills{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
+.ly-pills .pill{display:inline-flex;align-items:center;gap:5px;background:#252d39;border:1px solid #2a3340;border-radius:999px;padding:3px 9px 3px 4px;font-size:12px;font-weight:700;max-width:100%;min-height:26px;font-variant-numeric:tabular-nums;color:#f0f2f5}
+.ly-pills .pill:empty{display:none}
+.ly-pills .pill.money{color:#ffd600;padding-left:9px}
+.ly-pills #ly-ovr{padding-left:9px}
+.ly-club .crest{width:20px;height:20px;font-size:9px;flex:none;overflow:hidden}
+.ly-club .crest svg{width:20px;height:20px}
+.ly-club .club-text{display:flex;gap:4px;min-width:0}
+.ly-club .club-text .name{font-size:12px;font-weight:700;max-width:130px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ly-club .club-text .league{display:none}
+#stats.ly-bars{background:#171c24;border-bottom:1px solid #2a3340;padding:8px 16px 10px;gap:6px;flex:none}
+#stats.ly-bars .stat-label{width:84px;font-size:12px}
+#stats.ly-bars .stat-bar{height:10px;border-radius:5px}
+#stats.ly-bars .stat-val{font-variant-numeric:tabular-nums}
+#strip{display:none!important}
+#ly-yr{display:flex;align-items:center;justify-content:space-between;padding:10px 16px 0;font-size:14px}
+#ly-yr button{background:none;border:none;color:#00e676;font-weight:800;font-size:13px;min-height:44px;padding:0 4px}
+#timeline{padding-top:6px}
+.ly-more-ev{width:100%;min-height:44px;background:#171c24;border:1px dashed #2a3340;border-radius:12px;color:#8b95a5;font-weight:700}
+#age-wrap{margin-top:0!important;padding:8px 12px 4px;display:flex;gap:8px;justify-content:stretch}
+#age-btn{width:auto!important;flex:1;height:56px!important;border-radius:14px!important;border:none!important;font-size:16px!important;font-weight:900;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1;box-shadow:0 4px 14px rgba(0,230,118,.25)}
+#age-btn small{font-size:11px;font-weight:700;opacity:.75;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 8px}
+#age-btn.blue{background:#2f81f7;color:#fff;box-shadow:0 4px 14px rgba(47,129,247,.3)}
+#sim-btn{position:static!important;flex:none;width:64px;height:56px;border-radius:14px!important;padding:0!important;font-size:12px!important;transform:none!important}
+#tabs{height:56px;padding:0 0 env(safe-area-inset-bottom,0px)!important;box-sizing:content-box}
+#tabs .tab{position:relative;flex:1;min-width:0;min-height:56px;font-size:11px!important;font-weight:700;gap:2px;justify-content:center;color:#8b95a5}
+#tabs .tab span.icon{font-size:20px}
+#tabs .tab.active{color:#00e676}
+#tabs .tab.active::before{content:"";position:absolute;top:0;left:28%;right:28%;height:3px;border-radius:0 0 3px 3px;background:#00e676}
+#tabs .tab.locked{opacity:.45}
+#tabs .tab .ly-lock{display:none;position:absolute;top:4px;right:calc(50% - 26px);font-style:normal;font-size:8px;background:#252d39;border-radius:6px;padding:1px 3px}
+#tabs .tab.locked .ly-lock{display:block}
+#tabs .tab .ly-dot{display:none;position:absolute;top:7px;left:calc(50% + 8px);width:8px;height:8px;border-radius:50%;background:#ff5252}
+#tabs .tab.dot .ly-dot{display:block}
+#tabs .tab[data-s]{display:flex!important}
+#ly-seg{display:flex;gap:6px;overflow-x:auto;padding:4px 12px;background:#171c24;border-bottom:1px solid #2a3340;flex:none;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+#ly-seg::-webkit-scrollbar{display:none}
+#ly-seg .seg-b{flex:none;height:36px;margin:4px 0;padding:0 14px;border-radius:999px;border:1px solid #2a3340;background:#1e252f;color:#8b95a5;font-weight:700;font-size:13px}
+#ly-seg .seg-b.on{background:#00e676;color:#000;border-color:#00e676}
+#ly-seg .seg-b.locked{opacity:.5}
+#ly-more{display:none;position:fixed;inset:0;z-index:300}
+body.ly-more-open #ly-more{display:block}
+body.ly-more-open footer{position:relative;z-index:310}
+.ly-scrim{position:absolute;inset:0;background:rgba(0,0,0,.6)}
+.ly-sheet{position:absolute;left:0;right:0;bottom:calc(56px + env(safe-area-inset-bottom,0px));background:#171c24;border-radius:22px 22px 0 0;padding:8px 14px 14px;max-width:520px;margin:0 auto}
+.ly-grab{width:40px;height:4px;border-radius:2px;background:#2a3340;margin:0 auto 10px}
+.ly-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.ly-tile{position:relative;height:84px;border-radius:16px;background:#1e252f;border:1px solid #2a3340;color:#f0f2f5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:12px;font-weight:700}
+.ly-tile .ic{font-size:24px}
+.ly-badge{position:absolute;top:6px;right:6px;font-style:normal;font-size:9px;background:#00e676;color:#000;border-radius:999px;padding:1px 5px;font-weight:900}
+.ly-row{grid-column:1/-1;min-height:48px;border-radius:12px;background:#252d39;border:1px solid #2a3340;color:#f0f2f5;font-weight:800;font-size:14px}
+body.ly-more-open #age-wrap{display:none!important}
+.ly-phero{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.ly-stack{display:flex}
+.ly-stack>*{width:36px!important;height:36px!important;border-radius:50%;margin-left:-8px;border:2px solid #0e1116;overflow:hidden;flex:none}
+.ly-stack>*:first-child{margin-left:0}
+.ly-stack svg{width:100%;height:100%}
+.ly-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.ly-kpis>div{background:#1e252f;border:1px solid #2a3340;border-radius:14px;padding:10px 6px;text-align:center;display:flex;flex-direction:column;gap:2px;font-variant-numeric:tabular-nums}
+.ly-kpis b{font-size:16px}.ly-kpis span{font-size:11px;color:#8b95a5}
+.ly-qa{flex:none;min-height:44px;min-width:64px;border-radius:12px;background:#252d39;border:1px solid #2a3340;color:#00e676;font-weight:800}
+.ly-gtiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0 6px}
+.ly-gtiles button{min-height:64px;border-radius:14px;background:#1e252f;border:1px solid #2a3340;color:#f0f2f5;font-size:12px;font-weight:700;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.ly-gtiles span{font-size:20px}.ly-gtiles i{font-style:normal;color:#8b95a5;font-size:11px}
+#overlay-content.ly-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-content:start}
+#overlay-content.ly-grid>*:not(.act-btn){grid-column:1/-1}
+#overlay-content.ly-grid>.act-btn{margin:0;min-height:64px;width:100%;font-size:13px}
+.ly-mhero{text-align:center;padding:6px 0 12px}
+.ly-mhero .lbl{color:#8b95a5;font-size:12px}
+.ly-nw{font-size:36px;font-weight:900;color:#ffd600;font-variant-numeric:tabular-nums;line-height:1.15}
+.ly-chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:6px}
+.ly-chips span{background:#252d39;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:700}
+.ly-chips .up{color:#00e676}.ly-chips .dn{color:#ff5252}
+.ly-mtiles{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ly-mtiles button{min-height:84px;border-radius:16px;background:#1e252f;border:1px solid #2a3340;color:#f0f2f5;text-align:left;padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+.ly-mtiles .ic{font-size:22px}.ly-mtiles b{font-size:14px}.ly-mtiles small{color:#8b95a5;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+#m-opts button:has(.mm-risk){position:relative;min-height:64px;text-align:left;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px 10px 16px;font-size:16px;font-weight:800;overflow:hidden}
+#m-opts button:has(.mm-risk)::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:#ffd600}
+#m-opts button:has(.mm-risk.r0)::before{background:#00c853}#m-opts button:has(.mm-risk.r2)::before{background:#ff5252}
+#m-opts button .mm-risk{flex:none;font-size:11px;font-weight:700}
+.modal-box #m-opts{position:sticky;bottom:-32px;background:var(--card);padding-bottom:6px;margin-bottom:-6px}
+#mm-flash{top:calc(env(safe-area-inset-top,0px) + 96px)!important}
+.p1-float{top:calc(env(safe-area-inset-top,0px) + 146px)!important}
+`; document.head.appendChild(s); })();
+try { renderStats(); if (S.started) { updateHeader(); renderTimeline(); } } catch (e) {}
 /* Football Life — real club crests.
  * Self-contained additive module. Insert as an inline script at the end of the document body,
  * or append as a parts file after the other parts.
