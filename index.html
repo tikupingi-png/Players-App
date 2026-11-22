@@ -4719,18 +4719,23 @@ function moneyLux() { const B = S.biz; let h = "";
 const LEV = [["price", "💶", "Price"], ["staff", "👥", "Staff"], ["marketing", "📣", "Marketing"], ["quality", "⭐", "Quality"]];
 function levOf(b) { const l = b.lev || (b.lev = { price: 3, staff: 3, marketing: 3, quality: 3 }); if (b.rep == null) b.rep = 50; return l; }
 function levMult(b) { if (!b || b.k === "fc") return { rev: 1, cost: 0 }; const l = levOf(b), d = k => l[k] - 3, T = bizT(b.k), L = LVL_MULT[b.lvl - 1] || 1, base = T.price * T.up * L;
-  const demand = Math.max(0.35, 1 - 0.11 * d("price") + 0.05 * d("quality") + 0.07 * d("marketing") + 0.04 * d("staff"));
+  const Z = bizSens(b.k), demand = Math.max(0.35, 1 - 0.11 * d("price") * Z.price + 0.05 * d("quality") * Z.quality + 0.07 * d("marketing") * Z.marketing + 0.04 * d("staff") * Z.staff - 0.04 * Math.max(0, -d("quality")) * Z.quality); // cutting quality also drives regulars away
   const margin = 1 + 0.13 * d("price"), rep = 0.8 + b.rep / 250;
-  const cost = base * (0.16 * d("staff") + 0.10 * d("quality")) + T.price * 0.045 * (l.marketing - 1);
-  return { rev: demand * margin * rep, cost: Math.round(cost) }; }
+  const half = v => v < 0 ? v * 0.5 : v; // cuts below 3 only save half as much as raises cost
+  const cv = k => { const v = d(k); return v > 1 ? v + (v - 1) * 0.7 : v; }; // the 5th notch costs almost double the 4th
+  const cost = Math.max(-0.3 * base, base * (half(0.16 * cv("staff")) + half(0.10 * cv("quality"))) + half(T.price * 0.045 * cv("marketing"))); // all at 3 = exactly the old profit; running costs never fall below ~70%
+  let rv = demand * margin * rep; if (rv > 1.4) rv = 1.4 + (rv - 1.4) * 0.3; // saturation: a small business can only grow so far on settings alone
+  return { rev: rv, cost: Math.round(cost) }; }
 const _bizRevenueLev = bizRevenue;
-bizRevenue = function (b, m) { const r = _bizRevenueLev.apply(this, arguments); if (!b || b.k === "fc") return r; const x = levMult(b); return r * x.rev - x.cost; };
+bizRevenue = function (b, m) { const r = _bizRevenueLev.apply(this, arguments); if (!b || b.k === "fc") return r; const x = levMult(b), u = b.units || 1;
+  if (u === 1 && !b.syn) return r * x.rev - x.cost; const T = bizT(b.k), U = T.price * T.up * (LVL_MULT[b.lvl - 1] || 1); // merged / bought-out units: more of everything, shared overheads (syn < 1)
+  return u * (r * x.rev - x.cost) - u * U * (b.syn || 1) + U; };
 function bizSkill() { if (S.bizSkill == null) S.bizSkill = Math.round(Math.max(5, Math.min(40, ((S.smarts || 50) - 40) * 0.5 + 10))); return S.bizSkill; }
-function bizRisk(b) { const l = levOf(b); let r = 0.07 + ((b.last || 0) < 0 ? 0.05 : 0) + (b.rep < 35 ? 0.04 : 0) - (l.staff - 3) * 0.012 - (l.quality - 3) * 0.008; r *= 1 - bizSkill() / 140; return Math.max(0.01, Math.min(0.25, r)); }
+function bizRisk(b) { const l = levOf(b); let r = 0.07 + ((b.last || 0) < 0 ? 0.05 : 0) + (b.rep < 35 ? 0.04 : 0) - (l.staff - 3) * 0.012 * bizSens(b.k).staff - (l.quality - 3) * 0.008; r *= 1 - bizSkill() / 140; return Math.max(0.01, Math.min(0.25, r)); }
 const _bizYearLev = bizYear;
 bizYear = async function () { const B0 = S.biz, ran = B0 && B0.lastYear !== S.age; const r = await _bizYearLev.apply(this, arguments);
   try { const B = S.biz; if (!ran || !B || S.age < 18) return r; const list = B.list.filter(b => b.k !== "fc"); if (!list.length) return r;
-    list.forEach(b => { const l = levOf(b); b.rep = Math.round(Math.max(0, Math.min(100, b.rep + (l.quality - 3) * 3 + (l.marketing - 3) * 1.5 + (l.staff - 3) * 1 - Math.max(0, l.price - l.quality) * 3.5 + rnd(-3, 3)))); });
+    list.forEach(b => { const l = levOf(b); const Z = bizSens(b.k); b.rep = Math.round(Math.max(0, Math.min(100, b.rep + (l.quality - 3) * 3 * Z.quality + (l.marketing - 3) * 1.5 * Z.marketing + (l.staff - 3) * 1 - Math.max(0, 3 - l.quality) * 2 - Math.max(0, l.price - l.quality) * 3.5 + rnd(-3, 3)))); });
     bizSkill(); S.bizSkill = Math.min(100, S.bizSkill + Math.min(4, 1 + list.length * 0.5) + (list.some(b => (b.mgr || {}).kind === "self") ? 1 : 0));
     const hit = list.find(b => Math.random() < bizRisk(b));
     if (hit) { const T = bizT(hit.k), loss = Math.round(T.price * T.up * (LVL_MULT[hit.lvl - 1] || 1) * rnd(0.15, 0.4)); S.money -= loss; hit.rep = Math.max(0, hit.rep - 12); hit.malus = 0.8;
@@ -4747,6 +4752,60 @@ moneyBiz = function () { let h = _moneyBizLev.apply(this, arguments);
   try { (S.biz.list || []).forEach(b => { if (b.k === "fc") return; levOf(b); h = h.replace(`<button class="m-btn" onclick="mgrPicker('${b.id}')">`, `<button class="m-btn" onclick="levScreen('${b.id}')">🎛️ Levers · rep ${b.rep}</button><button class="m-btn" onclick="mgrPicker('${b.id}')">`); });
     if ((S.biz.list || []).length) h = card("🧠 Business skill", `<div class="m-row"><span>Skill</span><b>${bizSkill()}/100</b></div><p style="font-size:11px;color:var(--muted)">Grows every year you run businesses and lowers the chance of a crisis.</p>`) + h; } catch (e) {}
   return h; };
+// ===== P4y: distinct business types – each reacts differently to the levers (1 = normal) =====
+const BIZ_SENS = {
+  cafe: { price: 1.4, staff: 1.0, marketing: 0.6, quality: 1.4, note: "Locals notice every price rise – and every bad coffee." },
+  barber: { price: 1.0, staff: 1.7, marketing: 0.7, quality: 1.0, note: "It's all about the barbers: staff matter most." },
+  boots: { price: 1.1, staff: 0.7, marketing: 1.5, quality: 1.0, note: "Hype sells boots: marketing moves the needle." },
+  rest: { price: 0.9, staff: 1.3, marketing: 0.9, quality: 1.6, note: "Food critics: quality and service make or break it." },
+  brand: { price: 0.6, staff: 0.6, marketing: 1.8, quality: 1.1, note: "Brand power: fans barely notice price, marketing is king." },
+  night: { price: 0.7, staff: 1.3, marketing: 1.5, quality: 0.8, note: "Buzz and good security keep the queue outside." },
+  hotel: { price: 0.8, staff: 1.5, marketing: 0.8, quality: 1.5, note: "Guests pay for comfort: quality and staff win reviews." }
+};
+function bizSens(k) { return BIZ_SENS[k] || { price: 1, staff: 1, marketing: 1, quality: 1, note: "" }; }
+const _levScreenT = levScreen;
+levScreen = function (id) { _levScreenT.apply(this, arguments); try { const b = S.biz.list.find(x => x.id === id), c = document.getElementById("overlay-content"); if (!b || !c) return; const Z = bizSens(b.k), T = bizT(b.k);
+  const tag = k => Z[k] >= 1.3 ? "matters a lot" : Z[k] <= 0.75 ? "matters little" : "normal";
+  c.insertAdjacentHTML("afterbegin", card(`${T.ic} ${T.name}`, `<p style="font-size:12px;color:var(--muted)">${Z.note}</p>${LEV.map(([k, ic, n]) => `<div class="m-row"><span>${ic} ${n}</span><b>${tag(k)}</b></div>`).join("")}${(b.units || 1) > 1 ? `<div class="m-row"><span>Size (merged / bought out)</span><b>×${(b.units).toFixed(2)}</b></div>` : ""}`)); } catch (e) {} };
+// ===== P4y: mergers – combine your own businesses, buy out rivals =====
+// upgrading a merged business upgrades every unit, so it costs more (upgCost itself is a const, so the extra is charged here)
+function upgExtra(b) { return b && (b.units || 1) > 1 && b.lvl < 5 ? Math.round(upgCost(b) * (Math.pow(b.units, 0.8) - 1) / 1000) * 1000 : 0; }
+const _upgradeBizM = upgradeBiz;
+upgradeBiz = function (id) { const b = S.biz && S.biz.list.find(x => x.id === id), ex = upgExtra(b); if (!ex) return _upgradeBizM.apply(this, arguments); if (busyNow()) return;
+  if (S.money < upgCost(b) + ex) { toast(`Needs ${money(upgCost(b) + ex)}`); return; } S.money -= ex; b.inv = (b.inv || 0) + ex; return _upgradeBizM.apply(this, arguments); };
+function mergeQuote(a, b) { const TA = bizT(a.k), TB = bizT(b.k), add = (TB.price * (LVL_MULT[b.lvl - 1] || 1) * (b.units || 1)) / (TA.price * (LVL_MULT[a.lvl - 1] || 1));
+  return { add: Math.round(add * 100) / 100, fee: Math.round((fin(a.value) + fin(b.value)) * 0.05 / 1000) * 1000, syn: a.k === b.k ? 0.85 : 0.93 }; }
+function mergeBiz(aId, bId) { if (busyNow()) return; const L = S.biz.list, a = L.find(x => x.id === aId), b = L.find(x => x.id === bId); if (!a || !b || a === b || a.k === "fc" || b.k === "fc") return;
+  const q = mergeQuote(a, b); if (S.money < q.fee) { toast(`Needs ${money(q.fee)} for lawyers and fees`); return; }
+  if (!confirmSafe(`Merge ${b.name} into ${a.name}? Fees ${money(q.fee)}. ${a.name} grows ×${((a.units || 1) + q.add).toFixed(2)} and shares overheads.`)) return;
+  levOf(a); levOf(b); const ua = a.units || 1, ub = q.add; S.money -= q.fee; a.units = Math.round((ua + ub) * 100) / 100; a.syn = Math.min(a.syn || 1, q.syn); a.inv = (a.inv || 0) + (b.paid || 0) + (b.inv || 0) + q.fee;
+  a.rep = Math.round((a.rep * ua + b.rep * ub) / (ua + ub)); (S.biz.loans || []).forEach(l => { if (l.ref === b.id) l.ref = a.id; }); S.biz.list = L.filter(x => x !== b); a.value = bizValue(a);
+  bizLog(`🔗 ${b.name} merged into ${a.name} (fees ${money(q.fee)}). Shared overheads cut costs.`, "🔗 Merger"); renderMoney("biz"); }
+function mergePicker(id) { if (busyNow()) return; const a = S.biz.list.find(x => x.id === id); if (!a) return; const c = setOv("🔗 Merge into " + a.name); backHandler = () => renderMoney("biz");
+  const others = S.biz.list.filter(x => x !== a && x.k !== "fc");
+  c.innerHTML = card("Combine your businesses", `<p style="font-size:12px;color:var(--muted)">The other business is folded into ${esc(a.name)}: one brand, one manager, shared overheads (same type saves more). Its loans move across.</p>`) +
+    (others.length ? others.map(b => { const q = mergeQuote(a, b), T = bizT(b.k); return `<div class="m-shop ${S.money < q.fee ? "locked" : ""}" onclick="mergeBiz('${a.id}','${b.id}')"><span class="ic">${T.ic}</span><div style="flex:1;min-width:0"><b>${esc(b.name)}</b><br><span class="sub">Fees ${money(q.fee)} • size +${q.add.toFixed(2)} • overheads ×${q.syn}</span></div><span class="go">Merge</span></div>`; }).join("") : card("", "<p>You need a second business to merge.</p>")); }
+const RIVAL_PRE = ["Golden", "Urban", "Royal", "Prime", "Corner", "Elite", "Metro", "Vintage"];
+function rivalOffer(b) { if (b.k === "fc") return null; if (!b.rival || b.rival.age !== S.age) { const T = bizT(b.k), u = Math.round(rnd(0.45, 0.95) * 100) / 100;
+    b.rival = { age: S.age, name: `${pick(RIVAL_PRE)} ${T.name.replace(/^Hometown /, "")}`, u, price: Math.round(T.price * (LVL_MULT[b.lvl - 1] || 1) * u * rnd(0.95, 1.35) * (1.15 - (b.rep == null ? 50 : b.rep) / 350) / 1000) * 1000 }; }
+  return b.rival; }
+function buyRival(id, disc) { if (busyNow()) return; const b = S.biz.list.find(x => x.id === id); if (!b) return; const r = rivalOffer(b); if (!r || r.done) return; const price = Math.round(r.price * (disc || 1));
+  if (S.money < price) { toast(`Needs ${money(price)}`); return; } if (!disc && !confirmSafe(`Buy out ${r.name} for ${money(price)}? ${b.name} grows ×${((b.units || 1) + r.u).toFixed(2)}.`)) return;
+  levOf(b); S.money -= price; b.units = Math.round(((b.units || 1) + r.u) * 100) / 100; b.syn = Math.min(b.syn || 1, 0.9); b.inv = (b.inv || 0) + price; b.rep = Math.min(100, b.rep + 3); r.done = true; b.value = bizValue(b);
+  bizLog(`🏴 You bought out rival ${r.name} for ${money(price)} – ${b.name} now has ×${b.units.toFixed(2)} the reach.`, "🏴 Rival bought out"); if (!disc) renderMoney("biz"); }
+const _moneyBizM = moneyBiz;
+moneyBiz = function () { let h = _moneyBizM.apply(this, arguments);
+  try { const nf = S.biz.list.filter(b => b.k !== "fc"); nf.forEach(b => { const r = rivalOffer(b), extra = (nf.length > 1 ? `<button class="m-btn" onclick="mergePicker('${b.id}')">🔗 Merge</button>` : "") + (r && !r.done ? `<button class="m-btn" ${S.money < r.price ? "disabled" : ""} onclick="buyRival('${b.id}')">🏴 Buy out ${esc(r.name)} ${money(r.price)}</button>` : "");
+      const ex = upgExtra(b); if (ex) h = h.replace(`${S.money < upgCost(b) ? "disabled" : ""} onclick="upgradeBiz('${b.id}')">⬆️ Upgrade ${money(upgCost(b))}`, `${S.money < upgCost(b) + ex ? "disabled" : ""} onclick="upgradeBiz('${b.id}')">⬆️ Upgrade ${money(upgCost(b) + ex)}`);
+      if (extra) h = h.replace(`<button class="m-btn" onclick="mgrPicker('${b.id}')">`, extra + `<button class="m-btn" onclick="mgrPicker('${b.id}')">`); }); } catch (e) {}
+  return h; };
+// yearly event: a struggling rival is up for sale at a discount
+const _bizEventPoolM = bizEventPool;
+bizEventPool = function () { const p = _bizEventPoolM.apply(this, arguments); try { if (S.biz.list.some(b => b.k !== "fc")) p.push(["rivalsale", 1.5]); } catch (e) {} return p; };
+BIZ_EV.rivalsale = async function () { const b = pick(S.biz.list.filter(x => x.k !== "fc")), r = rivalOffer(b); if (!r || r.done) return; const price = Math.round(r.price * 0.65);
+  await showDecision("🏴 Rival in trouble", `${r.name}, a rival of ${b.name}, is struggling and its owners want out. They'd sell to you for ${money(price)} (about 35% off). ${b.name} would grow ×${((b.units || 1) + r.u).toFixed(2)}.`, [
+    { label: "Pass on it", rec: true, effect: () => { r.done = true; bizLog(`🏴 You passed on buying ${r.name}.`); } },
+    { label: `Buy them out (${money(-price)})`, effect: () => { if (S.money >= price) buyRival(b.id, 0.65); else bizLog(`🏴 You couldn't raise ${money(price)} for ${r.name}.`); } }]); };
 // ===================== P4j: MATCH MOMENTS + YOUTH KEY MATCH =====================
 // Every playable match = base sim + 3–5 decision moments (position-specific). Youth phase = one key match a season, the rest auto-sims.
 const MM_TIERS = { great: { r: 0.3, f: 2, m: 0.3, lbl: "GREAT", col: "#00c853", fg: "#04140a" }, good: { r: 0.1, f: 1, m: 0.15, lbl: "GOOD", col: "#9be29b", fg: "#0c2410" },
@@ -5471,6 +5530,73 @@ startGame = function () { const el = document.getElementById("c-era"); ERA_PENDI
   ERA_PENDING = null; return r; };
 const _loadCareerEra = loadCareer;
 loadCareer = function (id) { const r = _loadCareerEra.apply(this, arguments); try { eraApplyClubs(); eraApplyStars(); eraClearCaches(); } catch (e) {} return r; };
+// ===== P4y: era-appropriate idols. Each era swaps the 4 idols per position; every idol borrows a present-day idol's
+// node / stat / archetype / PlayStyle set ("like"), so crown skills, templates and PlayStyle lookups keep working. =====
+const ERA_IDOLS = {
+  "1970s": {
+    ST: [["Pelé", "The King: goals from everywhere", "Cristiano Ronaldo"], ["Gerd Müller", "Der Bomber: box poacher", "Robert Lewandowski"], ["Eusébio", "Black Panther: power + rocket shot", "Erling Haaland"], ["Kenny Dalglish", "Scorer-creator", "Harry Kane"]],
+    CF: [["Johan Cruyff", "Total Football genius", "Ronaldo Nazário"], ["Alfredo Di Stéfano", "Complete forward", "Karim Benzema"], ["Ferenc Puskás", "Galloping Major's left foot", "Zlatan Ibrahimović"], ["Kevin Keegan", "Mighty Mouse: runs + finishing", "Thierry Henry"]],
+    LW: [["George Best", "Belfast Boy flair", "Vinícius Jr."], ["Francisco Gento", "Storm of the Cantabrian: pure pace", "Kylian Mbappé"], ["Rob Rensenbrink", "Snake-man dribbler", "Neymar"], ["Rivellino", "Elastico inventor", "Ronaldinho"]],
+    RW: [["Garrincha", "Joy-of-the-people dribbler", "Lionel Messi"], ["Jairzinho", "The Hurricane: goals every game", "Mohamed Salah"], ["Grzegorz Lato", "Speed + goals", "Arjen Robben"], ["Stanley Matthews", "Wizard of the dribble", "Lamine Yamal"]],
+    CAM: [["Michel Platini", "Elegant ten + free kicks", "Zinedine Zidane"], ["Zico", "The White Pelé: driving runs", "Kaká"], ["Bobby Charlton", "Thunderbolts from midfield", "Jude Bellingham"], ["Gianni Rivera", "Golden Boy vision", "Martin Ødegaard"]],
+    CM: [["Johan Neeskens", "Total Football engine", "Kevin De Bruyne"], ["Wolfgang Overath", "Silky left foot", "Andrés Iniesta"], ["Gérson", "Passing brain", "Luka Modrić"], ["Günter Netzer", "Long-range playmaker", "Xavi"]],
+    CDM: [["Rainer Bonhof", "Metronome anchor", "Rodri"], ["Clodoaldo", "Positional shield", "Claude Makélélé"], ["Nobby Stiles", "Toothless tiger", "N'Golo Kanté"], ["Billy Bremner", "Fiery enforcer", "Casemiro"]],
+    CB: [["Bobby Moore", "Calm commander", "Virgil van Dijk"], ["Daniel Passarella", "Leader + goals", "Sergio Ramos"], ["Franz Beckenbauer", "Der Kaiser: the libero", "Paolo Maldini"], ["Elías Figueroa", "Elegant blocker", "Fabio Cannavaro"]],
+    LB: [["Giacinto Facchetti", "Attacking full-back pioneer", "Roberto Carlos"], ["Ruud Krol", "Total Football full back", "Marcelo"], ["Nílton Santos", "The Encyclopedia: flying runs", "Alphonso Davies"], ["Paul Breitner", "Marauding left back", "Theo Hernández"]],
+    RB: [["Carlos Alberto", "Captain + that goal", "Cafu"], ["Djalma Santos", "Attacking full back", "Dani Alves"], ["Wim Suurbier", "Ajax overlaps + crosses", "Trent Alexander-Arnold"], ["Berti Vogts", "The Terrier", "Achraf Hakimi"]],
+    GK: [["Lev Yashin", "The Black Spider", "Gianluigi Buffon"], ["Sepp Maier", "The Cat from Anzing", "Manuel Neuer"], ["Gordon Banks", "Save of the century", "Iker Casillas"], ["Dino Zoff", "Positioning master", "Alisson Becker"]] },
+  "1990s": {
+    ST: [["Marco van Basten", "Elegant goal machine", "Cristiano Ronaldo"], ["Gabriel Batistuta", "Batigol power", "Erling Haaland"], ["Romário", "Toe-poke poacher", "Robert Lewandowski"], ["Alan Shearer", "Scorer-leader nine", "Harry Kane"]],
+    CF: [["Ronaldo Nazário", "The Phenomenon: speed + finishing", "Ronaldo Nazário"], ["Roberto Baggio", "Divine Ponytail finesse", "Thierry Henry"], ["Dennis Bergkamp", "The Iceman's touch", "Karim Benzema"], ["George Weah", "Power + solo runs", "Zlatan Ibrahimović"]],
+    LW: [["Hristo Stoichkov", "Fiery flair", "Vinícius Jr."], ["Ryan Giggs", "Flying winger", "Kylian Mbappé"], ["Marc Overmars", "Roadrunner tricks", "Neymar"], ["Rivaldo", "Bicycle-kick magic", "Ronaldinho"]],
+    RW: [["Luís Figo", "Dribbling winger", "Lionel Messi"], ["David Beckham", "Crosses + free kicks", "Mohamed Salah", "crossing"], ["Michael Laudrup", "No-look genius", "Arjen Robben"], ["Gianfranco Zola", "Tiny magician", "Lamine Yamal"]],
+    CAM: [["Diego Maradona", "Hand of God, feet of an angel", "Lionel Messi"], ["Zinedine Zidane", "Elegant control", "Zinedine Zidane"], ["Rui Costa", "Driving maestro", "Kaká"], ["Michel Platini", "Free kicks + vision", "Martin Ødegaard"]],
+    CM: [["Lothar Matthäus", "Complete midfielder", "Kevin De Bruyne"], ["Fernando Redondo", "Elegant control", "Andrés Iniesta"], ["Paul Scholes", "Passes + volleys", "Luka Modrić"], ["Pep Guardiola", "Metronome passer", "Xavi"]],
+    CDM: [["Frank Rijkaard", "Metronome anchor", "Rodri"], ["Didier Deschamps", "The water carrier", "Claude Makélélé"], ["Dunga", "Ball-winning captain", "N'Golo Kanté"], ["Roy Keane", "Enforcer", "Casemiro"]],
+    CB: [["Franco Baresi", "Libero leader", "Virgil van Dijk"], ["Fernando Hierro", "Goals from the back", "Sergio Ramos"], ["Paolo Maldini", "Perfect reader", "Paolo Maldini"], ["Marcel Desailly", "The Rock", "Fabio Cannavaro"]],
+    LB: [["Roberto Carlos", "Speed + rocket shot", "Roberto Carlos"], ["Andreas Brehme", "Two-footed penalty hero", "Marcelo"], ["Bixente Lizarazu", "Tireless runner", "Alphonso Davies"], ["Stuart Pearce", "Psycho: marauding runs", "Theo Hernández"]],
+    RB: [["Cafu", "Endless overlaps", "Cafu"], ["Mauro Tassotti", "Attacking full back", "Dani Alves"], ["Gary Neville", "Crossing machine", "Trent Alexander-Arnold"], ["Lilian Thuram", "Two-goal semi-final hero", "Achraf Hakimi"]],
+    GK: [["Oliver Kahn", "The Titan", "Gianluigi Buffon"], ["René Higuita", "Scorpion sweeper", "Manuel Neuer"], ["Peter Schmeichel", "Great Dane starfish saves", "Iker Casillas"], ["José Luis Chilavert", "Free-kick keeper", "Alisson Becker"]] },
+  "2010s": {
+    ST: [["Cristiano Ronaldo", "Goal machine", "Cristiano Ronaldo"], ["Luis Suárez", "Clinical striker", "Erling Haaland"], ["Robert Lewandowski", "Complete poacher", "Robert Lewandowski"], ["Harry Kane", "Scorer-creator nine", "Harry Kane"]],
+    CF: [["Antoine Griezmann", "Speed + finishing", "Ronaldo Nazário"], ["Sergio Agüero", "Pace + finesse", "Thierry Henry"], ["Karim Benzema", "Link-up nine", "Karim Benzema"], ["Zlatan Ibrahimović", "Power + acrobatics", "Zlatan Ibrahimović"]],
+    LW: [["Eden Hazard", "Flair dribbler", "Vinícius Jr."], ["Franck Ribéry", "Explosive winger", "Kylian Mbappé"], ["Neymar", "Samba showman", "Neymar"], ["Gareth Bale", "Rocket runs + bicycle kicks", "Ronaldinho"]],
+    RW: [["Lionel Messi", "Playmaker dribbler", "Lionel Messi"], ["Mohamed Salah", "Cut-inside goal threat", "Mohamed Salah"], ["Arjen Robben", "Cut inside + curl", "Arjen Robben"], ["Ángel Di María", "Outside-of-the-boot magic", "Lamine Yamal"]],
+    CAM: [["Mesut Özil", "Elegant assists", "Zinedine Zidane"], ["James Rodríguez", "Driving runs + volleys", "Kaká"], ["Thomas Müller", "Raumdeuter: box-crashing ten", "Jude Bellingham"], ["David Silva", "Vision + press", "Martin Ødegaard"]],
+    CM: [["Kevin De Bruyne", "Vision passer", "Kevin De Bruyne"], ["Andrés Iniesta", "Silky dribbling", "Andrés Iniesta"], ["Luka Modrić", "Outside-foot maestro", "Luka Modrić"], ["Xavi", "Tiki-taka metronome", "Xavi"]],
+    CDM: [["Sergio Busquets", "Metronome anchor", "Rodri"], ["Javier Mascherano", "Positional shield", "Claude Makélélé"], ["N'Golo Kanté", "Ball-winning engine", "N'Golo Kanté"], ["Casemiro", "Enforcer", "Casemiro"]],
+    CB: [["Virgil van Dijk", "Aerial commander", "Virgil van Dijk"], ["Sergio Ramos", "Leader + goals", "Sergio Ramos"], ["Thiago Silva", "Perfect reader", "Paolo Maldini"], ["Giorgio Chiellini", "Fearless blocker", "Fabio Cannavaro"]],
+    LB: [["Ashley Cole", "Speed + shut-down defending", "Roberto Carlos"], ["Marcelo", "Samba full back", "Marcelo"], ["David Alaba", "Road Runner", "Alphonso Davies"], ["Jordi Alba", "Marauding runs", "Theo Hernández"]],
+    RB: [["Philipp Lahm", "Endless overlaps", "Cafu"], ["Dani Alves", "Attacking full back", "Dani Alves"], ["Trent Alexander-Arnold", "Quarterback passer", "Trent Alexander-Arnold"], ["Kyle Walker", "Rapid flyer", "Achraf Hakimi"]],
+    GK: [["Gianluigi Buffon", "Calm reflexes", "Gianluigi Buffon"], ["Manuel Neuer", "Sweeper keeper", "Manuel Neuer"], ["Iker Casillas", "Saint Iker reflexes", "Iker Casillas"], ["Thibaut Courtois", "Positioning master", "Alisson Becker"]] }
+};
+// Future: invented stars, one per present-day idol slot, same playing styles
+const ERA_FUT_NAMES = ["Nova Adeyemi", "Axel Mbeki", "Ezra Lindqvist", "Kenji Moreau", "Rio Takahashi", "Tariq Al-Sayed", "Mateo Ivanov", "Idris Cole", "Santi Varga", "Luca Nakamura", "Malik Okafor", "Theo Brandt",
+  "Yusuf Demir-Kane", "Emil Sørensen", "Dante Oyelaran", "Ravi Kapoor", "Niko Petrakis", "Kai Valente", "Omar Lindgren", "Jonah Achebe", "Leo Castellanos", "Aiden Moreau-Diallo", "Felix Okonkwo", "Sami Haddad",
+  "Marco Ishikawa", "Zane Kowalczyk", "Bruno Adeleke", "Viktor Solano", "Hugo Mensah", "Tomás Reinholt", "Callum Osei", "Ilias Novak", "Rafa Quintero", "Jamal Fischer", "Elias Banda", "Noah Vasquez-Lee",
+  "Arlo Mbappé-Diaz", "Kofi Andersen", "Diego Halvorsen", "Ryo Fontaine", "Pablo Nkemelu", "Sven Okoro", "Matías Kurosawa", "Anton Belgrave"];
+const ICONS_PRESENT = {}; Object.keys(ICONS).forEach(k => { ICONS_PRESENT[k] = ICONS[k].slice(); });
+const _likeIdol = n => { for (const k in ICONS_PRESENT) { const i = ICONS_PRESENT[k].find(x => x.name === n); if (i) return i; } return null; };
+function eraIdolList(era, pos) {
+  if (era === "future") { const ks = Object.keys(ICONS_PRESENT), off = ks.indexOf(pos) * 4;
+    return ICONS_PRESENT[pos].map((src, j) => { const name = ERA_FUT_NAMES[(off + j) % ERA_FUT_NAMES.length]; if (!IDOL_PS[name]) IDOL_PS[name] = (IDOL_PS[src.name] || []).slice(); return { ...src, name, style: "2040s " + src.style.charAt(0).toLowerCase() + src.style.slice(1) }; }); }
+  const E = ERA_IDOLS[era]; if (!E || !E[pos]) return ICONS_PRESENT[pos].slice();
+  return E[pos].map(([name, style, like, node]) => { const src = _likeIdol(like) || ICONS_PRESENT[pos][0]; if (!IDOL_PS[name]) IDOL_PS[name] = (IDOL_PS[src.name] || []).slice();
+    return { ...src, name, style, node: node || src.node }; }); }
+let ERA_IDOLS_ON = null;
+function eraApplyIdols() { const id = typeof eraId === "function" ? eraId() : "present"; if (ERA_IDOLS_ON === id) return; ERA_IDOLS_ON = id;
+  Object.keys(ICONS_PRESENT).forEach(k => { const L = id === "present" ? ICONS_PRESENT[k].slice() : eraIdolList(id, k); ICONS[k].splice(0, ICONS[k].length, ...L); });
+  ALL_ICONS.splice(0, ALL_ICONS.length, ...Object.entries(ICONS).flatMap(([p, l]) => l.map(i => ({ ...i, position: p })))); }
+const _eraApplyStarsIdol = eraApplyStars;
+eraApplyStars = function () { const r = _eraApplyStarsIdol.apply(this, arguments); try { eraApplyIdols(); } catch (e) {} return r; };
+const _startGameIdol = startGame;
+startGame = function () { ERA_IDOLS_ON = null; const r = _startGameIdol.apply(this, arguments); try { eraApplyIdols(); } catch (e) {} return r; };
+// P4y: older eras – the legends' Ballon d'Or field was a little too easy (test careers won 4–5 everywhere). Lift the top rivals modestly.
+const BD_ERA_LIFT = { "1970s": 1, "1990s": 1, "2010s": 0.7 }, BD_ERA_STEP = [0.55, 0.5, 0.42, 0.34, 0.26, 0.18, 0.1];
+const _bdRankingEra = bdRanking;
+bdRanking = function (Y) { const L = _bdRankingEra.apply(this, arguments); try { const k = BD_ERA_LIFT[typeof eraId === "function" ? eraId() : "present"]; if (!k || !L || L.length < 12) return L;
+  const R = L.filter(x => !x.me), sp = Math.max(0.5, R[0].score - R[9].score); R.slice(0, BD_ERA_STEP.length).forEach((x, i) => { x.score += BD_ERA_STEP[i] * k * sp * 0.35; });
+  return L.sort((a, b) => b.score - a.score); } catch (e) { return L; } };
 // ===== P4v: weapon AWAKENING – full-screen golden-eyes moment in the first match after the signature weapon is unlocked =====
 // Once per career (S.weaponAwakened) and once more when the weapon hits max level (S.weaponMaxAwakened).
 // Tries Lum's external clip (assets/weapon-unlock/…), falls back to a pure-CSS eyes animation. Never blocks: tap to skip, hard 6s timeout.
@@ -5492,13 +5618,13 @@ loadCareer = function (id) { const r = _loadCareerEra.apply(this, arguments); tr
   function css() { if (document.getElementById("wa-css")) return; const s = document.createElement("style"); s.id = "wa-css";
     s.textContent = "#wa-ov{position:fixed;inset:0;z-index:99999;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;animation:waFade .25s ease-out}" +
       "#wa-ov video{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);width:100%;height:auto;object-fit:contain}" +
-      "#wa-ov video.wa-port{top:0;bottom:0;transform:none;height:100%}" +
+      "#wa-ov video{z-index:2;background:#000}#wa-ov .wa-skip{z-index:3!important}#wa-ov video.wa-port{top:0;bottom:0;transform:none;height:100%}" +
       "#wa-ov .wa-eyes{display:flex;gap:9vw;position:relative;z-index:1}" +
       ".wa-eye{position:relative;width:30vw;max-width:170px;height:13vw;max-height:74px;border-radius:50%;overflow:hidden;background:radial-gradient(ellipse at center,#fff8e0 0%,#e9dcc0 70%,#9c8a66 100%);box-shadow:0 0 40px 6px rgba(255,190,40,.0);animation:waGlow 2.5s ease-out forwards}" +
       ".wa-iris{position:absolute;left:50%;top:50%;width:46%;padding-top:46%;transform:translate(-50%,-50%) scale(.6);border-radius:50%;background:radial-gradient(circle,#000 0 22%,#ffef9a 24%,#ffc21a 45%,#d48a00 70%,#5a3500 100%);box-shadow:0 0 18px 6px rgba(255,200,40,.9);animation:waIris 2.5s ease-out forwards,waPulse .9s ease-in-out 1.6s infinite alternate}" +
       ".wa-lid{position:absolute;left:-5%;width:110%;height:55%;background:#000;animation:waLidT 2.5s cubic-bezier(.5,0,.2,1) forwards}" +
       ".wa-lid.b{bottom:0;animation-name:waLidB}.wa-lid.t{top:0}" +
-      "#wa-ov .wa-cap{position:relative;z-index:1;margin-top:7vh;text-align:center;color:#ffd54a;font-weight:900;letter-spacing:.06em;text-shadow:0 0 14px rgba(255,190,40,.8);opacity:.6;animation:waCap 2.5s ease-out forwards}" +
+      "#wa-ov .wa-cap{position:absolute;left:0;right:0;bottom:12vh;z-index:3;text-align:center;color:#ffd54a;font-weight:900;letter-spacing:.06em;text-shadow:0 0 14px rgba(255,190,40,.8);opacity:.6;animation:waCap 2.5s ease-out forwards}" +
       "#wa-ov .wa-cap small{display:block;color:#fff;opacity:.75;font-size:11px;letter-spacing:.25em;margin-bottom:6px}" +
       "#wa-ov .wa-cap b{font-size:22px}#wa-ov .wa-skip{position:absolute;bottom:18px;right:18px;z-index:2;color:#888;font-size:11px}" +
       "#wa-ov .wa-flash{position:absolute;inset:0;background:radial-gradient(circle,rgba(255,210,80,.55),transparent 60%);opacity:0;animation:waFlash 2.5s ease-out forwards}" +
@@ -5517,13 +5643,13 @@ loadCareer = function (id) { const r = _loadCareerEra.apply(this, arguments); tr
         const cap = `<div class="wa-cap"><small>${maxed ? "WEAPON MASTERED" : "WEAPON AWAKENED"}</small><b>${esc(name || "Signature weapon")}</b></div>`;
         const eyes = `<div class="wa-flash"></div><div class="wa-eyes"><div class="wa-eye"><div class="wa-iris"></div><div class="wa-lid t"></div><div class="wa-lid b"></div></div><div class="wa-eye"><div class="wa-iris"></div><div class="wa-lid t"></div><div class="wa-lid b"></div></div></div>`;
         const skip = '<div class="wa-skip">tap to skip</div><div class="wa-snd" style="position:absolute;top:14px;right:14px;z-index:3;font-size:20px;padding:6px;cursor:pointer">' + (soundOn() ? '🔊' : '🔇') + '</div>';
-        const HUE = { red: -42, blue: 175, purple: 235, green: 75 }; let cssRan = false; const cssOnly = () => { if (done || cssRan) return; cssRan = true; try { vRef && vRef.remove(); } catch (e) {} vRef = null; ov.innerHTML = (HUE[col] != null ? eyes.replace('class="wa-eyes"', 'class="wa-eyes" style="filter:hue-rotate(' + HUE[col] + 'deg)"') : eyes) + cap + skip; sfxPlay(0); setTimeout(finish, 2900); };
+        const HUE = { red: -42, blue: 175, purple: 235, green: 75 }; let cssRan = false, eyesUp = false, t0 = Date.now(), vStarted = false; const eyesHtml = () => (HUE[col] != null ? eyes.replace('class="wa-eyes"', 'class="wa-eyes" style="filter:hue-rotate(' + HUE[col] + 'deg)"') : eyes); const cssOnly = () => { if (done || cssRan) return; cssRan = true; try { vRef && vRef.remove(); } catch (e) {} vRef = null; if (eyesUp) { const el = (Date.now() - t0) / 1000; if (!vStarted) sfxPlay(el); setTimeout(finish, Math.max(700, 2900 - el * 1000)); return; } ov.innerHTML = (HUE[col] != null ? eyes.replace('class="wa-eyes"', 'class="wa-eyes" style="filter:hue-rotate(' + HUE[col] + 'deg)"') : eyes) + cap + skip; sfxPlay(0); setTimeout(finish, 2900); };
         ov.onclick = e => { const t = e && e.target; if (t && t.classList && t.classList.contains("wa-snd")) { e.stopPropagation(); audioOk = true; const on = !soundOn(); try { localStorage.setItem("fl-sound", on ? "1" : "0"); } catch (x) {} t.textContent = on ? "🔊" : "🔇"; if (on && vRef && !vRef.paused) sfxPlay(vRef.currentTime); else if (!on) sfxStop(); return; } finish(); }; document.body.appendChild(ov); setTimeout(finish, 6000);
         const v = document.createElement("video"); const ok = typeof v.canPlayType === "function" && v.canPlayType("video/mp4");
         if (!ok) cssOnly();
         else { v.muted = true; v.setAttribute("muted", ""); v.playsInline = true; v.setAttribute("playsinline", ""); v.autoplay = true; v.preload = "auto";
-          let started = false; vRef = v; v.onerror = cssOnly; v.onended = () => setTimeout(finish, 600); v.onplaying = () => { if (!started) sfxPlay(v.currentTime); started = true; };
-          if (PORT) v.className = "wa-port"; v.src = VID; ov.innerHTML = cap.replace('class="wa-cap"', 'class="wa-cap" style="position:absolute;bottom:12vh;left:0;right:0"') + skip; ov.insertBefore(v, ov.firstChild);
+          let started = false; vRef = v; v.onerror = cssOnly; v.onended = () => setTimeout(finish, 600); v.onplaying = () => { if (!started) sfxPlay(v.currentTime); started = true; vStarted = true; };
+          if (PORT) v.className = "wa-port"; v.src = VID; ov.innerHTML = eyesHtml() + cap.replace('class="wa-cap"', 'class="wa-cap" style="position:absolute;bottom:12vh;left:0;right:0;z-index:3"') + skip; eyesUp = true; t0 = Date.now(); ov.insertBefore(v, ov.firstChild);
           try { const p = v.play(); if (p && p.catch) p.catch(() => { if (!started) { v.remove(); cssOnly(); } }); } catch (e) { v.remove(); cssOnly(); }
           setTimeout(() => { if (done || cssRan) return; let t = 0; try { t = v.currentTime || 0; } catch (e) {} if (!started || t <= 0.15) { try { v.pause(); } catch (e) {} cssOnly(); } }, 1000); }
       } catch (e) { finish(); } });
