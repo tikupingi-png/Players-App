@@ -2419,7 +2419,7 @@ function renderCalendar() {
   let bdShown = false;
   const rows = sea.games.filter(g => !g.cancelled && (CAL_FILTER === "all" || g.comp === CAL_FILTER)).map(g => {
     const r = g.res, home = g.h === me, opp = g.h ? (home ? g.a : g.h) : "TBD";
-    const tag = g.comp === "league" ? `MD${g.md}` : g.comp === "cup" ? `🏆 ${g.round}` : `${COMPS[g.ec].icon} ${g.round === "League phase" ? "LP" + g.md : g.round}`;
+    const tag = g.comp === "league" ? `MD${g.md}` : g.comp === "cup" ? `🏆 ${g.round}` : (COMPS[g.ec] ? `${COMPS[g.ec].icon} ${g.round === "League phase" ? "LP" + g.md : g.round}` : (g.label || g.round || ""));
     const bd = !bdShown && CAL_FILTER === "all" && g.day >= DAY_CEREMONY ? (bdShown = true, `<div class="cal-row" style="border-color:#ffd600"><span class="res U">🏆</span><div style="flex:1"><b>1 Nov – Ballon d'Or ceremony</b><br><span style="font-size:11px;color:var(--muted)">Paris • nominees announced 5 Sep</span></div></div>`) : "";
     return bd + `<div class="cal-row ${g === g0 ? "next" : ""}" id="cal-${g.i}"><span class="res ${r ? r.out : "U"}">${r ? r.out : "·"}</span><div style="flex:1"><b>${esc(opp)}</b> <span style="color:var(--muted);font-size:11px">${g.h ? (home ? "(H)" : "(A)") : ""}</span><br><span style="font-size:11px;color:var(--muted)">${g.day != null ? "📆 " + dateStr(g.day) + " • " : ""}${tag}</span></div><div style="text-align:right;font-size:12px">${r ? `<b>${r.hg}–${r.ag}</b>${r.pens ? " p" : ""}<br>${r.played ? `⭐ ${r.rating}${r.goals ? ` • ⚽${r.goals}` : ""}${r.assists ? ` • 🅰️${r.assists}` : ""}` : `<span style="color:var(--muted)">${esc(r.note || "")}</span>`}` : `<span style="color:var(--muted)">upcoming</span>`}</div></div>`; }).join("");
   const tab = liveTable(sea);
@@ -2848,7 +2848,7 @@ function looksYear() { // ageing / lifestyle drift; a born-100 can't drop below 
   if (S.age >= 30 && Math.random() < 0.5) S.looks = clamp(S.looks - 1);
   if (S.bornStunning && S.age < 30) S.looks = Math.max(90, S.looks);
 }
-// ---- GOD MODE (free, cosmetic only) ----
+// ---- GOD MODE (free: edit stats, club, weapon & looks) ----
 const GOD_HAIR = ["spiky", "topknot"], GOD_COLORS = { Green: "#2ecc71", Purple: "#9b59b6", White: "#f4f4f4", Platinum: "#e5e4e2", Orange: "#ff7f27" };
 Object.assign(AV_OPTS.hairColor, GOD_COLORS);
 AV_OPTS.skin.push("#fff1e6", "#3d2314"); AV_OPTS.hair.push(...GOD_HAIR);
@@ -2891,12 +2891,12 @@ renderAvatarEditor = function (el, av, onChange) {
 };
 (function godToggle() {
   const cs = document.getElementById("create-avatar"); if (!cs || document.getElementById("c-god")) return;
-  cs.insertAdjacentHTML("beforebegin", `<label class="god-toggle" style="display:flex;gap:8px;align-items:center;margin:6px 0 10px;padding:8px 10px;border:1px dashed #ffd600;border-radius:10px;font-size:13px"><input type="checkbox" id="c-god"> <span>⚡ <b>God Mode</b> – creative / cheat option (free). Unlocks every look: any hair, colours, facial hair, height, body type. Cosmetic only.</span></label>`);
+  cs.insertAdjacentHTML("beforebegin", `<label class="god-toggle" style="display:flex;gap:8px;align-items:center;margin:6px 0 10px;padding:8px 10px;border:1px dashed #ffd600;border-radius:10px;font-size:13px"><input type="checkbox" id="c-god"> <span>⚡ <b>God Mode</b> – creative / cheat option (free). Edit your stats, club and weapon, and unlock every look: any hair, colours, facial hair, height, body type.</span></label>`);
   document.getElementById("c-god").onchange = () => renderAvatarEditor(document.getElementById("create-avatar"), CREATE_AV);
 })();
-function toggleGodMode() { S.godMode = !S.godMode; if (S.godMode) S.godEver = true; addEvent("⚡ God Mode", S.godMode ? "God Mode switched on (cosmetic only)." : "God Mode switched off."); openAvatarEditor(); updateHeader(); }
+function toggleGodMode() { S.godMode = !S.godMode; if (S.godMode) S.godEver = true; addEvent("⚡ God Mode", S.godMode ? "God Mode switched on: you can edit stats, club, weapon and looks." : "God Mode switched off."); openAvatarEditor(); updateHeader(); }
 const _openAvatarEditorP4 = openAvatarEditor;
-openAvatarEditor = function () { _openAvatarEditorP4(); const c = document.getElementById("overlay-content"); if (c && S.started) c.insertAdjacentHTML("afterbegin", `<button class="act-btn" style="border-color:#ffd600" onclick="toggleGodMode()">⚡ God Mode: <b>${S.godMode ? "ON" : "OFF"}</b> (free, cosmetic only)</button>`); };
+openAvatarEditor = function () { _openAvatarEditorP4(); const c = document.getElementById("overlay-content"); if (c && S.started) c.insertAdjacentHTML("afterbegin", `<button class="act-btn" style="border-color:#ffd600" onclick="toggleGodMode()">⚡ God Mode: <b>${S.godMode ? "ON" : "OFF"}</b> – edit stats, club, weapon &amp; looks</button>`); };
 
 // ---- ROMANCE (18+, non-explicit) ----
 const STAGES = ["dating", "serious", "living", "engaged", "married"], STAGE_TXT = { dating: "Dating", serious: "Serious relationship", living: "Living together", engaged: "Engaged", married: "Married" };
@@ -5059,7 +5059,7 @@ function mmFlashClear() { clearTimeout(mmFlash._t); const el = typeof document !
 const _showDecisionMM = showDecision;
 showDecision = function (...a) { mmFlashClear(); return _showDecisionMM.apply(this, a); };
 const MM_FLASH_MS = typeof navigator !== "undefined" && /jsdom/i.test(navigator.userAgent || "") ? 0 : 1100;
-const mmPause = () => new Promise(r => setTimeout(r, MM_FLASH_MS));
+const mmPause = () => new Promise(r => { const W = typeof window !== "undefined" ? window : {}, ex = typeof W.__mmHold === "function" ? W.__mmHold() || 0 : 0; let done = false; const f = () => { if (done) return; done = true; W.__mmSkip = null; r(); }; W.__mmSkip = f; setTimeout(f, MM_FLASH_MS + ex); }); // an outcome clip may hold the pause (tap skips)
 function mmApplyOutcome(acc, out, res, st) { const T = MM_TIERS[out.tier]; acc.rating += T.r * (out.rmul || 1) + (out.bonus || 0); acc.form += T.f; acc.mood += T.m;
   if (out.goal) res.goals++; if (out.assist) res.assists++; if (out.conceded) acc.conceded++; acc.swing += out.swing || 0;
   if (st) { const k = out.stat; if (k) st[k] = (st[k] || 0) + 1; }
@@ -5700,7 +5700,7 @@ bdRanking = function (Y) { const L = _bdRankingEra.apply(this, arguments); try {
 // Once per career (S.weaponAwakened) and once more when the weapon hits max level (S.weaponMaxAwakened).
 // Tries Lum's external clip (assets/weapon-unlock/…), falls back to a pure-CSS eyes animation. Never blocks: tap to skip, hard 6s timeout.
 (function () {
-  const WA_DIR = "assets/weapon-unlock/";
+  const WA_DIR = "assets/weapon-unlock/", WA_V = "?v=c2-20261122"; // cache-bust: bump with every clip change
   // iris colour by weapon type (Lum's 5 silent clips); rare weapons, max-level mastery and anything unclear use gold (Tiku: golden irises)
   const WA_COL = { shoot: "red", finish: "red", finishing: "red", pace: "blue", agility: "blue", dribble: "blue", control: "blue", technique: "blue",
     vision: "purple", adapt: "purple", tactics: "purple", teamwork: "purple", passing: "purple", movement: "purple", defending: "green", physical: "green", aerial: "green", stamina: "green" };
@@ -5709,7 +5709,7 @@ bdRanking = function (Y) { const L = _bdRankingEra.apply(this, arguments); try {
   // SFX: separate MP3, only with sound switched ON (off by default, 🔇/🔊 toggle on the overlay, saved in localStorage) and only after the first tap (iOS audio unlock)
   let sfx = null, audioOk = false;
   const soundOn = () => { try { return localStorage.getItem("fl-sound") === "1"; } catch (e) { return false; } };
-  function sfxEl() { if (!sfx && typeof Audio === "function") { try { sfx = new Audio(WA_DIR + "weapon-unlock-sfx.mp3"); sfx.preload = "auto"; } catch (e) { sfx = null; } } return sfx; }
+  function sfxEl() { if (!sfx && typeof Audio === "function") { try { sfx = new Audio(WA_DIR + "weapon-unlock-sfx.mp3" + WA_V); sfx.preload = "auto"; } catch (e) { sfx = null; } } return sfx; }
   try { const unlock = () => { audioOk = true; document.removeEventListener("pointerdown", unlock, true); document.removeEventListener("touchend", unlock, true); };
     document.addEventListener("pointerdown", unlock, true); document.addEventListener("touchend", unlock, true); } catch (e) {}
   function sfxPlay(at) { try { if (!soundOn() || !audioOk) return; const a = sfxEl(); if (!a) return; a.currentTime = Math.max(0, at || 0); const p = a.play(); if (p && p.catch) p.catch(() => {}); } catch (e) {} }
@@ -5719,7 +5719,10 @@ bdRanking = function (Y) { const L = _bdRankingEra.apply(this, arguments); try {
       "#wa-ov video{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);width:100%;height:auto;object-fit:contain}" +
       "#wa-ov video{z-index:2;background:#000;opacity:0;transition:opacity .35s}#wa-ov video.wa-on{opacity:1}#wa-ov .wa-skip{z-index:3!important}#wa-ov video.wa-port{top:0;bottom:0;transform:none;height:100%}" +
       "#wa-ov .wa-eyes{display:flex;gap:9vw;position:relative;z-index:1}" +
-      ".wa-eye{position:relative;width:30vw;max-width:170px;height:13vw;max-height:74px;border-radius:50%;overflow:hidden;background:radial-gradient(ellipse at center,#fff8e0 0%,#e9dcc0 70%,#9c8a66 100%);}" +
+      ".wa-ew{position:relative;filter:drop-shadow(0 0 10px rgba(255,200,40,.75))}.wa-ew.l{transform:rotate(7deg)}.wa-ew.r{transform:rotate(-7deg)}" +
+      ".wa-eye{position:relative;width:30vw;max-width:170px;height:12vw;max-height:68px;overflow:hidden;clip-path:polygon(0% 55%,5% 42%,12% 29%,22% 17%,34% 8%,48% 3%,62% 5%,75% 12%,86% 23%,94% 36%,100% 50%,95% 59%,87% 70%,77% 80%,64% 88%,50% 92%,36% 89%,23% 82%,13% 74%,6% 65%);-webkit-clip-path:polygon(0% 55%,5% 42%,12% 29%,22% 17%,34% 8%,48% 3%,62% 5%,75% 12%,86% 23%,94% 36%,100% 50%,95% 59%,87% 70%,77% 80%,64% 88%,50% 92%,36% 89%,23% 82%,13% 74%,6% 65%);background:radial-gradient(ellipse at center,#fff8e0 0%,#e9dcc0 70%,#9c8a66 100%);}" +
+      ".wa-brow{position:absolute;left:-4%;width:108%;height:4.2vw;max-height:22px;top:-7.5vw;background:linear-gradient(90deg,rgba(255,214,140,.25),rgba(255,214,140,.85));clip-path:polygon(0% 70%,10% 35%,40% 8%,75% 0%,100% 18%,100% 55%,75% 42%,40% 50%,10% 80%);-webkit-clip-path:polygon(0% 70%,10% 35%,40% 8%,75% 0%,100% 18%,100% 55%,75% 42%,40% 50%,10% 80%);opacity:0;animation:waBrow 2.5s ease-out forwards}" +
+      ".wa-ew.l .wa-brow{transform:rotate(9deg) scaleX(-1)}.wa-ew.r .wa-brow{transform:rotate(-9deg)}@keyframes waBrow{0%,35%{opacity:0;margin-top:6px}70%,100%{opacity:1;margin-top:0}}" +
       "#wa-ov .wa-eyes::before{content:'';position:absolute;left:-45%;right:-45%;top:-160%;bottom:-160%;background:radial-gradient(ellipse at center,rgba(255,190,40,.6) 0%,rgba(255,190,40,.25) 35%,rgba(255,190,40,0) 68%);opacity:0;z-index:-1;pointer-events:none;animation:waHalo 2.5s ease-out forwards}" +
       "@keyframes waHalo{0%,50%{opacity:0}75%{opacity:1}100%{opacity:.75}}" +
       ".wa-iris{position:absolute;left:50%;top:50%;width:46%;padding-top:46%;transform:translate(-50%,-50%) scale(.6);border-radius:50%;background:radial-gradient(circle,#000 0 22%,#ffef9a 24%,#ffc21a 45%,#d48a00 70%,#5a3500 100%);box-shadow:0 0 18px 6px rgba(255,200,40,.9);animation:waIris 2.5s ease-out forwards,waPulse .9s ease-in-out 1.6s infinite alternate}" +
@@ -5738,21 +5741,23 @@ bdRanking = function (Y) { const L = _bdRankingEra.apply(this, arguments); try {
       "@keyframes waFlash{0%,58%{opacity:0}68%{opacity:1}100%{opacity:.25}}@keyframes waFade{from{opacity:0}to{opacity:1}}";
     (document.head || document.documentElement).appendChild(s); }
   window.weaponAwakening = function (name, maxed) {
-    return new Promise(res => { let done = false, ov = null, vRef = null; const col = waColour(name, maxed), PORT = (() => { try { return window.innerHeight > window.innerWidth || (window.matchMedia && window.matchMedia("(orientation: portrait)").matches); } catch (e) { return false; } })(), VID = WA_DIR + "weapon-unlock-" + col + (PORT ? "-portrait" : "") + ".mp4", POSTER = WA_DIR + "weapon-unlock-" + col + "-poster.webp";
+    return new Promise(res => { let done = false, ov = null, vRef = null; const col = waColour(name, maxed), PORT = (() => { try { return window.innerHeight > window.innerWidth || (window.matchMedia && window.matchMedia("(orientation: portrait)").matches); } catch (e) { return false; } })(), VID = WA_DIR + "weapon-unlock-" + col + (PORT ? "-portrait" : "") + ".mp4" + WA_V, POSTER = WA_DIR + "weapon-unlock-" + col + "-poster.webp" + WA_V;
       const finish = () => { if (done) return; done = true; sfxStop(); try { ov && ov.remove(); } catch (e) {} res(); };
       try { css(); ov = document.createElement("div"); ov.id = "wa-ov";
         const cap = `<div class="wa-cap"><small>${maxed ? "WEAPON MASTERED" : "WEAPON AWAKENED"}</small><b>${esc(name || "Signature weapon")}</b></div>`;
-        const eyes = `<div class="wa-flash"></div><div class="wa-eyes"><div class="wa-eye"><div class="wa-iris"></div><div class="wa-lid t"></div><div class="wa-lid b"></div></div><div class="wa-eye"><div class="wa-iris"></div><div class="wa-lid t"></div><div class="wa-lid b"></div></div></div>`;
+        const eye = side => `<div class="wa-ew ${side}"><div class="wa-brow"></div><div class="wa-eye"><div class="wa-iris"></div><div class="wa-lid t"></div><div class="wa-lid b"></div></div></div>`, eyes = `<div class="wa-flash"></div><div class="wa-eyes">${eye("l")}${eye("r")}</div>`;
         const skip = '<div class="wa-skip">tap to skip</div><div class="wa-snd" style="position:absolute;top:14px;right:14px;z-index:3;font-size:20px;padding:6px;cursor:pointer">' + (soundOn() ? '🔊' : '🔇') + '</div>';
-        const HUE = { red: -42, blue: 175, purple: 235, green: 75 }; let cssRan = false, eyesUp = false, t0 = Date.now(), vStarted = false; const eyesHtml = () => (HUE[col] != null ? eyes.replace('class="wa-eyes"', 'class="wa-eyes" style="filter:hue-rotate(' + HUE[col] + 'deg)"') : eyes); const cssOnly = () => { if (done || cssRan) return; cssRan = true; try { vRef && vRef.remove(); } catch (e) {} vRef = null; if (eyesUp) { const el = (Date.now() - t0) / 1000; if (!vStarted) sfxPlay(el); setTimeout(finish, Math.max(700, 2900 - el * 1000)); return; } ov.innerHTML = (HUE[col] != null ? eyes.replace('class="wa-eyes"', 'class="wa-eyes" style="filter:hue-rotate(' + HUE[col] + 'deg)"') : eyes) + cap + skip; sfxPlay(0); setTimeout(finish, 2900); };
-        ov.onclick = e => { const t = e && e.target; if (t && t.classList && t.classList.contains("wa-snd")) { e.stopPropagation(); audioOk = true; const on = !soundOn(); try { localStorage.setItem("fl-sound", on ? "1" : "0"); } catch (x) {} t.textContent = on ? "🔊" : "🔇"; if (on && vRef && !vRef.paused) sfxPlay(vRef.currentTime); else if (!on) sfxStop(); return; } finish(); }; document.body.appendChild(ov); setTimeout(finish, 6000);
+        const HUE = { red: -42, blue: 175, purple: 235, green: 75 }; let retryTap = false, cssRan = false, eyesUp = false, t0 = Date.now(), vStarted = false; const eyesHtml = () => (HUE[col] != null ? eyes.replace('class="wa-eyes"', 'class="wa-eyes" style="filter:hue-rotate(' + HUE[col] + 'deg)"') : eyes); const cssOnly = () => { if (done || cssRan) return; cssRan = true; try { vRef && vRef.remove(); } catch (e) {} vRef = null; if (eyesUp) { const el = (Date.now() - t0) / 1000; if (!vStarted) sfxPlay(el); setTimeout(finish, Math.max(700, 2900 - el * 1000)); return; } ov.innerHTML = (HUE[col] != null ? eyes.replace('class="wa-eyes"', 'class="wa-eyes" style="filter:hue-rotate(' + HUE[col] + 'deg)"') : eyes) + cap + skip; sfxPlay(0); setTimeout(finish, 2900); };
+        ov.onclick = e => { const t = e && e.target; if (t && t.classList && t.classList.contains("wa-snd")) { e.stopPropagation(); audioOk = true; const on = !soundOn(); try { localStorage.setItem("fl-sound", on ? "1" : "0"); } catch (x) {} t.textContent = on ? "🔊" : "🔇"; if (on && vRef && !vRef.paused) sfxPlay(vRef.currentTime); else if (!on) sfxStop(); return; } if (retryTap && vRef && !vStarted) { retryTap = false; try { vRef.muted = true; const p = vRef.play(); if (p && p.catch) p.catch(() => cssOnly()); } catch (x) { cssOnly(); } return; } finish(); }; document.body.appendChild(ov); setTimeout(finish, 9000);
         const v = document.createElement("video"); const ok = typeof v.canPlayType === "function" && v.canPlayType("video/mp4");
         if (!ok) cssOnly();
         else { v.muted = true; v.setAttribute("muted", ""); v.playsInline = true; v.setAttribute("playsinline", ""); v.autoplay = true; v.preload = "auto";
-          let started = false; vRef = v; v.onerror = cssOnly; v.onended = () => setTimeout(finish, 600); v.onplaying = () => { if (!started) sfxPlay(v.currentTime); started = true; vStarted = true; try { v.classList.add("wa-on"); } catch (e) {} };
+          let started = false; vRef = v; v.onerror = cssOnly; v.onended = () => setTimeout(finish, 600); v.ontimeupdate = () => { try { if (!started && v.currentTime > 0.05) v.onplaying(); } catch (e) {} }; v.onplaying = () => { if (started) return; if (!started) sfxPlay(v.currentTime); started = true; vStarted = true; try { v.classList.add("wa-on"); } catch (e) {} };
           if (PORT) v.className = "wa-port"; v.src = VID; ov.innerHTML = eyesHtml() + cap.replace('class="wa-cap"', 'class="wa-cap" style="position:absolute;bottom:12vh;left:0;right:0;z-index:3"') + skip; eyesUp = true; t0 = Date.now(); ov.insertBefore(v, ov.firstChild);
-          try { const p = v.play(); if (p && p.catch) p.catch(() => { if (!started) { v.remove(); cssOnly(); } }); } catch (e) { v.remove(); cssOnly(); }
-          setTimeout(() => { if (done || cssRan) return; let t = 0; try { t = v.currentTime || 0; } catch (e) {} if (!started || t <= 0.15) { try { v.pause(); } catch (e) {} cssOnly(); } }, 1000); }
+          try { const p = v.play(); if (p && p.catch) p.catch(() => { if (!started) retryTap = true; }); } catch (e) { retryTap = true; } // autoplay refused (Low Power Mode…): the eyes run underneath, first tap retries muted
+          // judge only after ~3 s: fall back if nothing has played (no 'playing', currentTime not advancing); errors fall back at once (v.onerror)
+          let tA = 0; setTimeout(() => { try { tA = v.currentTime || 0; } catch (e) {} }, 2600);
+          setTimeout(() => { if (done || cssRan) return; let t = 0; try { t = v.currentTime || 0; } catch (e) {} if (!started || t <= Math.max(0.05, tA)) { try { v.pause(); } catch (e) {} cssOnly(); } }, 3000); }
       } catch (e) { finish(); } });
   };
   const _playGameWA = playGame;
@@ -5818,45 +5823,52 @@ function p1StillUrl(n) { return `${P1_DIR}match-stills/still-${n}.webp`; }
 function p1Css() { if (document.getElementById("p1-css")) return; const s = document.createElement("style"); s.id = "p1-css";
   s.textContent = ".p1-still,.p1-clip{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:12px;margin:2px 0 8px;background:#0e1116}.p1-clipbox{position:relative;cursor:pointer}" +
     ".p1-clipbox .p1-cap{position:absolute;left:8px;top:8px;background:rgba(0,0,0,.65);color:#fff;font-size:11px;font-weight:800;padding:3px 8px;border-radius:10px}.p1-clipbox .p1-x{position:absolute;right:8px;top:8px;background:rgba(0,0,0,.65);color:#fff;font-size:11px;padding:3px 8px;border-radius:10px}" +
-    ".p1-av{border-radius:50%;overflow:hidden;background:#1b2230;flex:none}.p1-av svg,.avatar.p1-face svg{width:100%;height:100%;display:block}.avatar.p1-face{overflow:hidden;padding:0}";
+    ".p1-av{border-radius:50%;overflow:hidden;background:#1b2230;flex:none}.p1-av svg,.avatar.p1-face svg,.p1-face svg{width:100%;height:100%;display:block}.avatar.p1-face{overflow:hidden;padding:0}";
   (document.head || document.documentElement).appendChild(s); }
 // --- outcome clips: queued by the flash, shown at the top of the NEXT dialog (so the match never waits on a video); tap to skip
 let P1_CLIP = null; const P1_NOMEDIA = typeof navigator !== "undefined" && /jsdom/i.test(navigator.userAgent || ""); // headless tests: never call play()/load()
 function p1ClipFor(out) { if (!out) return null; if (out.goal) return ["goal", "shot-in-box", "⚽ GOAL!"];
-  if ((out.type === "save") && out.tier === "great") return ["save", "keeper-dive", "🧤 What a save!"];
-  if ((out.tier === "poor" || out.tier === "mistake") && (out.stat === "shots" || out.type === "chance" || /pen/.test(out.id || ""))) return ["miss", "penalty", "😩 Missed"];
+  if (out.stat === "saves" && out.tier === "great") return ["save", "keeper-dive", "🧤 What a save!"];
+  if ((out.tier === "poor" || out.tier === "mistake") && (out.stat === "shots" || /pen/.test(out.id || ""))) return ["miss", "penalty", "😩 Missed"]; // a failed pass is not a miss
   return null; }
 function p1Skip(el) { try { const v = el.querySelector("video"); if (v && !P1_NOMEDIA) { v.pause(); v.removeAttribute("src"); v.load && v.load(); } el.remove(); } catch (e) {} }
 const _mmFlashP1 = mmFlash;
-mmFlash = function (out) { const r = _mmFlashP1.apply(this, arguments); try { const c = p1ClipFor(out); if (c) P1_CLIP = c; } catch (e) {} return r; };
+// the clip plays WITH its outcome (floating under the flash, holding the post-moment pause up to its length, tap to skip) and is gone before the next prompt opens
+function p1ClipEnd() { const el = document.getElementById("p1-clipfloat"); if (el) p1Skip(el); if (window.__mmSkip) window.__mmSkip(); }
+mmFlash = function (out) { const r = _mmFlashP1.apply(this, arguments); P1_CLIP = null; try { const c = p1ClipFor(out); const old = document.getElementById("p1-clipfloat"); if (old) p1Skip(old);
+    if (c) { p1Css(); const [k, poster, cap] = c, el = document.createElement("div"); el.id = "p1-clipfloat"; el.className = "p1-clipbox p1-float"; el.onclick = p1ClipEnd;
+      el.innerHTML = `<video class="p1-clip" muted playsinline autoplay preload="auto" poster="${p1StillUrl(poster)}" src="${P1_DIR}clips/clip-${k}.mp4"></video><span class="p1-cap">${cap}</span><span class="p1-x">tap to skip ✕</span>`;
+      document.body.appendChild(el); const v = el.querySelector("video"); v.onended = p1ClipEnd; v.onerror = p1ClipEnd; window.__p1Clip = k;
+      if (!P1_NOMEDIA) try { v.muted = true; const p = v.play(); if (p && p.catch) p.catch(() => {}); } catch (e) {} } } catch (e) {} return r; };
+window.__mmHold = () => (!P1_NOMEDIA && document.getElementById("p1-clipfloat") ? 1900 : 0);
 const _showDecisionP1 = showDecision;
 showDecision = function (title, text, options, opts) { opts = opts || {};
   try { if (typeof document !== "undefined") { p1Css(); let banner = "";
-      if (P1_CLIP && opts.html) { const [k, poster, cap] = P1_CLIP; P1_CLIP = null;
-        banner = `<div class="p1-clipbox" onclick="p1Skip(this)"><video class="p1-clip" muted playsinline loop autoplay preload="none" poster="${p1StillUrl(poster)}" src="${P1_DIR}clips/clip-${k}.mp4" onerror="this.parentNode&&this.parentNode.remove()"></video><span class="p1-cap">${cap}</span><span class="p1-x">tap to skip ✕</span></div>`; }
-      else if (opts.html && opts.html.indexOf('class="mm-head"') >= 0 && typeof MOMENTS !== "undefined") { const m = MOMENTS.find(x => typeof title === "string" && title.indexOf(`${MM_TYPE_ICON[x.t]} ${x.title} •`) === 0), n = p1StillFor(m);
+      { const fl = document.getElementById("p1-clipfloat"); if (fl) p1Skip(fl); } P1_CLIP = null;
+      if (opts.html && opts.html.indexOf('class="mm-head"') >= 0 && typeof MOMENTS !== "undefined") { const m = MOMENTS.find(x => typeof title === "string" && title.indexOf(`${MM_TYPE_ICON[x.t]} ${x.title} •`) === 0), n = p1StillFor(m);
         if (n) banner = `<img class="p1-still" src="${p1StillUrl(n)}" alt="" loading="lazy" onerror="this.remove()">`; }
       if (banner) { opts = Object.assign({}, opts); opts.html = opts.html.indexOf('class="mm-head"') >= 0 ? opts.html.replace(/(<div class="mm-head">[\s\S]*?<\/div>)/, `$1${banner}`) : banner + opts.html; } } } catch (e) {}
   return _showDecisionP1.call(this, title, text, options, opts); };
 // iOS: make sure a clip that was inserted muted actually starts (autoplay attribute alone can be ignored on innerHTML)
-if (!P1_NOMEDIA) try { new MutationObserver(ms => { ms.forEach(m => m.addedNodes && m.addedNodes.forEach(n => { const v = n.querySelectorAll ? n.querySelectorAll("video.p1-clip") : []; v.forEach(x => { try { x.muted = true; const p = x.play(); if (p && p.catch) p.catch(() => {}); } catch (e) {} }); })); }).observe(document.documentElement, { childList: true, subtree: true }); } catch (e) {}
+if (!P1_NOMEDIA) try { const mo = new MutationObserver(ms => { ms.forEach(m => m.addedNodes && m.addedNodes.forEach(n => { const v = n.querySelectorAll ? n.querySelectorAll("video.p1-clip") : []; v.forEach(x => { try { x.muted = true; const p = x.play(); if (p && p.catch) p.catch(() => {}); } catch (e) {} }); })); }); ["modal", "overlay"].forEach(id => { const el = document.getElementById(id); if (el) mo.observe(el, { childList: true, subtree: true }); }); } catch (e) {}
 // ===== P4z: voice bank (Lum) – a line only plays when its exact text is on screen. Off by default; one toggle (☰ menu) gates voice + SFX ("fl-sound").
 const VO_DIR = P1_DIR + "voice/";
 const VO_ON = () => { try { return localStorage.getItem("fl-sound") === "1"; } catch (e) { return false; } };
 let VO_EL = null, VO_OK = false, VO_NEXT = null;
-try { const un = () => { VO_OK = true; try { if (!VO_EL && !P1_NOMEDIA) { VO_EL = new Audio(); VO_EL.preload = "none"; } } catch (e) {} document.removeEventListener("pointerdown", un, true); document.removeEventListener("touchend", un, true); };
+try { const un = () => { VO_OK = true; try { if (!VO_EL && !P1_NOMEDIA) { VO_EL = new Audio(); } if (VO_EL && !P1_NOMEDIA) { const a = VO_EL; a.muted = true; a.src = VO_DIR + "coach_extra_scout.mp3"; const p = a.play(); const off = () => { try { a.pause(); a.currentTime = 0; } catch (e) {} a.muted = false; }; if (p && p.then) p.then(off, off); else off(); } } catch (e) {} document.removeEventListener("pointerdown", un, true); document.removeEventListener("touchend", un, true); };
   document.addEventListener("pointerdown", un, true); document.addEventListener("touchend", un, true); } catch (e) {}
-function voPlay(name, then) { if (P1_NOMEDIA) { window.__voLast = name; return; } try { if (!VO_ON() || !VO_OK || !name) return; if (!VO_EL) VO_EL = new Audio(); const a = VO_EL; a.pause(); VO_NEXT = then || null;
+function voPlay(name, then) { if (P1_NOMEDIA) { window.__voLast = name; return; } try { if (!VO_ON() || !VO_OK || !name) return; if (!VO_EL) VO_EL = new Audio(); const a = VO_EL; a.pause(); a.muted = false; VO_NEXT = then || null;
     a.onended = () => { const n = VO_NEXT; VO_NEXT = null; if (n) voPlay(n); }; a.src = VO_DIR + name + ".mp3"; const p = a.play(); if (p && p.catch) p.catch(() => {}); } catch (e) {} }
 const VO_TIER = { great: "great", good: "good", neutral: "ok", poor: "poor", mistake: "mistake" };
 const VO_GOAL = ["GOAL! The place erupts!", "GOAL! You sprint to the corner flag.", "GOAL! Teammates pile on top of you."], VO_ASSIST = ["Assist! The scorer points straight at you.", "Assist – the crowd chants your name."], VO_CONC = ["They score from it. Heads drop.", "Goal for them – the keeper glares at you."];
-const VO_SAVE = { "Guessed right. SAVED!": 2, "Full stretch – PENALTY SAVED!": 3, "Fingertips! Over the bar.": 4 };
-function voForFlash(out) { const r = out && out.react; if (!r) return null; let i;
+const VO_SAVE = { "Strong hand. Saved!": 1, "Guessed right. SAVED!": 2, "Full stretch – PENALTY SAVED!": 3, "Fingertips! Over the bar.": 4, "You spread big and smother it.": 5, "He shoots straight at you.": 6, "He chips it… you catch it!": 7, "Caught clean. Statement.": 8, "Pushed wide. Corner.": 9 };
+function voSaveText(out) { const t = String((out && out.text) || "").replace(/^Superb! /, ""); return out && out.stat === "saves" && (out.tier === "great" || out.tier === "good") && VO_SAVE[t] ? t : null; }
+function voForFlash(out) { const r = out && out.react; if (!r) return null; let i; if (VO_SAVE[r]) return "commentator_save_" + VO_SAVE[r];
   if ((i = VO_GOAL.indexOf(r)) >= 0) return "commentator_goal_" + (i + 1); if ((i = VO_ASSIST.indexOf(r)) >= 0) return "commentator_assist_" + (i + 1); if ((i = VO_CONC.indexOf(r)) >= 0) return "commentator_conceded_" + (i + 1);
-  if (out.type === "save" && VO_SAVE[out.text] && (out.tier === "great" || out.tier === "good")) return "commentator_save_" + VO_SAVE[out.text];
   for (const t in VO_TIER) if ((i = (MM_REACT[t] || []).indexOf(r)) >= 0) return `commentator_${VO_TIER[t]}_${i + 1}`; return null; }
 const _mmFlashVO = mmFlash;
-mmFlash = function (out) { const r = _mmFlashVO.apply(this, arguments); try { voPlay(voForFlash(out)); } catch (e) {} return r; };
+mmFlash = function (out) { try { const st = voSaveText(out); if (st) out = Object.assign({}, out, { react: st }); } catch (e) {} // a mapped keeper save: the flash shows the save line, and that is what is spoken
+  const r = _mmFlashVO.call(this, out); try { voPlay(voForFlash(out)); } catch (e) {} return r; };
 const VO_VERDICT = [["Outstanding. That's how you do it.", "great"], ["Good game. Keep it up.", "good"], ["Solid, but there's more in you.", "ok"], ["Not your day. Back to work on Monday.", "poor"]];
 const VO_SCOUT = [["Not ready yet. Come back in a year.", "rough"], ["Decent. We'll keep watching.", "mid"], ["Good feet, good head. We're interested.", "good"], ["Get the parents on the phone. Today.", "great"]];
 const VO_EXTRA = { trial: " Show them you belong.", final: " Enjoy it – finals are why we play.", derby: " Keep your head – derbies get heated.", scout: " Play your game, not theirs." };
@@ -5870,8 +5882,9 @@ showDecision = function (title, text, options, opts) { try { const v = voForHtml
 // ☰ menu toggle (shared with the awakening SFX)
 function voToggleLabel() { return VO_ON() ? "🔊 Voice & sound: on" : "🔇 Voice & sound: off"; }
 try { const host = document.querySelector("#menu-panel .menu-actions"); if (host && !document.getElementById("menu-sound")) { const b = document.createElement("button"); b.id = "menu-sound"; b.type = "button"; b.textContent = voToggleLabel();
-    b.onclick = () => { VO_OK = true; try { localStorage.setItem("fl-sound", VO_ON() ? "0" : "1"); } catch (e) {} b.textContent = voToggleLabel(); if (!VO_ON() && VO_EL) try { VO_EL.pause(); } catch (e) {} else voPlay("commentator_good_4"); };
+    b.onclick = () => { VO_OK = true; try { localStorage.setItem("fl-sound", VO_ON() ? "0" : "1"); } catch (e) {} b.textContent = voToggleLabel(); if (!VO_ON() && VO_EL) try { VO_EL.pause(); } catch (e) {} };
     host.insertBefore(b, host.firstChild); } } catch (e) {}
+try { if (typeof document !== "undefined") { p1Css(); const st = document.createElement("style"); st.textContent = ".p1-float{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 60px);transform:translateX(-50%);width:min(88vw,400px);z-index:650;margin:0;border-radius:14px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.6)}.p1-float .p1-clip{margin:0;border-radius:0}"; (document.head || document.documentElement).appendChild(st); } } catch (e) {}
 // ===== INIT =====
 let CREATE_AV = randomAvatar();
 function fillCities() { const n = document.getElementById("c-nat").value; document.getElementById("c-city").innerHTML = COUNTRIES[n].cities.map(c => `<option>${esc(c)}</option>`).join("") + `<option value="Random">🎲 Random</option>`; }
@@ -5959,7 +5972,7 @@ var oldCal=renderCalendar;renderCalendar=function(){oldCal();var c=document.getE
 window.kingSimUntil=async function(){if(BUSY||!seasonActive())return;var target=Number(document.getElementById('king-sim-day').value);document.getElementById('overlay').classList.remove('show');setBusy(true);try{var g=nextGame();while(g&&g.day!=null&&g.day<=target){await awardsBefore(g,false);if(g.isKey){setBusy(false);await playGame(g,false);setBusy(true);}else await playGame(g,true);g=nextGame();}if(!nextGame()){await awardsBefore(null,false);await finishSeason(false);}}finally{setBusy(false);updateHeader();renderStats();}};
 var oldGod=toggleGodMode;toggleGodMode=function(){S.godMode=!S.godMode;if(S.godMode)S.godEver=true;addEvent('God Mode',S.godMode?'Enabled':'Disabled');if(S.godMode)godEditor();else openAvatarEditor();updateHeader();};
 var GOD_KEYS=[['ovr','Overall',1,99],['potential','Potential',1,99],['money','Money (€)',0,999999999],['age','Age',0,50],['health','Health',0,100],['form','Form',0,100],['happiness','Happiness',0,100],['looks','Looks',0,100],['skillPoints','Skill points',0,999]];function godEditor(){ensure();var c=setOv('God Mode');backHandler=function(){openScreen('more');};var keys=GOD_KEYS;var h='<div class="nice-card"><h3>Player and career editor</h3>';keys.forEach(function(x){h+='<label style="display:block;margin:8px 0">'+x[1]+'<input id="kg-'+x[0]+'" type="number" min="'+x[2]+'" max="'+x[3]+'" value="'+esc(x[0]==='skillPoints'?spFmt(S.skillPoints):(S[x[0]]||0))+'" style="width:100%;padding:9px;background:var(--panel);color:var(--text)"></label>';});h+='<label>Club <input id="kg-club" value="'+esc(S.club||'')+'"></label><label style="display:block;margin:8px 0">Signature weapon <select id="kg-weapon">'+KW.map(function(w){return '<option '+(S.weaponState.signature===w[0]?'selected':'')+'>'+esc(w[0])+'</option>';}).join('')+'</select></label><label><input type="checkbox" id="kg-cap" '+(S.potentialSurpassed?'checked':'')+'> Allow OVR to surpass potential</label><button class="create-btn" onclick="window.kingSaveGod()">Save God Mode changes</button></div>';c.innerHTML=h;}
-window.kingSaveGod=function(){GOD_KEYS.forEach(function(x){var k=x[0],e=document.getElementById('kg-'+k);if(!e)return;var raw=String(e.value).trim(),n=Number(raw);if(raw===''||!isFinite(n))return;if(k!=='skillPoints')n=Math.round(n);S[k]=Math.max(x[2],Math.min(x[3],n));});S.club=document.getElementById('kg-club').value||null;var n=document.getElementById('kg-weapon').value;ensure();var old=S.weaponState.signature,oldLv=Math.max(1,Number(S.weaponState.levels[old]||0)),oldXp=(S.weaponState.xp&&S.weaponState.xp[old])||0;S.weaponState.signature=n;S.weaponState.unlocked=true;S.weaponState.xp=S.weaponState.xp||{};if(old&&old!==n){var oi=S.weaponState.owned.indexOf(old);if(oi>=0)S.weaponState.owned.splice(oi,1);S.weaponState.levels[n]=oldLv;S.weaponState.xp[n]=oldXp;}else{S.weaponState.levels[n]=Math.max(1,Number(S.weaponState.levels[n]||0));}if(S.weaponState.owned.indexOf(n)<0)S.weaponState.owned.push(n);if(!S.weaponState.branches[n])S.weaponState.branches[n]={level:0};S.weaponState.branches[n].level=S.weaponState.levels[n];S.potentialSurpassed=document.getElementById('kg-cap').checked;if(S.potentialSurpassed&&S.ovr>S.potential)S.potential=S.ovr;addEvent('God Mode edit','Player values and signature weapon updated.');updateHeader();renderStats();godEditor();};
+window.kingSaveGod=function(){GOD_KEYS.forEach(function(x){var k=x[0],e=document.getElementById('kg-'+k);if(!e)return;var raw=String(e.value).trim(),n=Number(raw);if(raw===''||!isFinite(n))return;if(k!=='skillPoints')n=Math.round(n);S[k]=Math.max(x[2],Math.min(x[3],n));});if((S.ovr||0)>(S.potential||0))S.potential=Math.min(99,S.ovr);S.club=document.getElementById('kg-club').value||null;var n=document.getElementById('kg-weapon').value;ensure();var old=S.weaponState.signature,oldLv=Math.max(1,Number(S.weaponState.levels[old]||0)),oldXp=(S.weaponState.xp&&S.weaponState.xp[old])||0;S.weaponState.signature=n;S.weaponState.unlocked=true;S.weaponState.xp=S.weaponState.xp||{};if(old&&old!==n){var oi=S.weaponState.owned.indexOf(old);if(oi>=0)S.weaponState.owned.splice(oi,1);S.weaponState.levels[n]=oldLv;S.weaponState.xp[n]=oldXp;}else{S.weaponState.levels[n]=Math.max(1,Number(S.weaponState.levels[n]||0));}if(S.weaponState.owned.indexOf(n)<0)S.weaponState.owned.push(n);if(!S.weaponState.branches[n])S.weaponState.branches[n]={level:0};S.weaponState.branches[n].level=S.weaponState.levels[n];S.potentialSurpassed=document.getElementById('kg-cap').checked;if(S.potentialSurpassed&&S.ovr>S.potential)S.potential=S.ovr;addEvent('God Mode edit','Player values and signature weapon updated.');updateHeader();renderStats();godEditor();};
 var oldAvatar=openAvatarEditor;openAvatarEditor=function(){if(S.started&&S.godMode)return godEditor();return oldAvatar();};
 if(S.started){ensure();updateHeader();}
 window.KING_WEAPON_COUNT=KW.length;window.KING_KW=KW;
