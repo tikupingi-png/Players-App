@@ -5453,7 +5453,7 @@ loadCareer = function (id) { const r = _loadCareerEra.apply(this, arguments); tr
       "#wa-ov video{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);width:100%;height:auto;object-fit:contain}" +
       "#wa-ov .wa-eyes{display:flex;gap:9vw;position:relative;z-index:1}" +
       ".wa-eye{position:relative;width:30vw;max-width:170px;height:13vw;max-height:74px;border-radius:50%;overflow:hidden;background:radial-gradient(ellipse at center,#fff8e0 0%,#e9dcc0 70%,#9c8a66 100%);box-shadow:0 0 40px 6px rgba(255,190,40,.0);animation:waGlow 2.5s ease-out forwards}" +
-      ".wa-iris{position:absolute;left:50%;top:50%;width:46%;padding-top:46%;transform:translate(-50%,-50%) scale(.6);border-radius:50%;background:radial-gradient(circle,#000 0 22%,#ffef9a 24%,#ffc21a 45%,#d48a00 70%,#5a3500 100%);box-shadow:0 0 18px 6px rgba(255,200,40,.9);animation:waIris 2.5s ease-out forwards}" +
+      ".wa-iris{position:absolute;left:50%;top:50%;width:46%;padding-top:46%;transform:translate(-50%,-50%) scale(.6);border-radius:50%;background:radial-gradient(circle,#000 0 22%,#ffef9a 24%,#ffc21a 45%,#d48a00 70%,#5a3500 100%);box-shadow:0 0 18px 6px rgba(255,200,40,.9);animation:waIris 2.5s ease-out forwards,waPulse .9s ease-in-out 1.6s infinite alternate}" +
       ".wa-lid{position:absolute;left:-5%;width:110%;height:55%;background:#000;animation:waLidT 2.5s cubic-bezier(.5,0,.2,1) forwards}" +
       ".wa-lid.b{bottom:0;animation-name:waLidB}.wa-lid.t{top:0}" +
       "#wa-ov .wa-cap{position:relative;z-index:1;margin-top:7vh;text-align:center;color:#ffd54a;font-weight:900;letter-spacing:.06em;text-shadow:0 0 14px rgba(255,190,40,.8);opacity:.6;animation:waCap 2.5s ease-out forwards}" +
@@ -5464,6 +5464,7 @@ loadCareer = function (id) { const r = _loadCareerEra.apply(this, arguments); tr
       "@keyframes waLidB{0%,25%{transform:translateY(0)}60%{transform:translateY(70%)}100%{transform:translateY(100%)}}" +
       "@keyframes waIris{0%,45%{transform:translate(-50%,-50%) scale(.55);filter:brightness(.6)}70%{transform:translate(-50%,-50%) scale(1.05);filter:brightness(1.6)}100%{transform:translate(-50%,-50%) scale(1);filter:brightness(1.2)}}" +
       "@keyframes waGlow{0%,50%{box-shadow:0 0 0 0 rgba(255,190,40,0)}75%{box-shadow:0 0 60px 14px rgba(255,190,40,.75)}100%{box-shadow:0 0 34px 8px rgba(255,190,40,.5)}}" +
+      "@keyframes waPulse{from{box-shadow:0 0 12px 4px rgba(255,200,40,.6)}to{box-shadow:0 0 30px 12px rgba(255,220,90,1)}}" +
       "@keyframes waCap{0%,55%{opacity:.6;transform:translateY(8px)}80%,100%{opacity:1;transform:none}}" +
       "@keyframes waFlash{0%,58%{opacity:0}68%{opacity:1}100%{opacity:.25}}@keyframes waFade{from{opacity:0}to{opacity:1}}";
     (document.head || document.documentElement).appendChild(s); }
@@ -5474,15 +5475,15 @@ loadCareer = function (id) { const r = _loadCareerEra.apply(this, arguments); tr
         const cap = `<div class="wa-cap"><small>${maxed ? "WEAPON MASTERED" : "WEAPON AWAKENED"}</small><b>${esc(name || "Signature weapon")}</b></div>`;
         const eyes = `<div class="wa-flash"></div><div class="wa-eyes"><div class="wa-eye"><div class="wa-iris"></div><div class="wa-lid t"></div><div class="wa-lid b"></div></div><div class="wa-eye"><div class="wa-iris"></div><div class="wa-lid t"></div><div class="wa-lid b"></div></div></div>`;
         const skip = '<div class="wa-skip">tap to skip</div><div class="wa-snd" style="position:absolute;top:14px;right:14px;z-index:3;font-size:20px;padding:6px;cursor:pointer">' + (soundOn() ? '🔊' : '🔇') + '</div>';
-        const HUE = { red: -42, blue: 175, purple: 235, green: 75 }; const cssOnly = () => { if (done) return; ov.innerHTML = (HUE[col] != null ? eyes.replace('class="wa-eyes"', 'class="wa-eyes" style="filter:hue-rotate(' + HUE[col] + 'deg)"') : eyes) + cap + skip; sfxPlay(0); setTimeout(finish, 2900); };
+        const HUE = { red: -42, blue: 175, purple: 235, green: 75 }; let cssRan = false; const cssOnly = () => { if (done || cssRan) return; cssRan = true; try { vRef && vRef.remove(); } catch (e) {} vRef = null; ov.innerHTML = (HUE[col] != null ? eyes.replace('class="wa-eyes"', 'class="wa-eyes" style="filter:hue-rotate(' + HUE[col] + 'deg)"') : eyes) + cap + skip; sfxPlay(0); setTimeout(finish, 2900); };
         ov.onclick = e => { const t = e && e.target; if (t && t.classList && t.classList.contains("wa-snd")) { e.stopPropagation(); audioOk = true; const on = !soundOn(); try { localStorage.setItem("fl-sound", on ? "1" : "0"); } catch (x) {} t.textContent = on ? "🔊" : "🔇"; if (on && vRef && !vRef.paused) sfxPlay(vRef.currentTime); else if (!on) sfxStop(); return; } finish(); }; document.body.appendChild(ov); setTimeout(finish, 6000);
         const v = document.createElement("video"); const ok = typeof v.canPlayType === "function" && v.canPlayType("video/mp4");
         if (!ok) cssOnly();
-        else { v.muted = true; v.setAttribute("muted", ""); v.playsInline = true; v.setAttribute("playsinline", ""); v.autoplay = true; v.poster = POSTER; v.preload = "auto";
+        else { v.muted = true; v.setAttribute("muted", ""); v.playsInline = true; v.setAttribute("playsinline", ""); v.autoplay = true; v.preload = "auto";
           let started = false; vRef = v; v.onerror = cssOnly; v.onended = () => setTimeout(finish, 600); v.onplaying = () => { if (!started) sfxPlay(v.currentTime); started = true; };
           v.src = VID; ov.innerHTML = cap.replace('class="wa-cap"', 'class="wa-cap" style="position:absolute;bottom:12vh;left:0;right:0"') + skip; ov.insertBefore(v, ov.firstChild);
           try { const p = v.play(); if (p && p.catch) p.catch(() => { if (!started) { v.remove(); cssOnly(); } }); } catch (e) { v.remove(); cssOnly(); }
-          setTimeout(() => { if (!started && !done) { try { v.remove(); } catch (e) {} cssOnly(); } }, 1500); }
+          setTimeout(() => { if (done || cssRan) return; let t = 0; try { t = v.currentTime || 0; } catch (e) {} if (!started || t <= 0.15) { try { v.pause(); } catch (e) {} cssOnly(); } }, 1000); }
       } catch (e) { finish(); } });
   };
   const _playGameWA = playGame;
